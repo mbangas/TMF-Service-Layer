@@ -50,3 +50,4 @@ Generate a complete OpenAPI spec including:
 Focus on: ${input:endpoint_focus:Which specific endpoint or endpoints should be documented?}
 
 Generate production-ready OpenAPI specification that can be used with Swagger UI, Postman, and code generators.
+
