@@ -24,12 +24,16 @@ from src.shared.events.bus import EventBus
 from src.shared.events.schemas import EventPayload, TMFEvent
 
 # Allowed lifecycle transitions: {from_state: {allowed_to_states}}
+# Pre-active states follow a strict design sequence.
+# Post-active operations (activate, deactivate, terminate) are driven by
+# TMF640 provisioning jobs, so both active↔inactive and active/inactive→terminated
+# are valid transitions here.
 _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
     "feasibilityChecked": {"designed"},
     "designed": {"reserved"},
     "reserved": {"inactive"},
-    "inactive": {"active"},
-    "active": {"terminated"},
+    "inactive": {"active", "terminated"},       # activate or terminate from inactive
+    "active": {"terminated", "inactive"},       # terminate or deactivate from active
     "terminated": set(),
 }
 

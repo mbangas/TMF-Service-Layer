@@ -46,9 +46,9 @@ TMF-Service-Layer/
 │   │   ├── repositories/         # Data access layer
 │   │   └── tests/                # Unit and integration tests
 │   │
-│   ├── order/                    # TMF641 — Service Order Management
-│   ├── inventory/                # TMF638 — Service Inventory
-│   ├── provisioning/             # TMF640 — Service Activation & Configuration
+│   ├── order/                    # TMF641 — Service Order Management ✅
+│   ├── inventory/                # TMF638 — Service Inventory ✅
+│   ├── provisioning/             # TMF640 — Service Activation & Configuration ✅
 │   ├── qualification/            # TMF645 — Service Qualification
 │   ├── assurance/                # TMF628 / TMF642 / TMF657 — Assurance
 │   ├── testing/                  # TMF653 — Service Test Management
@@ -65,10 +65,10 @@ TMF-Service-Layer/
 │
 ├── frontend/                     # UI — one HTML page per domain module
 │   ├── index.html                # Dashboard — welcome and module shortcuts
-│   ├── catalog.html              # Service Catalog (TMF633)
-│   ├── orders.html               # Service Orders (TMF641)
-│   ├── inventory.html            # Service Inventory (TMF638)
-│   ├── provisioning.html         # Service Activation (TMF640)
+│   ├── catalog.html              # Service Catalog (TMF633) ✅
+│   ├── orders.html               # Service Orders (TMF641) ✅
+│   ├── inventory.html            # Service Inventory (TMF638) ✅
+│   ├── provisioning.html         # Service Activation (TMF640) ✅
 │   ├── assurance.html            # Assurance / KPIs (TMF628/642/657)
 │   ├── testing.html              # Service Tests (TMF653)
 │   ├── problems.html             # Problems & Tickets (TMF621/656)

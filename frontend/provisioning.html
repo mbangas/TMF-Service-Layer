@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Activation — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .id-cell           { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell      { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+        .badge--accepted   { background: #f1f5f9; color: #475569; }
+        .badge--running    { background: #dbeafe; color: #1d4ed8; }
+        .badge--succeeded  { background: #dcfce7; color: #166534; }
+        .badge--failed     { background: #fee2e2; color: #991b1b; }
+        .badge--cancelled  { background: #fef3c7; color: #92400e; }
+
+        .params-list       { margin: 0; padding: 0; list-style: none; }
+        .params-list li    { display: flex; gap: var(--space-sm); font-size: var(--font-size-sm); padding: 4px 0; border-bottom: 1px solid var(--colour-border); }
+        .params-list li:last-child { border-bottom: none; }
+        .param-name        { font-weight: 600; flex-shrink: 0; }
+        .param-value       { color: var(--colour-text-muted); font-family: var(--font-mono); word-break: break-all; }
+
+        .param-row         { display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: var(--space-sm); align-items: center; margin-bottom: var(--space-sm); }
+        .param-row button  { align-self: flex-end; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link active" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Service Activation &amp; Configuration</div>
+                <div class="topbar__subtitle">TMF640 — Provisioning jobs for active service lifecycle management</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" id="btn-new">+ New Job</button>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="card">
+                <div class="card__header">
+                    <div style="display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap">
+                        <select class="form-control form-control--sm" id="filter-state" style="width:160px">
+                            <option value="">All states</option>
+                            <option value="accepted">accepted</option>
+                            <option value="running">running</option>
+                            <option value="succeeded">succeeded</option>
+                            <option value="failed">failed</option>
+                            <option value="cancelled">cancelled</option>
+                        </select>
+                        <select class="form-control form-control--sm" id="filter-type" style="width:160px">
+                            <option value="">All types</option>
+                            <option value="provision">provision</option>
+                            <option value="activate">activate</option>
+                            <option value="modify">modify</option>
+                            <option value="deactivate">deactivate</option>
+                            <option value="terminate">terminate</option>
+                        </select>
+                    </div>
+                    <span id="total-count" class="text-muted text-sm"></span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="jobs-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>State</th>
+                                <th>Target Service</th>
+                                <th>Scheduled Start</th>
+                                <th>Completed</th>
+                                <th>Error</th>
+                                <th>ID</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobs-tbody">
+                            <tr>
+                                <td colspan="9">
+                                    <div class="empty-state">
+                                        <div class="loader"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="pagination__info" id="page-info">—</span>
+                    <button class="btn btn--ghost btn--sm" id="btn-prev" disabled>‹ Prev</button>
+                    <button class="btn btn--ghost btn--sm" id="btn-next" disabled>Next ›</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── Create Job Modal ───────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="max-width:580px">
+        <div class="modal__header">
+            <span class="modal__title" id="modal-title">New Activation Job</span>
+            <button class="btn btn--ghost btn--icon" id="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="field-name">Name <span class="required">*</span></label>
+                <input type="text" id="field-name" class="form-control" placeholder="e.g. Activate Customer A Broadband" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-description">Description</label>
+                <textarea id="field-description" class="form-control" placeholder="Optional description…"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="field-job-type">Job Type <span class="required">*</span></label>
+                    <select id="field-job-type" class="form-control">
+                        <option value="provision">provision</option>
+                        <option value="activate">activate</option>
+                        <option value="modify">modify</option>
+                        <option value="deactivate">deactivate</option>
+                        <option value="terminate">terminate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="field-mode">Mode</label>
+                    <select id="field-mode" class="form-control">
+                        <option value="">— select —</option>
+                        <option value="immediate">immediate</option>
+                        <option value="deferred">deferred</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-service-id">Target Service ID <span class="required">*</span></label>
+                <input type="text" id="field-service-id" class="form-control" placeholder="UUID of the target Service (TMF638)">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-scheduled-start">Scheduled Start (optional)</label>
+                <input type="datetime-local" id="field-scheduled-start" class="form-control">
+            </div>
+
+            <!-- Configuration Parameters -->
+            <div class="form-group">
+                <label class="form-label">Configuration Parameters</label>
+                <div id="params-container"></div>
+                <button type="button" class="btn btn--ghost btn--sm" id="btn-add-param" style="margin-top:var(--space-sm)">+ Add Parameter</button>
+            </div>
+
+            <div id="form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="modal-save">Create Job</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Job Detail Modal ───────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="detail-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" style="max-width:520px">
+        <div class="modal__header">
+            <span class="modal__title" id="detail-title">Job Details</span>
+            <button class="btn btn--ghost btn--icon" id="detail-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body" id="detail-body">
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="detail-ok">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── State Transition Modal ─────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="transition-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title" id="transition-title">Update Job State</span>
+            <button class="btn btn--ghost btn--icon" id="transition-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p id="transition-desc"></p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="transition-cancel">Cancel</button>
+            <button class="btn btn--primary" id="transition-confirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Job</span>
+            <button class="btn btn--ghost btn--icon" id="delete-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p>Delete job <strong id="delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">
+                Only <em>failed</em> or <em>cancelled</em> jobs can be deleted. This action cannot be undone.
+            </p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Toast container ────────────────────────────────────────────────────── -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20;
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let currentOffset   = 0;
+let totalCount      = 0;
+let deletingId      = null;
+let transitionId    = null;
+let transitionState = null;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────────
+const tbody       = document.getElementById('jobs-tbody');
+const totalEl     = document.getElementById('total-count');
+const pageInfoEl  = document.getElementById('page-info');
+const btnPrev     = document.getElementById('btn-prev');
+const btnNext     = document.getElementById('btn-next');
+const filterState = document.getElementById('filter-state');
+const filterType  = document.getElementById('filter-type');
+const btnNew      = document.getElementById('btn-new');
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function stateBadge(s) {
+    return `<span class="badge badge--${s}">${s}</span>`;
+}
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle:'short', timeStyle:'short' }); }
+    catch { return iso; }
+}
+
+function nextActions(state) {
+    const map = {
+        accepted:  [
+            { label: 'Start',    state: 'running',    cls: 'btn--primary' },
+            { label: 'Cancel',   state: 'cancelled',  cls: 'btn--ghost'   },
+        ],
+        running:   [
+            { label: 'Succeed',  state: 'succeeded',  cls: 'btn--success' },
+            { label: 'Fail',     state: 'failed',     cls: 'btn--warning' },
+            { label: 'Cancel',   state: 'cancelled',  cls: 'btn--ghost'   },
+        ],
+        succeeded:  [],
+        failed:     [],
+        cancelled:  [],
+    };
+    return map[state] || [];
+}
+
+// ── Load ───────────────────────────────────────────────────────────────────────
+async function loadJobs() {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+    try {
+        const params = { offset: currentOffset, limit: PAGE_SIZE };
+        const stateFilter = filterState.value;
+        const typeFilter  = filterType.value;
+        if (stateFilter) params.state    = stateFilter;
+        if (typeFilter)  params.job_type = typeFilter;
+
+        const { data, headers } = await ProvisioningClient.list(params);
+        totalCount = parseInt(headers.get('X-Total-Count') || data.length, 10);
+
+        totalEl.textContent    = `${totalCount} total`;
+        pageInfoEl.textContent = totalCount === 0
+            ? 'No results'
+            : `${currentOffset + 1}–${Math.min(currentOffset + data.length, totalCount)} of ${totalCount}`;
+
+        btnPrev.disabled = currentOffset <= 0;
+        btnNext.disabled = currentOffset + PAGE_SIZE >= totalCount;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="9">
+                    <div class="empty-state">
+                        <div class="empty-state__icon">⚙️</div>
+                        <div class="empty-state__title">No jobs found</div>
+                        <div class="empty-state__desc">Create a new activation job to provision or modify a service instance.</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(job => {
+            const actions = nextActions(job.state);
+            const actionBtns = actions.map(a =>
+                `<button class="btn ${a.cls} btn--sm" onclick="startTransition('${escHtml(job.id)}','${escHtml(job.state)}','${a.state}','${escHtml(a.label)}')">${a.label}</button>`
+            ).join('');
+
+            const detailBtn = `<button class="btn btn--ghost btn--sm" onclick="showDetail('${escHtml(job.id)}')">Detail</button>`;
+
+            const canDelete = job.state === 'failed' || job.state === 'cancelled';
+            const deleteBtn = canDelete
+                ? `<button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(job.id)}','${escHtml(job.name)}')">Delete</button>`
+                : '';
+
+            return `
+            <tr>
+                <td>${escHtml(job.name || '—')}</td>
+                <td><span class="badge">${escHtml(job.job_type || '—')}</span></td>
+                <td>${stateBadge(job.state)}</td>
+                <td class="id-cell" title="${escHtml(job.service_id || '')}">${job.service_id ? job.service_id.slice(0,8) + '…' : '—'}</td>
+                <td class="muted">${fmtDate(job.scheduled_start_date)}</td>
+                <td class="muted">${fmtDate(job.actual_completion_date)}</td>
+                <td class="muted" title="${escHtml(job.error_message || '')}" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    ${job.error_message ? escHtml(job.error_message.slice(0,30)) + '…' : '—'}
+                </td>
+                <td class="id-cell" title="${escHtml(job.id)}">${job.id.slice(0,8)}…</td>
+                <td class="actions-cell">${actionBtns}${detailBtn}${deleteBtn}</td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state empty-state--error">
+            <div class="empty-state__icon">⚠️</div>
+            <div class="empty-state__title">Failed to load</div>
+            <div class="empty-state__desc">${escHtml(err.message)}</div>
+        </div></td></tr>`;
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Job Detail ─────────────────────────────────────────────────────────────────
+async function showDetail(id) {
+    const detailBody  = document.getElementById('detail-body');
+    const detailTitle = document.getElementById('detail-title');
+    const detailBackdrop = document.getElementById('detail-backdrop');
+
+    detailTitle.textContent = 'Job Details';
+    detailBody.innerHTML    = '<div class="empty-state"><div class="loader"></div></div>';
+    detailBackdrop.classList.add('open');
+
+    try {
+        const { data: job } = await ProvisioningClient.get(id);
+        detailTitle.textContent = job.name;
+        const params = job.params && job.params.length > 0
+            ? `<ul class="params-list">${job.params.map(p =>
+                `<li><span class="param-name">${escHtml(p.name)}</span><span class="param-value">${escHtml(p.value ?? '—')}</span><span class="muted text-sm">${escHtml(p.value_type ?? '')}</span></li>`
+              ).join('')}</ul>`
+            : '<span class="text-muted text-sm">No parameters</span>';
+
+        detailBody.innerHTML = `
+            <dl style="display:grid;grid-template-columns:140px 1fr;gap:var(--space-sm) var(--space-md)">
+                <dt class="text-muted text-sm">ID</dt>              <dd class="id-cell">${escHtml(job.id)}</dd>
+                <dt class="text-muted text-sm">Job Type</dt>        <dd>${escHtml(job.job_type)}</dd>
+                <dt class="text-muted text-sm">State</dt>           <dd>${stateBadge(job.state)}</dd>
+                <dt class="text-muted text-sm">Service ID</dt>      <dd class="id-cell">${escHtml(job.service_id)}</dd>
+                <dt class="text-muted text-sm">Mode</dt>            <dd>${escHtml(job.mode || '—')}</dd>
+                <dt class="text-muted text-sm">Start Mode</dt>      <dd>${escHtml(job.start_mode || '—')}</dd>
+                <dt class="text-muted text-sm">Scheduled Start</dt> <dd>${fmtDate(job.scheduled_start_date)}</dd>
+                <dt class="text-muted text-sm">Actual Start</dt>    <dd>${fmtDate(job.actual_start_date)}</dd>
+                <dt class="text-muted text-sm">Completed</dt>       <dd>${fmtDate(job.actual_completion_date)}</dd>
+                <dt class="text-muted text-sm">Error</dt>           <dd class="text-muted text-sm">${escHtml(job.error_message || '—')}</dd>
+                <dt class="text-muted text-sm">Created</dt>         <dd>${fmtDate(job.created_at)}</dd>
+            </dl>
+            <div style="margin-top:var(--space-md)">
+                <div class="form-label" style="margin-bottom:var(--space-sm)">Configuration Parameters</div>
+                ${params}
+            </div>`;
+    } catch (err) {
+        detailBody.innerHTML = `<div class="empty-state empty-state--error">${escHtml(err.message)}</div>`;
+    }
+}
+
+document.getElementById('detail-close').addEventListener('click', () => document.getElementById('detail-backdrop').classList.remove('open'));
+document.getElementById('detail-ok').addEventListener('click',    () => document.getElementById('detail-backdrop').classList.remove('open'));
+document.getElementById('detail-backdrop').addEventListener('click', e => { if (e.target === document.getElementById('detail-backdrop')) document.getElementById('detail-backdrop').classList.remove('open'); });
+
+// ── Create Job ─────────────────────────────────────────────────────────────────
+const modalBackdrop   = document.getElementById('modal-backdrop');
+const modalClose      = document.getElementById('modal-close');
+const modalCancel     = document.getElementById('modal-cancel');
+const modalSave       = document.getElementById('modal-save');
+const formError       = document.getElementById('form-error');
+const paramsContainer = document.getElementById('params-container');
+const btnAddParam     = document.getElementById('btn-add-param');
+
+let paramRows = [];
+
+function addParamRow() {
+    const idx = paramRows.length;
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'param-row';
+    rowDiv.innerHTML = `
+        <input type="text" class="form-control form-control--sm" placeholder="Name" data-param-name>
+        <input type="text" class="form-control form-control--sm" placeholder="Value" data-param-value>
+        <input type="text" class="form-control form-control--sm" placeholder="Type" data-param-type>
+        <button type="button" class="btn btn--ghost btn--sm btn--icon" onclick="removeParamRow(${idx})">✕</button>`;
+    paramsContainer.appendChild(rowDiv);
+    paramRows.push(rowDiv);
+}
+
+function removeParamRow(idx) {
+    if (paramRows[idx]) {
+        paramRows[idx].remove();
+        paramRows[idx] = null;
+    }
+}
+
+function collectParams() {
+    return paramRows
+        .filter(r => r !== null && r.isConnected)
+        .map(r => ({
+            name:       r.querySelector('[data-param-name]').value.trim(),
+            value:      r.querySelector('[data-param-value]').value.trim() || null,
+            value_type: r.querySelector('[data-param-type]').value.trim() || null,
+        }))
+        .filter(p => p.name);
+}
+
+btnAddParam.addEventListener('click', addParamRow);
+
+btnNew.addEventListener('click', () => {
+    document.getElementById('field-name').value        = '';
+    document.getElementById('field-description').value = '';
+    document.getElementById('field-job-type').value    = 'provision';
+    document.getElementById('field-mode').value        = '';
+    document.getElementById('field-service-id').value  = '';
+    document.getElementById('field-scheduled-start').value = '';
+    paramsContainer.innerHTML = '';
+    paramRows = [];
+    formError.style.display = 'none';
+    modalBackdrop.classList.add('open');
+    document.getElementById('field-name').focus();
+});
+
+modalClose.addEventListener('click',    () => modalBackdrop.classList.remove('open'));
+modalCancel.addEventListener('click',   () => modalBackdrop.classList.remove('open'));
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('open'); });
+
+modalSave.addEventListener('click', async () => {
+    const name      = document.getElementById('field-name').value.trim();
+    const serviceId = document.getElementById('field-service-id').value.trim();
+    if (!name) {
+        formError.textContent = 'Name is required.';
+        formError.style.display = 'block';
+        return;
+    }
+    if (!serviceId) {
+        formError.textContent = 'Target Service ID is required.';
+        formError.style.display = 'block';
+        return;
+    }
+    formError.style.display = 'none';
+    modalSave.disabled = true;
+    modalSave.innerHTML = '<span class="loader"></span>';
+
+    const scheduledStart = document.getElementById('field-scheduled-start').value;
+    const payload = {
+        name,
+        description:          document.getElementById('field-description').value.trim() || null,
+        job_type:             document.getElementById('field-job-type').value,
+        service_id:           serviceId,
+        mode:                 document.getElementById('field-mode').value || null,
+        scheduled_start_date: scheduledStart ? new Date(scheduledStart).toISOString() : null,
+        params:               collectParams(),
+    };
+
+    try {
+        await ProvisioningClient.create(payload);
+        modalBackdrop.classList.remove('open');
+        showToast('Activation job created.', 'success');
+        currentOffset = 0;
+        await loadJobs();
+    } catch (err) {
+        formError.textContent = err.message;
+        formError.style.display = 'block';
+    } finally {
+        modalSave.disabled = false;
+        modalSave.textContent = 'Create Job';
+    }
+});
+
+// ── State Transition ───────────────────────────────────────────────────────────
+const transBackdrop = document.getElementById('transition-backdrop');
+const transTitle    = document.getElementById('transition-title');
+const transDesc     = document.getElementById('transition-desc');
+const transClose    = document.getElementById('transition-close');
+const transCancel   = document.getElementById('transition-cancel');
+const transConfirm  = document.getElementById('transition-confirm');
+
+function startTransition(id, currentState, targetState, label) {
+    transitionId    = id;
+    transitionState = targetState;
+    transTitle.textContent = `${label} Job`;
+    transDesc.textContent  = `Transition state from "${currentState}" → "${targetState}". Continue?`;
+    transBackdrop.classList.add('open');
+}
+
+transClose.addEventListener('click',   () => transBackdrop.classList.remove('open'));
+transCancel.addEventListener('click',  () => transBackdrop.classList.remove('open'));
+transBackdrop.addEventListener('click', e => { if (e.target === transBackdrop) transBackdrop.classList.remove('open'); });
+
+transConfirm.addEventListener('click', async () => {
+    transBackdrop.classList.remove('open');
+    transConfirm.disabled = true;
+    try {
+        await ProvisioningClient.patch(transitionId, { state: transitionState });
+        showToast(`Job transitioned to "${transitionState}".`, 'success');
+        await loadJobs();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        transConfirm.disabled = false;
+    }
+});
+
+// ── Delete ─────────────────────────────────────────────────────────────────────
+const deleteBackdrop = document.getElementById('delete-backdrop');
+const deleteNameEl   = document.getElementById('delete-name');
+const deleteClose    = document.getElementById('delete-close');
+const deleteCancel   = document.getElementById('delete-cancel');
+const deleteConfirm  = document.getElementById('delete-confirm');
+
+function startDelete(id, name) {
+    deletingId = id;
+    deleteNameEl.textContent = name;
+    deleteBackdrop.classList.add('open');
+}
+
+deleteClose.addEventListener('click',   () => deleteBackdrop.classList.remove('open'));
+deleteCancel.addEventListener('click',  () => deleteBackdrop.classList.remove('open'));
+deleteBackdrop.addEventListener('click', e => { if (e.target === deleteBackdrop) deleteBackdrop.classList.remove('open'); });
+
+deleteConfirm.addEventListener('click', async () => {
+    deleteBackdrop.classList.remove('open');
+    deleteConfirm.disabled = true;
+    try {
+        await ProvisioningClient.delete(deletingId);
+        showToast('Job deleted.', 'success');
+        await loadJobs();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        deleteConfirm.disabled = false;
+    }
+});
+
+// ── Pagination & Filter ────────────────────────────────────────────────────────
+btnPrev.addEventListener('click', () => {
+    if (currentOffset > 0) {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadJobs();
+    }
+});
+
+btnNext.addEventListener('click', () => {
+    if (currentOffset + PAGE_SIZE < totalCount) {
+        currentOffset += PAGE_SIZE;
+        loadJobs();
+    }
+});
+
+filterState.addEventListener('change', () => { currentOffset = 0; loadJobs(); });
+filterType.addEventListener('change',  () => { currentOffset = 0; loadJobs(); });
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadJobs();
+</script>
+
+</body>
+</html>

@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from src.catalog.models import orm as _catalog_orm  # noqa: F401 — registers ORM tables
 from src.inventory.models import orm as _inventory_orm  # noqa: F401 — registers ORM tables
 from src.order.models import orm as _order_orm  # noqa: F401 — registers ORM tables
+from src.provisioning.models import orm as _provisioning_orm  # noqa: F401 — registers ORM tables
 from src.shared.db.base import Base
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"

@@ -281,3 +281,50 @@ const InventoryClient = {
         return apiDelete(`${INVENTORY_BASE}/${id}`);
     },
 };
+
+/* ── ProvisioningClient ──────────────────────────────────────────────────────── */
+
+const PROVISIONING_BASE = '/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob';
+
+const ProvisioningClient = {
+    /**
+     * List ServiceActivationJobs with pagination and optional filters.
+     * @param {{ offset?: number, limit?: number, state?: string, job_type?: string, service_id?: string }} params
+     */
+    list(params = {}) {
+        return apiGet(PROVISIONING_BASE, params);
+    },
+
+    /**
+     * Get a single ServiceActivationJob by ID.
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${PROVISIONING_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new ServiceActivationJob.
+     * @param {object} body
+     */
+    create(body) {
+        return apiPost(PROVISIONING_BASE, body);
+    },
+
+    /**
+     * Partially update a ServiceActivationJob (PATCH) — used for state transitions.
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${PROVISIONING_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a failed or cancelled ServiceActivationJob.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${PROVISIONING_BASE}/${id}`);
+    },
+};

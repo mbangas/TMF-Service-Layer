@@ -15,7 +15,7 @@ This application implements the following functional domains:
 | Service Design | Service catalog, specifications, SLA | TMF633 | ✅ Implemented |
 | Pre-Sales | Service qualification and availability checks | TMF645 | � Planned |
 | Order Management | Full service order lifecycle management | TMF641 | ✅ Implemented |
-| Provisioning | Service activation and configuration | TMF640 | 📋 Planned |
+| Provisioning | Service activation and configuration | TMF640 | � In Progress |
 | Inventory | Active service instances and relationships | TMF638 | 🔄 In Progress |
 | Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | 📋 Planned |
 | Testing | Automated service test and validation | TMF653 | 📋 Planned |
@@ -39,9 +39,11 @@ The **Service Catalog** module is the first implemented component. It provides t
 
 The **Service Order** module manages the full lifecycle of service orders submitted by customers or other systems. It enforces a strict state machine and automatically creates inventory records on completion.
 
-### Service Inventory (TMF638) 🔄
+### Service Inventory (TMF638) ✅
 
 The **Service Inventory** module tracks all active (and historical) service instances. Services are created automatically when an order completes, and can be managed independently through the inventory API.
+
+### Service Activation & Configuration (TMF640) 🔄
 
 > See the [Implemented Modules](#implemented-modules) section for API endpoints, module structure, and usage examples.
 
@@ -54,8 +56,8 @@ The **Service Inventory** module tracks all active (and historical) service inst
 | Phase 1 | Project setup, infrastructure, shared layer, auth stub, event bus | ✅ Done |
 | Phase 2a | TMF633 Service Catalog — ServiceSpecification CRUD + lifecycle | ✅ Done |
 | Phase 2b | TMF641 Service Order Management — order lifecycle + FK to catalog | ✅ Done |
-| Phase 3 | TMF638 Service Inventory + tech-debt fixes | 🔄 In Progress |
-| Phase 4 | TMF640 Service Activation & Configuration (Provisioning) | 📋 Planned |
+| Phase 3 | TMF638 Service Inventory + tech-debt fixes | ✅ Done |
+| Phase 4 | TMF640 Service Activation & Configuration (Provisioning) | 🔄 In Progress |
 | Phase 5 | TMF645 Service Qualification | 📋 Planned |
 | Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | 📋 Planned |
 | Phase 7 | TMF653 Service Test Management | 📋 Planned |
@@ -300,6 +302,60 @@ src/
     ├── models/          # ORM + Pydantic schemas (Service, ServiceCharacteristic)
     ├── api/             # TMF638 REST API routes
     ├── services/        # Business logic (state machine, event publishing)
+    ├── repositories/    # Data access layer
+    └── tests/           # Unit and integration tests
+```
+
+---
+
+### Service Activation & Configuration — TMF640
+
+The **Service Activation & Configuration** module is the provisioning engine of the Service Layer. It drives service lifecycle changes on inventory instances through auditable, job-oriented workflows.
+
+#### Responsibilities
+
+- Raise `ServiceActivationJob` records against any `Service` instance in inventory
+- Enforce a job state machine: `accepted → running → succeeded | failed | cancelled`
+- On job `succeeded`, automatically transition the target Service to its new lifecycle state
+- Attach `ServiceConfigurationParam` key/value entries to a job for configuration history
+- Prevent deletion of jobs that are not `failed` or `cancelled`
+- Publish TMF events on job creation and state change
+
+#### Job Type → Service State Mapping
+
+| Job Type | Required Service State | Resulting Service State |
+|---|---|---|
+| `provision` | `inactive` | `active` |
+| `activate` | `inactive` | `active` |
+| `modify` | `active` | `active` (params updated) |
+| `deactivate` | `active` | `inactive` |
+| `terminate` | `active` or `inactive` | `terminated` |
+
+#### Key SID Entities
+
+| SID Entity | Description |
+|---|---|
+| `ServiceActivationJob` | Job that drives activation or configuration of a Service instance |
+| `ServiceConfigurationParam` | Key/value configuration parameter attached to a job |
+
+#### API Endpoints (TMF640)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob` | List activation jobs (with optional state/type/service filters) |
+| `GET` | `/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/{id}` | Retrieve a specific job |
+| `POST` | `/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob` | Create a new activation job |
+| `PATCH` | `/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/{id}` | Advance job state (drives inventory state on succeeded) |
+| `DELETE` | `/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/{id}` | Delete a failed or cancelled job |
+
+#### Module Location
+
+```
+src/
+└── provisioning/
+    ├── models/          # ORM + Pydantic schemas (ServiceActivationJob, ServiceConfigurationParam)
+    ├── api/             # TMF640 REST API routes
+    ├── services/        # Business logic (state machine, inventory integration, event publishing)
     ├── repositories/    # Data access layer
     └── tests/           # Unit and integration tests
 ```
