@@ -20,6 +20,7 @@ from src.catalog.models.schemas import (
     ServiceSpecificationUpdate,
 )
 from src.catalog.repositories.service_spec_repo import ServiceSpecificationRepository
+from src.shared.events.bus import EventBus
 
 # Allowed lifecycle transitions: {from_state: {allowed_to_states}}
 _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
