@@ -18,6 +18,7 @@ if config.config_file_name is not None:
 # Keep these imports here; add new domain models as modules are added.
 from src.shared.db.base import Base  # noqa: E402
 import src.catalog.models.orm  # noqa: E402, F401  — registers catalog tables
+import src.inventory.models.orm  # noqa: E402, F401  — registers inventory tables
 import src.order.models.orm  # noqa: E402, F401  — registers order tables
 
 target_metadata = Base.metadata

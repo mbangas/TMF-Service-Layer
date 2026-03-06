@@ -5,47 +5,18 @@ Run with: pytest src/order/tests/test_order_api.py -v
 These tests use an in-memory SQLite database (via aiosqlite) so no PostgreSQL
 is required to run them locally.  The engine dialect is swapped in the
 ``override_get_db`` fixture below.
+
+Shared ``test_engine`` and ``db_session`` fixtures are provided by
+``src/conftest.py``.
 """
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-import src.catalog.models.orm  # noqa: F401 — registers catalog tables (for FK targets)
-import src.order.models.orm  # noqa: F401 — registers order tables
 from src.main import app
-from src.shared.db.base import Base
 from src.shared.db.session import get_db
 from src.shared.events.bus import EventBus
-
-# ── Test database (SQLite in-memory, no server needed) ────────────────────────
-TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
-
-
-@pytest_asyncio.fixture(scope="module")
-async def test_engine():
-    """Create a fresh in-memory SQLite engine for the test module."""
-    engine = create_async_engine(TEST_DB_URL, echo=False)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield engine
-    await engine.dispose()
-
-
-@pytest_asyncio.fixture
-async def db_session(test_engine):
-    """Yield a clean session for each test; roll back after the test."""
-    session_factory = async_sessionmaker(
-        bind=test_engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-    async with session_factory() as session:
-        yield session
-        await session.rollback()
-
-
 @pytest_asyncio.fixture
 async def client(db_session):
     """Return an AsyncClient with the database dependency overridden."""

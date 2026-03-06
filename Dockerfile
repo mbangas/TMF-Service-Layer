@@ -34,6 +34,7 @@ COPY --from=builder /install /usr/local
 
 # Copy application source
 COPY src/ ./src/
+COPY frontend/ ./frontend/
 COPY alembic/ ./alembic/ 2>/dev/null || true
 COPY alembic.ini ./alembic.ini 2>/dev/null || true
 COPY .env.example ./.env.example

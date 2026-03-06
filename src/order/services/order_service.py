@@ -76,8 +76,16 @@ class OrderService:
     event publishing) on top of the raw data-access operations from the repository.
     """
 
-    def __init__(self, repo: ServiceOrderRepository) -> None:
+    def __init__(
+        self,
+        repo: ServiceOrderRepository,
+        inventory_service: object | None = None,
+    ) -> None:
         self._repo = repo
+        # Optional: InventoryService injected to auto-create Service records
+        # when order state transitions to 'completed'.  Uses ``object`` type hint
+        # to avoid a circular import; duck-typed at runtime.
+        self._inventory_service = inventory_service
 
     # ── Query ─────────────────────────────────────────────────────────────────
 
@@ -179,21 +187,18 @@ class OrderService:
             )
 
         state_changed = False
+        extra_fields: dict[str, object] | None = None
+
         if data.state is not None and data.state != existing.state:
             _validate_state_transition(existing.state, data.state)
             state_changed = True
 
-            # Auto-set completion_date when entering terminal state
+            # Auto-set completion_date when entering a terminal state.
+            # Pass it via extra_fields so the repo writes it to the DB column.
             if data.state in _TERMINAL_STATES:
+                extra_fields = {"completion_date": datetime.now(tz=timezone.utc)}
 
-                existing.completion_date = datetime.now(tz=timezone.utc)
-
-        orm = await self._repo.patch(order_id, data)
-
-        # After patch, re-apply completion_date if we set it on existing (dirty tracking)
-        if state_changed and data.state in _TERMINAL_STATES:
-            # Re-fetch to get the final state
-            orm = await self._repo.get_by_id(order_id)
+        orm = await self._repo.patch(order_id, data, extra_fields=extra_fields)
 
         response = _orm_to_response(orm)  # type: ignore[arg-type]
 
@@ -211,6 +216,24 @@ class OrderService:
                     event=EventPayload(resource=response),
                 )
             )
+
+        # Auto-provision inventory when an order reaches 'completed'.
+        # For each order item with action 'add' or 'modify', create an active
+        # Service record in the inventory module.
+        if data.state == "completed" and self._inventory_service is not None:
+            from src.inventory.models.schemas import ServiceCreate  # noqa: PLC0415
+
+            for item in orm.order_item:  # type: ignore[union-attr]
+                if item.action in {"add", "modify"}:
+                    await self._inventory_service.create_service(  # type: ignore[union-attr]
+                        ServiceCreate(
+                            name=item.service_name or item.service_spec_name or "Unnamed Service",
+                            description=item.service_description,
+                            state="active",
+                            service_spec_id=item.service_spec_id,
+                            service_order_id=order_id,
+                        )
+                    )
 
         return response
 

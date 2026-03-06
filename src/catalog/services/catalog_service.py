@@ -142,7 +142,20 @@ class CatalogService:
                 ),
             )
         orm = await self._repo.create(data)
-        return _orm_to_response(orm)
+        response = _orm_to_response(orm)
+
+        EventBus.publish(
+            TMFEvent(
+                event_id=str(uuid.uuid4()),
+                event_type="ServiceSpecificationCreateEvent",
+                domain="serviceCatalog",
+                title="Service Specification Created",
+                description=f"ServiceSpecification '{orm.id}' created with status '{orm.lifecycle_status}'.",
+                event=EventPayload(resource=response),
+            )
+        )
+
+        return response
 
     async def update_specification(
         self, spec_id: str, data: ServiceSpecificationUpdate
@@ -169,8 +182,27 @@ class CatalogService:
                 detail=f"ServiceSpecification '{spec_id}' not found.",
             )
         _validate_lifecycle_transition(existing.lifecycle_status, data.lifecycle_status)
+        status_changed = existing.lifecycle_status != data.lifecycle_status
+        old_status = existing.lifecycle_status
         orm = await self._repo.update(spec_id, data)
-        return _orm_to_response(orm)  # type: ignore[arg-type]
+        response = _orm_to_response(orm)  # type: ignore[arg-type]
+
+        if status_changed:
+            EventBus.publish(
+                TMFEvent(
+                    event_id=str(uuid.uuid4()),
+                    event_type="ServiceSpecificationStateChangeEvent",
+                    domain="serviceCatalog",
+                    title="Service Specification State Changed",
+                    description=(
+                        f"ServiceSpecification '{spec_id}' transitioned "
+                        f"from '{old_status}' to '{data.lifecycle_status}'."
+                    ),
+                    event=EventPayload(resource=response),
+                )
+            )
+
+        return response
 
     async def patch_specification(
         self, spec_id: str, data: ServiceSpecificationPatch
@@ -198,8 +230,30 @@ class CatalogService:
             )
         if data.lifecycle_status is not None:
             _validate_lifecycle_transition(existing.lifecycle_status, data.lifecycle_status)
+        status_changed = (
+            data.lifecycle_status is not None
+            and data.lifecycle_status != existing.lifecycle_status
+        )
+        old_status = existing.lifecycle_status
         orm = await self._repo.patch(spec_id, data)
-        return _orm_to_response(orm)  # type: ignore[arg-type]
+        response = _orm_to_response(orm)  # type: ignore[arg-type]
+
+        if status_changed:
+            EventBus.publish(
+                TMFEvent(
+                    event_id=str(uuid.uuid4()),
+                    event_type="ServiceSpecificationStateChangeEvent",
+                    domain="serviceCatalog",
+                    title="Service Specification State Changed",
+                    description=(
+                        f"ServiceSpecification '{spec_id}' transitioned "
+                        f"from '{old_status}' to '{data.lifecycle_status}'."
+                    ),
+                    event=EventPayload(resource=response),
+                )
+            )
+
+        return response
 
     async def delete_specification(self, spec_id: str) -> None:
         """Delete a ServiceSpecification.

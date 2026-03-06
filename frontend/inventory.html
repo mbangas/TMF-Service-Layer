@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Inventory — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .id-cell             { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell        { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+        .badge--feasibility  { background: #f3e8ff; color: #6b21a8; }
+        .badge--designed     { background: #ede9fe; color: #5b21b6; }
+        .badge--reserved     { background: #dbeafe; color: #1d4ed8; }
+        .badge--inactive     { background: #f1f5f9; color: #475569; }
+        .badge--active       { background: #dcfce7; color: #166534; }
+        .badge--terminated   { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link active" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Service Inventory</div>
+                <div class="topbar__subtitle">TMF638 — Active service instances and their lifecycle</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" id="btn-new">+ New Service</button>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="card">
+                <div class="card__header">
+                    <div style="display:flex;align-items:center;gap:var(--space-md)">
+                        <select class="form-control form-control--sm" id="filter-state" style="width:180px">
+                            <option value="">All states</option>
+                            <option value="feasibilityChecked">feasibilityChecked</option>
+                            <option value="designed">designed</option>
+                            <option value="reserved">reserved</option>
+                            <option value="inactive">inactive</option>
+                            <option value="active">active</option>
+                            <option value="terminated">terminated</option>
+                        </select>
+                    </div>
+                    <span id="total-count" class="text-muted text-sm"></span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>State</th>
+                                <th>Spec</th>
+                                <th>Order</th>
+                                <th>Start Date</th>
+                                <th>ID</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-tbody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="loader"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="pagination__info" id="page-info">—</span>
+                    <button class="btn btn--ghost btn--sm" id="btn-prev" disabled>‹ Prev</button>
+                    <button class="btn btn--ghost btn--sm" id="btn-next" disabled>Next ›</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── Create Service Modal ────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="max-width:520px">
+        <div class="modal__header">
+            <span class="modal__title" id="modal-title">New Service Instance</span>
+            <button class="btn btn--ghost btn--icon" id="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="field-name">Name <span class="required">*</span></label>
+                <input type="text" id="field-name" class="form-control" placeholder="e.g. Customer A — Broadband 1Gbps" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-description">Description</label>
+                <textarea id="field-description" class="form-control" placeholder="Optional description…"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="field-type">Service Type</label>
+                    <input type="text" id="field-type" class="form-control" placeholder="e.g. CFS or RFS">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="field-state">Initial State</label>
+                    <select id="field-state" class="form-control">
+                        <option value="inactive" selected>inactive</option>
+                        <option value="feasibilityChecked">feasibilityChecked</option>
+                        <option value="designed">designed</option>
+                        <option value="reserved">reserved</option>
+                        <option value="active">active</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="field-spec-id">Spec ID (optional)</label>
+                    <input type="text" id="field-spec-id" class="form-control" placeholder="UUID of ServiceSpecification">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="field-order-id">Order ID (optional)</label>
+                    <input type="text" id="field-order-id" class="form-control" placeholder="UUID of ServiceOrder">
+                </div>
+            </div>
+            <div id="form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="modal-save">Create Service</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── State Transition Modal ─────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="transition-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title" id="transition-title">Update Service State</span>
+            <button class="btn btn--ghost btn--icon" id="transition-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p id="transition-desc"></p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="transition-cancel">Cancel</button>
+            <button class="btn btn--primary" id="transition-confirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Service</span>
+            <button class="btn btn--ghost btn--icon" id="delete-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete service <strong id="delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">
+                Only <em>terminated</em> or <em>inactive</em> services can be deleted.
+                This action cannot be undone.
+            </p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Toast container ────────────────────────────────────────────────────── -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20;
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let currentOffset   = 0;
+let totalCount      = 0;
+let deletingId      = null;
+let transitionId    = null;
+let transitionState = null;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────────
+const tbody        = document.getElementById('inventory-tbody');
+const totalEl      = document.getElementById('total-count');
+const pageInfoEl   = document.getElementById('page-info');
+const btnPrev      = document.getElementById('btn-prev');
+const btnNext      = document.getElementById('btn-next');
+const filterState  = document.getElementById('filter-state');
+const btnNew       = document.getElementById('btn-new');
+
+const modalBackdrop = document.getElementById('modal-backdrop');
+const modalClose    = document.getElementById('modal-close');
+const modalCancel   = document.getElementById('modal-cancel');
+const modalSave     = document.getElementById('modal-save');
+const formError     = document.getElementById('form-error');
+const fieldName     = document.getElementById('field-name');
+const fieldDesc     = document.getElementById('field-description');
+const fieldType     = document.getElementById('field-type');
+const fieldStateEl  = document.getElementById('field-state');
+const fieldSpecId   = document.getElementById('field-spec-id');
+const fieldOrderId  = document.getElementById('field-order-id');
+
+const transBackdrop  = document.getElementById('transition-backdrop');
+const transTitle     = document.getElementById('transition-title');
+const transDesc      = document.getElementById('transition-desc');
+const transClose     = document.getElementById('transition-close');
+const transCancel    = document.getElementById('transition-cancel');
+const transConfirm   = document.getElementById('transition-confirm');
+
+const deleteBackdrop = document.getElementById('delete-backdrop');
+const deleteNameEl   = document.getElementById('delete-name');
+const deleteClose    = document.getElementById('delete-close');
+const deleteCancel   = document.getElementById('delete-cancel');
+const deleteConfirm  = document.getElementById('delete-confirm');
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function stateBadge(s) {
+    const cls = s === 'feasibilityChecked' ? 'feasibility' : s;
+    return `<span class="badge badge--${cls}">${s}</span>`;
+}
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle:'short', timeStyle:'short' }); }
+    catch { return iso; }
+}
+
+function truncate(str, n = 10) {
+    if (!str) return '—';
+    return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+function nextActions(state) {
+    const map = {
+        feasibilityChecked: [{ label: 'Design',    state: 'designed',   cls: 'btn--primary' }],
+        designed:           [{ label: 'Reserve',   state: 'reserved',   cls: 'btn--primary' }],
+        reserved:           [{ label: 'Deactivate',state: 'inactive',   cls: 'btn--ghost'   }],
+        inactive:           [{ label: 'Activate',  state: 'active',     cls: 'btn--success' }],
+        active:             [{ label: 'Terminate', state: 'terminated', cls: 'btn--warning' }],
+        terminated:         [],
+    };
+    return map[state] || [];
+}
+
+// ── Load ───────────────────────────────────────────────────────────────────────
+async function loadServices() {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+    try {
+        const params = { offset: currentOffset, limit: PAGE_SIZE };
+        const stateFilter = filterState.value;
+        if (stateFilter) params.state = stateFilter;
+
+        const { data, headers } = await InventoryClient.list(params);
+        totalCount = parseInt(headers.get('X-Total-Count') || data.length, 10);
+
+        totalEl.textContent    = `${totalCount} total`;
+        pageInfoEl.textContent = totalCount === 0
+            ? 'No results'
+            : `${currentOffset + 1}–${Math.min(currentOffset + data.length, totalCount)} of ${totalCount}`;
+
+        btnPrev.disabled = currentOffset <= 0;
+        btnNext.disabled = currentOffset + PAGE_SIZE >= totalCount;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <div class="empty-state__icon">🗄️</div>
+                        <div class="empty-state__title">No services found</div>
+                        <div class="empty-state__desc">Create a service order and complete it to auto-provision inventory, or create a service manually.</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(svc => {
+            const actions = nextActions(svc.state);
+            const actionBtns = actions.map(a =>
+                `<button class="btn ${a.cls} btn--sm" onclick="startTransition('${escHtml(svc.id)}','${escHtml(svc.state)}','${a.state}','${escHtml(a.label)}')">${a.label}</button>`
+            ).join('');
+            const canDelete = svc.state === 'terminated' || svc.state === 'inactive';
+            const deleteBtn = canDelete
+                ? `<button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(svc.id)}','${escHtml(svc.name)}')">Delete</button>`
+                : '';
+
+            return `
+            <tr>
+                <td>${escHtml(svc.name || '—')}</td>
+                <td>${escHtml(svc.service_type || '—')}</td>
+                <td>${stateBadge(svc.state)}</td>
+                <td class="id-cell" title="${escHtml(svc.service_spec_id || '')}">
+                    ${svc.service_spec_id ? truncate(svc.service_spec_id) : '—'}
+                </td>
+                <td class="id-cell" title="${escHtml(svc.service_order_id || '')}">
+                    ${svc.service_order_id ? truncate(svc.service_order_id) : '—'}
+                </td>
+                <td class="muted">${fmtDate(svc.start_date)}</td>
+                <td class="id-cell truncate" style="max-width:120px" title="${escHtml(svc.id)}">${escHtml(svc.id.slice(0,8))}…</td>
+                <td class="actions-cell">${actionBtns}${deleteBtn}</td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state empty-state--error">
+            <div class="empty-state__icon">⚠️</div>
+            <div class="empty-state__title">Failed to load</div>
+            <div class="empty-state__desc">${escHtml(err.message)}</div>
+        </div></td></tr>`;
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Create Service ──────────────────────────────────────────────────────────────
+btnNew.addEventListener('click', () => {
+    fieldName.value    = '';
+    fieldDesc.value    = '';
+    fieldType.value    = '';
+    fieldStateEl.value = 'inactive';
+    fieldSpecId.value  = '';
+    fieldOrderId.value = '';
+    formError.style.display = 'none';
+    modalBackdrop.classList.add('open');
+    fieldName.focus();
+});
+
+modalClose.addEventListener('click',    () => modalBackdrop.classList.remove('open'));
+modalCancel.addEventListener('click',   () => modalBackdrop.classList.remove('open'));
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('open'); });
+
+modalSave.addEventListener('click', async () => {
+    const name = fieldName.value.trim();
+    if (!name) {
+        formError.textContent = 'Name is required.';
+        formError.style.display = 'block';
+        fieldName.focus();
+        return;
+    }
+    formError.style.display = 'none';
+    modalSave.disabled = true;
+    modalSave.innerHTML = '<span class="loader"></span>';
+
+    const payload = {
+        name,
+        description:      fieldDesc.value.trim() || null,
+        service_type:     fieldType.value.trim() || null,
+        state:            fieldStateEl.value,
+        service_spec_id:  fieldSpecId.value.trim() || null,
+        service_order_id: fieldOrderId.value.trim() || null,
+    };
+
+    try {
+        await InventoryClient.create(payload);
+        modalBackdrop.classList.remove('open');
+        showToast('Service instance created.', 'success');
+        currentOffset = 0;
+        await loadServices();
+    } catch (err) {
+        formError.textContent = err.message;
+        formError.style.display = 'block';
+    } finally {
+        modalSave.disabled = false;
+        modalSave.textContent = 'Create Service';
+    }
+});
+
+// ── State Transition ───────────────────────────────────────────────────────────
+function startTransition(id, currentState, targetState, label) {
+    transitionId    = id;
+    transitionState = targetState;
+    transTitle.textContent = `${label} Service`;
+    transDesc.textContent  = `Transition state from "${currentState}" → "${targetState}". Continue?`;
+    transBackdrop.classList.add('open');
+}
+
+transClose.addEventListener('click',   () => transBackdrop.classList.remove('open'));
+transCancel.addEventListener('click',  () => transBackdrop.classList.remove('open'));
+transBackdrop.addEventListener('click', e => { if (e.target === transBackdrop) transBackdrop.classList.remove('open'); });
+
+transConfirm.addEventListener('click', async () => {
+    transBackdrop.classList.remove('open');
+    transConfirm.disabled = true;
+    try {
+        await InventoryClient.patch(transitionId, { state: transitionState });
+        showToast(`Service transitioned to "${transitionState}".`, 'success');
+        await loadServices();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        transConfirm.disabled = false;
+    }
+});
+
+// ── Delete ─────────────────────────────────────────────────────────────────────
+function startDelete(id, name) {
+    deletingId = id;
+    deleteNameEl.textContent = name;
+    deleteBackdrop.classList.add('open');
+}
+
+deleteClose.addEventListener('click',   () => deleteBackdrop.classList.remove('open'));
+deleteCancel.addEventListener('click',  () => deleteBackdrop.classList.remove('open'));
+deleteBackdrop.addEventListener('click', e => { if (e.target === deleteBackdrop) deleteBackdrop.classList.remove('open'); });
+
+deleteConfirm.addEventListener('click', async () => {
+    deleteBackdrop.classList.remove('open');
+    deleteConfirm.disabled = true;
+    try {
+        await InventoryClient.delete(deletingId);
+        showToast('Service deleted.', 'success');
+        await loadServices();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        deleteConfirm.disabled = false;
+    }
+});
+
+// ── Pagination & Filter ────────────────────────────────────────────────────────
+btnPrev.addEventListener('click', () => {
+    if (currentOffset > 0) {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadServices();
+    }
+});
+
+btnNext.addEventListener('click', () => {
+    if (currentOffset + PAGE_SIZE < totalCount) {
+        currentOffset += PAGE_SIZE;
+        loadServices();
+    }
+});
+
+filterState.addEventListener('change', () => {
+    currentOffset = 0;
+    loadServices();
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadServices();
+</script>
+
+</body>
+</html>

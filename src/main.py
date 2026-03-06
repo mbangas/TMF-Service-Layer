@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from src.catalog.api.router import router as catalog_router
 from src.config import settings
+from src.inventory.api.router import router as inventory_router
 from src.order.api.router import router as order_router
 from src.shared.db.session import engine
 from src.shared.events.bus import EventBus
@@ -58,11 +59,9 @@ app.add_middleware(
 # ── Domain routers ─────────────────────────────────────────────────────────────
 app.include_router(catalog_router)
 app.include_router(order_router)
+app.include_router(inventory_router)
 
 # Future routers (placeholder — uncomment as modules are implemented):
-#
-# from src.inventory.api.router import router as inventory_router
-# app.include_router(inventory_router)
 #
 # from src.provisioning.api.router import router as provisioning_router
 # app.include_router(provisioning_router)
@@ -81,6 +80,10 @@ app.include_router(order_router)
 #
 # from src.commercial.api.router import router as commercial_router
 # app.include_router(commercial_router)
+
+
+# ── Static frontend (served at /ui) ───────────────────────────────────────────
+app.mount("/ui", StaticFiles(directory="frontend", html=True), name="ui")
 
 
 # ── Dev events endpoint ───────────────────────────────────────────────────────

@@ -121,14 +121,23 @@ class ServiceOrderRepository:
         await self._db.refresh(orm)
         return orm
 
-    async def patch(self, order_id: str, data: ServiceOrderPatch) -> ServiceOrderOrm | None:
+    async def patch(
+        self,
+        order_id: str,
+        data: ServiceOrderPatch,
+        extra_fields: dict[str, object] | None = None,
+    ) -> ServiceOrderOrm | None:
         """Partial update of a ServiceOrder (PATCH semantics).
 
         Only non-None fields in ``data`` overwrite existing values.
+        Additional server-side fields (e.g. ``completion_date``) can be
+        supplied via ``extra_fields`` and are applied after the schema fields.
 
         Args:
             order_id: Identifier of the order to patch.
             data: Partial patch schema.
+            extra_fields: Optional dict of extra column name → value pairs
+                applied directly to the ORM (not exposed in the API schema).
 
         Returns:
             Patched ORM instance or ``None`` if not found.
@@ -142,6 +151,11 @@ class ServiceOrderRepository:
         for field, value in patch_data.items():
             if hasattr(orm, field):
                 setattr(orm, field, value)
+
+        if extra_fields:
+            for field, value in extra_fields.items():
+                if hasattr(orm, field):
+                    setattr(orm, field, value)
 
         await self._db.flush()
         await self._db.refresh(orm)

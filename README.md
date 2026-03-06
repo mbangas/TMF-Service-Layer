@@ -13,14 +13,14 @@ This application implements the following functional domains:
 | Domain | Key Capability | TMF API | Status |
 |---|---|---|---|
 | Service Design | Service catalog, specifications, SLA | TMF633 | ✅ Implemented |
-| Pre-Sales | Service qualification and availability checks | TMF645 | 🔄 Planned |
-| Order Management | Full service order lifecycle management | TMF641 | 🔄 Planned |
-| Provisioning | Service activation and configuration | TMF640 | 🔄 Planned |
-| Inventory | Active service instances and relationships | TMF638 | 🔄 Planned |
-| Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | 🔄 Planned |
-| Testing | Automated service test and validation | TMF653 | 🔄 Planned |
-| Problem Management | Incidents, trouble tickets, root cause | TMF621, TMF656 | 🔄 Planned |
-| Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | 🔄 Planned |
+| Pre-Sales | Service qualification and availability checks | TMF645 | � Planned |
+| Order Management | Full service order lifecycle management | TMF641 | ✅ Implemented |
+| Provisioning | Service activation and configuration | TMF640 | 📋 Planned |
+| Inventory | Active service instances and relationships | TMF638 | 🔄 In Progress |
+| Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | 📋 Planned |
+| Testing | Automated service test and validation | TMF653 | 📋 Planned |
+| Problem Management | Incidents, trouble tickets, root cause | TMF621, TMF656 | 📋 Planned |
+| Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | 📋 Planned |
 
 For the full mapping of ODA components → TMF APIs → SID entities, see [docs/TMF-reference.md](docs/TMF-reference.md).
 
@@ -35,7 +35,33 @@ The **Service Catalog** module is the first implemented component. It provides t
 - `ServiceSpecRelationship` — model CFS → RFS hierarchies
 - Lifecycle management: `active` → `retired` → `obsolete`
 
-> See the [Implemented Modules](#implemented-modules) section for API endpoints, module structure, and a usage example.
+### Service Order Management (TMF641) ✅
+
+The **Service Order** module manages the full lifecycle of service orders submitted by customers or other systems. It enforces a strict state machine and automatically creates inventory records on completion.
+
+### Service Inventory (TMF638) 🔄
+
+The **Service Inventory** module tracks all active (and historical) service instances. Services are created automatically when an order completes, and can be managed independently through the inventory API.
+
+> See the [Implemented Modules](#implemented-modules) section for API endpoints, module structure, and usage examples.
+
+---
+
+## Implementation Phases
+
+| Phase | Scope | Status |
+|---|---|---|
+| Phase 1 | Project setup, infrastructure, shared layer, auth stub, event bus | ✅ Done |
+| Phase 2a | TMF633 Service Catalog — ServiceSpecification CRUD + lifecycle | ✅ Done |
+| Phase 2b | TMF641 Service Order Management — order lifecycle + FK to catalog | ✅ Done |
+| Phase 3 | TMF638 Service Inventory + tech-debt fixes | 🔄 In Progress |
+| Phase 4 | TMF640 Service Activation & Configuration (Provisioning) | 📋 Planned |
+| Phase 5 | TMF645 Service Qualification | 📋 Planned |
+| Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | 📋 Planned |
+| Phase 7 | TMF653 Service Test Management | 📋 Planned |
+| Phase 8 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
+| Phase 9 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
+| Phase 10 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
 
 ---
 
@@ -192,6 +218,90 @@ POST /serviceSpecification
     { "name": "Availability SLA", "availability": 99.9 }
   ]
 }
+```
+
+### Service Order Management — TMF641
+
+The **Service Order** module is the second implemented component. It manages the end-to-end lifecycle of service orders, from submission through cancellation or completion.
+
+#### Responsibilities
+
+- Accept and validate `ServiceOrder` requests referencing catalog specifications
+- Enforce a strict order state machine: `acknowledged → inProgress → completed | cancelled | failed | partial`
+- Persist `ServiceOrderItem` entries with their own states and requested actions (`add`, `modify`, `delete`, `noChange`)
+- Automatically create `Service` inventory records when an order reaches `completed`
+- Publish TMF events when order or item states advance
+
+#### Key SID Entities
+
+| SID Entity | Description |
+|---|---|
+| `ServiceOrder` | Customer or system request to add, modify, or delete a service |
+| `ServiceOrderItem` | Individual line item specifying the action and target service spec |
+
+#### API Endpoints (TMF641)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceOrder/v4/serviceOrder` | List all service orders |
+| `GET` | `/tmf-api/serviceOrder/v4/serviceOrder/{id}` | Retrieve a specific service order |
+| `POST` | `/tmf-api/serviceOrder/v4/serviceOrder` | Create a new service order |
+| `PATCH` | `/tmf-api/serviceOrder/v4/serviceOrder/{id}` | Update (advance state of) a service order |
+| `DELETE` | `/tmf-api/serviceOrder/v4/serviceOrder/{id}` | Cancel a service order |
+
+#### Module Location
+
+```
+src/
+└── order/
+    ├── models/          # ORM + Pydantic schemas (ServiceOrder, ServiceOrderItem)
+    ├── api/             # TMF641 REST API routes
+    ├── services/        # Business logic (state machine, inventory auto-create)
+    ├── repositories/    # Data access layer
+    └── tests/           # Unit and integration tests
+```
+
+---
+
+### Service Inventory — TMF638
+
+The **Service Inventory** module tracks all provisioned service instances. Instances are created automatically when an order completes and can also be created, queried, and managed independently.
+
+#### Responsibilities
+
+- Store and manage `Service` instances linked to their originating spec and order
+- Enforce a lifecycle state machine: `feasibilityChecked → designed → reserved → inactive → active → terminated`
+- Track `ServiceCharacteristic` values per instance
+- Prevent deletion of services that are not `inactive` or `terminated`
+- Publish TMF events on creation and state change
+
+#### Key SID Entities
+
+| SID Entity | Description |
+|---|---|
+| `Service` | An active (or historical) service instance delivered to a customer |
+| `ServiceCharacteristic` | Instantiated parameter value for a specific service instance |
+
+#### API Endpoints (TMF638)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceInventory/v4/service` | List service instances (with optional state filter) |
+| `GET` | `/tmf-api/serviceInventory/v4/service/{id}` | Retrieve a specific service instance |
+| `POST` | `/tmf-api/serviceInventory/v4/service` | Create a new service instance |
+| `PATCH` | `/tmf-api/serviceInventory/v4/service/{id}` | Update / advance state of a service instance |
+| `DELETE` | `/tmf-api/serviceInventory/v4/service/{id}` | Delete a terminated or inactive service instance |
+
+#### Module Location
+
+```
+src/
+└── inventory/
+    ├── models/          # ORM + Pydantic schemas (Service, ServiceCharacteristic)
+    ├── api/             # TMF638 REST API routes
+    ├── services/        # Business logic (state machine, event publishing)
+    ├── repositories/    # Data access layer
+    └── tests/           # Unit and integration tests
 ```
 
 ---

@@ -187,3 +187,97 @@ const CatalogClient = {
         return apiDelete(`${CATALOG_BASE}/${id}`);
     },
 };
+
+/* ── OrderClient ─────────────────────────────────────────────────────────────── */
+
+const ORDER_BASE = '/tmf-api/serviceOrdering/v4/serviceOrder';
+
+const OrderClient = {
+    /**
+     * List ServiceOrders with pagination and optional state filter.
+     * @param {{ offset?: number, limit?: number, state?: string }} params
+     */
+    list(params = {}) {
+        return apiGet(ORDER_BASE, params);
+    },
+
+    /**
+     * Get a single ServiceOrder by ID.
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${ORDER_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new ServiceOrder.
+     * @param {object} body
+     */
+    create(body) {
+        return apiPost(ORDER_BASE, body);
+    },
+
+    /**
+     * Partially update a ServiceOrder (PATCH) — used for lifecycle transitions.
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${ORDER_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a cancelled ServiceOrder.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${ORDER_BASE}/${id}`);
+    },
+};
+
+/* ── InventoryClient ─────────────────────────────────────────────────────────── */
+
+const INVENTORY_BASE = '/tmf-api/serviceInventory/v4/service';
+
+const InventoryClient = {
+    /**
+     * List Service instances with pagination and optional state filter.
+     * @param {{ offset?: number, limit?: number, state?: string }} params
+     */
+    list(params = {}) {
+        return apiGet(INVENTORY_BASE, params);
+    },
+
+    /**
+     * Get a single Service instance by ID.
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${INVENTORY_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new Service instance.
+     * @param {object} body
+     */
+    create(body) {
+        return apiPost(INVENTORY_BASE, body);
+    },
+
+    /**
+     * Partially update a Service instance (PATCH) — used for lifecycle transitions.
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${INVENTORY_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a terminated or inactive Service instance.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${INVENTORY_BASE}/${id}`);
+    },
+};

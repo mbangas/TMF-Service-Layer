@@ -1,6 +1,7 @@
 """SQLAlchemy ORM models for TMF641 Service Order Management."""
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -89,22 +90,22 @@ class ServiceOrderOrm(Base, TimestampMixin):
         index=True,
     )
 
-    order_date: Mapped[str | None] = mapped_column(
+    order_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    completion_date: Mapped[str | None] = mapped_column(
+    completion_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    requested_start_date: Mapped[str | None] = mapped_column(
+    requested_start_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    requested_completion_date: Mapped[str | None] = mapped_column(
+    requested_completion_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    expected_completion_date: Mapped[str | None] = mapped_column(
+    expected_completion_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    start_date: Mapped[str | None] = mapped_column(
+    start_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 

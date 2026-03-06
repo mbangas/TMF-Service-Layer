@@ -18,6 +18,8 @@ from src.order.models.schemas import (
     ServiceOrderPatch,
     ServiceOrderResponse,
 )
+from src.inventory.repositories.service_repo import ServiceRepository as InventoryRepository
+from src.inventory.services.inventory_service import InventoryService
 from src.order.repositories.service_order_repo import ServiceOrderRepository
 from src.order.services.order_service import OrderService
 from src.shared.auth.dependencies import CurrentUser, get_current_user
@@ -32,9 +34,15 @@ _BASE_PATH = "/tmf-api/serviceOrdering/v4/serviceOrder"
 
 
 def _get_service(db: AsyncSession = Depends(get_db)) -> OrderService:
-    """Dependency factory — builds the OrderService with its repository."""
-    repo = ServiceOrderRepository(db)
-    return OrderService(repo)
+    """Dependency factory — builds the OrderService with its repository.
+
+    Also injects an ``InventoryService`` so that completed orders
+    automatically provision ``Service`` records in TMF638 inventory.
+    """
+    order_repo = ServiceOrderRepository(db)
+    inventory_repo = InventoryRepository(db)
+    inventory_service = InventoryService(inventory_repo)
+    return OrderService(order_repo, inventory_service=inventory_service)
 
 
 # ── GET / ─────────────────────────────────────────────────────────────────────
