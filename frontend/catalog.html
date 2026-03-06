@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Catalog — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .name-cell { font-weight: 600; }
+        .id-cell   { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell { display: flex; gap: var(--space-xs); }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link active" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Service Catalog</div>
+                <div class="topbar__subtitle">TMF633 — ServiceSpecification management</div>
+            </div>
+            <div class="topbar__actions">
+                <select id="filter-status" class="form-control" style="width:160px">
+                    <option value="">All statuses</option>
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="obsolete">Obsolete</option>
+                    <option value="retired">Retired</option>
+                </select>
+                <button class="btn btn--primary" id="btn-new">
+                    ＋ New Specification
+                </button>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="card">
+                <div class="card__header">
+                    <span class="card__title">Service Specifications</span>
+                    <span id="total-count" class="text-muted text-sm"></span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Version</th>
+                                <th>Status</th>
+                                <th>Bundle</th>
+                                <th>Last Update</th>
+                                <th>ID</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="spec-tbody">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="loader"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="pagination__info" id="page-info">—</span>
+                    <button class="btn btn--ghost btn--sm" id="btn-prev" disabled>‹ Prev</button>
+                    <button class="btn btn--ghost btn--sm" id="btn-next" disabled>Next ›</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── Create / Edit Modal ─────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="modal-title">New Service Specification</span>
+            <button class="btn btn--ghost btn--icon" id="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="field-name">Name <span class="required">*</span></label>
+                <input type="text" id="field-name" class="form-control" placeholder="e.g. Broadband Internet Service" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-description">Description</label>
+                <textarea id="field-description" class="form-control" placeholder="Optional description…"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-version">Version</label>
+                <input type="text" id="field-version" class="form-control" placeholder="1.0" value="1.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-status">Lifecycle Status</label>
+                <select id="field-status" class="form-control">
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="obsolete">Obsolete</option>
+                    <option value="retired">Retired</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-sm)">
+                <input type="checkbox" id="field-bundle" style="width:16px;height:16px;accent-color:var(--colour-primary)">
+                <label class="form-label" for="field-bundle" style="margin:0">Is Bundle</label>
+            </div>
+            <div id="form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="modal-save">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Specification</span>
+            <button class="btn btn--ghost btn--icon" id="delete-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete <strong id="delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">
+                Only specifications in <em>draft</em> or <em>retired</em> status can be deleted.
+                This action cannot be undone.
+            </p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Toast container ────────────────────────────────────────────────────── -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20;
+let currentOffset = 0;
+let totalCount    = 0;
+let editingId     = null;
+let deletingId    = null;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────────
+const tbody          = document.getElementById('spec-tbody');
+const totalEl        = document.getElementById('total-count');
+const pageInfoEl     = document.getElementById('page-info');
+const btnPrev        = document.getElementById('btn-prev');
+const btnNext        = document.getElementById('btn-next');
+const filterStatus   = document.getElementById('filter-status');
+const btnNew         = document.getElementById('btn-new');
+
+const modalBackdrop  = document.getElementById('modal-backdrop');
+const modalTitle     = document.getElementById('modal-title');
+const modalClose     = document.getElementById('modal-close');
+const modalCancel    = document.getElementById('modal-cancel');
+const modalSave      = document.getElementById('modal-save');
+const formError      = document.getElementById('form-error');
+const fieldName      = document.getElementById('field-name');
+const fieldDesc      = document.getElementById('field-description');
+const fieldVersion   = document.getElementById('field-version');
+const fieldStatus    = document.getElementById('field-status');
+const fieldBundle    = document.getElementById('field-bundle');
+
+const deleteBackdrop = document.getElementById('delete-backdrop');
+const deleteName     = document.getElementById('delete-name');
+const deleteClose    = document.getElementById('delete-close');
+const deleteCancel   = document.getElementById('delete-cancel');
+const deleteConfirm  = document.getElementById('delete-confirm');
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function statusBadge(s) {
+    return `<span class="badge badge--${s}">${s}</span>`;
+}
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle:'short', timeStyle:'short' }); }
+    catch { return iso; }
+}
+
+function openModal() { modalBackdrop.classList.add('open'); fieldName.focus(); }
+function closeModal() { modalBackdrop.classList.remove('open'); resetForm(); }
+function openDeleteModal() { deleteBackdrop.classList.add('open'); }
+function closeDeleteModal() { deleteBackdrop.classList.remove('open'); deletingId = null; }
+
+function resetForm() {
+    editingId = null;
+    fieldName.value    = '';
+    fieldDesc.value    = '';
+    fieldVersion.value = '1.0';
+    fieldStatus.value  = 'draft';
+    fieldBundle.checked = false;
+    formError.style.display = 'none';
+    modalTitle.textContent  = 'New Service Specification';
+    modalSave.textContent   = 'Save';
+}
+
+// ── List / Load ────────────────────────────────────────────────────────────────
+async function loadSpecs() {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+    try {
+        const params = { offset: currentOffset, limit: PAGE_SIZE };
+        const status = filterStatus.value;
+        if (status) params.lifecycle_status = status;
+
+        const { data, headers } = await CatalogClient.list(params);
+        totalCount = parseInt(headers.get('X-Total-Count') || data.length, 10);
+
+        totalEl.textContent   = `${totalCount} total`;
+        pageInfoEl.textContent = totalCount === 0
+            ? 'No results'
+            : `${currentOffset + 1}–${Math.min(currentOffset + data.length, totalCount)} of ${totalCount}`;
+
+        btnPrev.disabled = currentOffset <= 0;
+        btnNext.disabled = currentOffset + PAGE_SIZE >= totalCount;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-state__icon">📋</div>
+                        <div class="empty-state__title">No specifications found</div>
+                        <div class="empty-state__desc">Create your first Service Specification to get started.</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(spec => `
+            <tr>
+                <td class="name-cell">${escHtml(spec.name)}</td>
+                <td>${escHtml(spec.version || '—')}</td>
+                <td>${statusBadge(spec.lifecycle_status)}</td>
+                <td>${spec.is_bundle ? '<span class="badge badge--info">Bundle</span>' : '—'}</td>
+                <td class="muted">${fmtDate(spec.last_update || spec.updated_at)}</td>
+                <td class="id-cell truncate" style="max-width:120px" title="${escHtml(spec.id)}">${escHtml(spec.id)}</td>
+                <td class="actions-cell">
+                    <button class="btn btn--ghost btn--sm" onclick="startEdit('${escHtml(spec.id)}')">Edit</button>
+                    <button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(spec.id)}','${escHtml(spec.name)}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state empty-state--error">
+            <div class="empty-state__icon">⚠️</div>
+            <div class="empty-state__title">Failed to load</div>
+            <div class="empty-state__desc">${escHtml(err.message)}</div>
+        </div></td></tr>`;
+        showToast(err.message, 'error');
+    }
+}
+
+function escHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Create / Edit ──────────────────────────────────────────────────────────────
+btnNew.addEventListener('click', () => { resetForm(); openModal(); });
+
+async function startEdit(id) {
+    editingId = id;
+    try {
+        const { data } = await CatalogClient.get(id);
+        fieldName.value      = data.name    || '';
+        fieldDesc.value      = data.description || '';
+        fieldVersion.value   = data.version || '1.0';
+        fieldStatus.value    = data.lifecycle_status || 'draft';
+        fieldBundle.checked  = !!data.is_bundle;
+        modalTitle.textContent = 'Edit Service Specification';
+        modalSave.textContent  = 'Update';
+        openModal();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+modalClose.addEventListener('click',  closeModal);
+modalCancel.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
+
+modalSave.addEventListener('click', async () => {
+    const name = fieldName.value.trim();
+    if (!name) {
+        formError.textContent = 'Name is required.';
+        formError.style.display = 'block';
+        fieldName.focus();
+        return;
+    }
+    formError.style.display = 'none';
+    modalSave.disabled = true;
+    modalSave.innerHTML = '<span class="loader"></span>';
+
+    const payload = {
+        name,
+        description:      fieldDesc.value.trim() || null,
+        version:          fieldVersion.value.trim() || '1.0',
+        lifecycle_status: fieldStatus.value,
+        is_bundle:        fieldBundle.checked,
+    };
+
+    try {
+        if (editingId) {
+            await CatalogClient.patch(editingId, payload);
+            showToast('Specification updated', 'success');
+        } else {
+            await CatalogClient.create(payload);
+            showToast('Specification created', 'success');
+        }
+        closeModal();
+        await loadSpecs();
+    } catch (err) {
+        formError.textContent = err.message;
+        formError.style.display = 'block';
+        showToast(err.message, 'error');
+    } finally {
+        modalSave.disabled = false;
+        modalSave.textContent = editingId ? 'Update' : 'Save';
+    }
+});
+
+// ── Delete ─────────────────────────────────────────────────────────────────────
+function startDelete(id, name) {
+    deletingId = id;
+    deleteName.textContent = name;
+    openDeleteModal();
+}
+
+deleteClose.addEventListener('click',  closeDeleteModal);
+deleteCancel.addEventListener('click', closeDeleteModal);
+deleteBackdrop.addEventListener('click', e => { if (e.target === deleteBackdrop) closeDeleteModal(); });
+
+deleteConfirm.addEventListener('click', async () => {
+    if (!deletingId) return;
+    deleteConfirm.disabled = true;
+    try {
+        await CatalogClient.delete(deletingId);
+        showToast('Specification deleted', 'success');
+        closeDeleteModal();
+        if (currentOffset > 0 && currentOffset >= totalCount - 1) {
+            currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        }
+        await loadSpecs();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        deleteConfirm.disabled = false;
+    }
+});
+
+// ── Pagination ─────────────────────────────────────────────────────────────────
+btnPrev.addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - PAGE_SIZE); loadSpecs(); });
+btnNext.addEventListener('click', () => { currentOffset += PAGE_SIZE; loadSpecs(); });
+
+// ── Filter ─────────────────────────────────────────────────────────────────────
+filterStatus.addEventListener('change', () => { currentOffset = 0; loadSpecs(); });
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadSpecs();
+</script>
+</body>
+</html>

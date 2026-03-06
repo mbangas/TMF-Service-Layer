@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link active" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Dashboard</div>
+                <div class="topbar__subtitle">TMForum ODA Service Layer — module overview</div>
+            </div>
+            <div class="topbar__actions">
+                <a class="btn btn--ghost btn--sm" href="http://localhost:8000/docs" target="_blank" rel="noopener">
+                    🔌 API Docs
+                </a>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+
+            <div style="margin-bottom:var(--space-lg)">
+                <p class="text-muted">
+                    Welcome to the <strong style="color:var(--colour-text)">TMF Service Layer</strong> management console.
+                    Select a module below to manage its resources.
+                    Modules marked <span class="badge badge--info" style="vertical-align:middle">Coming soon</span>
+                    are planned for future releases.
+                </p>
+            </div>
+
+            <div class="module-grid">
+
+                <!-- TMF633 — Service Catalog ✅ -->
+                <a class="module-card" href="catalog.html">
+                    <div class="module-card__icon">📋</div>
+                    <div class="module-card__tmf">TMF633</div>
+                    <div class="module-card__title">Service Catalog</div>
+                    <div class="module-card__desc">
+                        Manage service specifications, characteristics and service level definitions.
+                    </div>
+                </a>
+
+                <!-- TMF641 — Service Order -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">📦</div>
+                    <div class="module-card__tmf">TMF641 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Service Orders</div>
+                    <div class="module-card__desc">
+                        Lifecycle management of service order requests and fulfilment orchestration.
+                    </div>
+                </div>
+
+                <!-- TMF638 — Service Inventory -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">🗄️</div>
+                    <div class="module-card__tmf">TMF638 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Service Inventory</div>
+                    <div class="module-card__desc">
+                        Inventory of active service instances, relationships, and supporting resources.
+                    </div>
+                </div>
+
+                <!-- TMF640 — Service Activation -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">⚙️</div>
+                    <div class="module-card__tmf">TMF640 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Provisioning</div>
+                    <div class="module-card__desc">
+                        Service activation, configuration, and deactivation workflows.
+                    </div>
+                </div>
+
+                <!-- TMF645 — Qualification -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">✅</div>
+                    <div class="module-card__tmf">TMF645 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Qualification</div>
+                    <div class="module-card__desc">
+                        Check service feasibility and availability for a given location or customer.
+                    </div>
+                </div>
+
+                <!-- TMF628/642/657 — Assurance -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">📊</div>
+                    <div class="module-card__tmf">TMF628/642/657 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Assurance</div>
+                    <div class="module-card__desc">
+                        Performance monitoring, alarm management, and SLA tracking dashboards.
+                    </div>
+                </div>
+
+                <!-- TMF653 — Service Testing -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">🔬</div>
+                    <div class="module-card__tmf">TMF653 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Testing</div>
+                    <div class="module-card__desc">
+                        Diagnostic and validation tests for active services.
+                    </div>
+                </div>
+
+                <!-- TMF621/656 — Problems -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">🚨</div>
+                    <div class="module-card__tmf">TMF621/656 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Problems</div>
+                    <div class="module-card__desc">
+                        Trouble ticket management and service problem resolution tracking.
+                    </div>
+                </div>
+
+                <!-- TMF648/651 — Commercial -->
+                <div class="module-card module-card--disabled">
+                    <div class="module-card__icon">💼</div>
+                    <div class="module-card__tmf">TMF648/651 <span class="badge badge--info" style="margin-left:4px">Coming soon</span></div>
+                    <div class="module-card__title">Commercial</div>
+                    <div class="module-card__desc">
+                        Quote management and service level agreement administration.
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Reference links -->
+            <div style="margin-top:var(--space-2xl)">
+                <div class="card">
+                    <div class="card__header">
+                        <span class="card__title">References</span>
+                    </div>
+                    <div class="card__body" style="display:flex;flex-wrap:wrap;gap:var(--space-md)">
+                        <a href="http://localhost:8000/docs" target="_blank" rel="noopener" class="btn btn--ghost">
+                            📖 Swagger UI
+                        </a>
+                        <a href="http://localhost:8000/redoc" target="_blank" rel="noopener" class="btn btn--ghost">
+                            📄 ReDoc
+                        </a>
+                        <a href="http://localhost:8000/openapi.json" target="_blank" rel="noopener" class="btn btn--ghost">
+                            { } OpenAPI JSON
+                        </a>
+                        <a href="http://localhost:8000/health" target="_blank" rel="noopener" class="btn btn--ghost">
+                            💚 Health check
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

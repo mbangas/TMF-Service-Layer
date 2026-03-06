@@ -1,0 +1,95 @@
+"""TMF Service Layer — FastAPI application entry-point."""
+
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+
+from src.catalog.api.router import router as catalog_router
+from src.config import settings
+from src.shared.db.session import engine
+
+
+# ── Lifespan (DB pool management) ─────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Manage the SQLAlchemy async engine lifecycle.
+
+    Opens the connection pool on startup and disposes it cleanly on shutdown.
+    """
+    # Startup: pool is created lazily by SQLAlchemy; nothing explicit needed
+    yield
+    # Shutdown: dispose the engine / return connections to the OS
+    await engine.dispose()
+
+
+# ── FastAPI instance ───────────────────────────────────────────────────────────
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    description=(
+        "TMForum ODA-compliant Service Layer REST APIs.\n\n"
+        "Implements the full service lifecycle: catalog, orders, inventory, "
+        "provisioning, assurance, testing, and commercial support.\n\n"
+        "Reference: [TM Forum Open APIs](https://www.tmforum.org/open-apis/)"
+    ),
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan,
+)
+
+# ── CORS middleware ────────────────────────────────────────────────────────────
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Total-Count", "X-Result-Count"],
+)
+
+# ── Domain routers ─────────────────────────────────────────────────────────────
+app.include_router(catalog_router)
+
+# Future routers (placeholder — uncomment as modules are implemented):
+# from src.order.api.router import router as order_router
+# app.include_router(order_router)
+#
+# from src.inventory.api.router import router as inventory_router
+# app.include_router(inventory_router)
+#
+# from src.provisioning.api.router import router as provisioning_router
+# app.include_router(provisioning_router)
+#
+# from src.qualification.api.router import router as qualification_router
+# app.include_router(qualification_router)
+#
+# from src.assurance.api.router import router as assurance_router
+# app.include_router(assurance_router)
+#
+# from src.testing.api.router import router as testing_router
+# app.include_router(testing_router)
+#
+# from src.problem.api.router import router as problem_router
+# app.include_router(problem_router)
+#
+# from src.commercial.api.router import router as commercial_router
+# app.include_router(commercial_router)
+
+
+# ── Health check ──────────────────────────────────────────────────────────────
+@app.get("/health", tags=["System"], summary="Health check")
+async def health_check() -> JSONResponse:
+    """Return the application health status."""
+    return JSONResponse(
+        content={
+            "status": "ok",
+            "app": settings.app_name,
+            "version": settings.app_version,
+            "env": settings.app_env,
+        }
+    )
