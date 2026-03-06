@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy dependency files first for better layer caching
 COPY pyproject.toml ./
-RUN pip install --upgrade pip \
+RUN mkdir -p src \
+    && pip install --upgrade pip \
     && pip install --no-cache-dir ".[dev]" --prefix=/install
 
 
@@ -35,8 +36,8 @@ COPY --from=builder /install /usr/local
 # Copy application source
 COPY src/ ./src/
 COPY frontend/ ./frontend/
-COPY alembic/ ./alembic/ 2>/dev/null || true
-COPY alembic.ini ./alembic.ini 2>/dev/null || true
+COPY alembic/ ./alembic/
+COPY alembic.ini ./alembic.ini
 COPY .env.example ./.env.example
 
 # Expose API port
