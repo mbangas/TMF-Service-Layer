@@ -9,6 +9,8 @@ Lifecycle state transitions (TMF633 §7.1.5):
 Any other transition is rejected with a 422 Unprocessable Entity.
 """
 
+import uuid
+
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
@@ -21,6 +23,7 @@ from src.catalog.models.schemas import (
 )
 from src.catalog.repositories.service_spec_repo import ServiceSpecificationRepository
 from src.shared.events.bus import EventBus
+from src.shared.events.schemas import EventPayload, TMFEvent
 
 # Allowed lifecycle transitions: {from_state: {allowed_to_states}}
 _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
