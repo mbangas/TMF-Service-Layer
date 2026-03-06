@@ -10,7 +10,10 @@ from fastapi.staticfiles import StaticFiles
 
 from src.catalog.api.router import router as catalog_router
 from src.config import settings
+from src.order.api.router import router as order_router
 from src.shared.db.session import engine
+from src.shared.events.bus import EventBus
+from src.shared.events.schemas import TMFEvent
 
 
 # ── Lifespan (DB pool management) ─────────────────────────────────────────────
@@ -54,10 +57,9 @@ app.add_middleware(
 
 # ── Domain routers ─────────────────────────────────────────────────────────────
 app.include_router(catalog_router)
+app.include_router(order_router)
 
 # Future routers (placeholder — uncomment as modules are implemented):
-# from src.order.api.router import router as order_router
-# app.include_router(order_router)
 #
 # from src.inventory.api.router import router as inventory_router
 # app.include_router(inventory_router)
@@ -79,6 +81,20 @@ app.include_router(catalog_router)
 #
 # from src.commercial.api.router import router as commercial_router
 # app.include_router(commercial_router)
+
+
+# ── Dev events endpoint ───────────────────────────────────────────────────────
+@app.get("/events", tags=["System"], summary="Recent TMF events (dev only)")
+async def list_events(limit: int = 100) -> list[TMFEvent]:
+    """Return recent TMF lifecycle events from the in-memory event bus.
+
+    Only available when ``APP_ENV=development``.
+    """
+    from fastapi import HTTPException  # noqa: PLC0415
+
+    if settings.app_env != "development":
+        raise HTTPException(status_code=404, detail="Not found.")
+    return EventBus.get_events(limit=limit)
 
 
 # ── Health check ──────────────────────────────────────────────────────────────

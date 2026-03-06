@@ -10,6 +10,7 @@ Any other transition is rejected with a 422 Unprocessable Entity.
 """
 
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 
 from src.catalog.models.orm import ServiceSpecificationOrm
 from src.catalog.models.schemas import (
@@ -226,4 +227,10 @@ class CatalogService:
                     "Retire the specification first."
                 ),
             )
-        await self._repo.delete(spec_id)
+        try:
+            await self._repo.delete(spec_id)
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Specification is referenced by existing service orders and cannot be deleted.",
+            )

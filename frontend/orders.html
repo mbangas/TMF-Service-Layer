@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Orders — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .id-cell      { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+        .badge--acknowledged { background: #e0e7ff; color: #3730a3; }
+        .badge--inprogress   { background: #dbeafe; color: #1d4ed8; }
+        .badge--completed    { background: #dcfce7; color: #166534; }
+        .badge--failed       { background: #fee2e2; color: #991b1b; }
+        .badge--cancelled    { background: #f1f5f9; color: #475569; }
+        .items-count         { font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link active" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Service Orders</div>
+                <div class="topbar__subtitle">TMF641 — ServiceOrder lifecycle management</div>
+            </div>
+            <div class="topbar__actions">
+                <select id="filter-state" class="form-control" style="width:160px">
+                    <option value="">All states</option>
+                    <option value="acknowledged">Acknowledged</option>
+                    <option value="inProgress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <button class="btn btn--primary" id="btn-new">
+                    ＋ New Order
+                </button>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="card">
+                <div class="card__header">
+                    <span class="card__title">Service Orders</span>
+                    <span id="total-count" class="text-muted text-sm"></span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="order-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>State</th>
+                                <th>Order Date</th>
+                                <th>Items</th>
+                                <th>ID</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-tbody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="loader"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="pagination__info" id="page-info">—</span>
+                    <button class="btn btn--ghost btn--sm" id="btn-prev" disabled>‹ Prev</button>
+                    <button class="btn btn--ghost btn--sm" id="btn-next" disabled>Next ›</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── Create Order Modal ──────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="max-width:580px">
+        <div class="modal__header">
+            <span class="modal__title" id="modal-title">New Service Order</span>
+            <button class="btn btn--ghost btn--icon" id="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="field-name">Name <span class="required">*</span></label>
+                <input type="text" id="field-name" class="form-control" placeholder="e.g. Provision Broadband for Customer A" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-description">Description</label>
+                <textarea id="field-description" class="form-control" placeholder="Optional description…"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="field-category">Category</label>
+                    <input type="text" id="field-category" class="form-control" placeholder="e.g. broadband">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="field-priority">Priority</label>
+                    <input type="text" id="field-priority" class="form-control" placeholder="e.g. 1 or high">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-completion-date">Requested Completion Date</label>
+                <input type="datetime-local" id="field-completion-date" class="form-control">
+            </div>
+
+            <!-- Inline order item -->
+            <div style="border:1px solid var(--colour-border);border-radius:var(--radius-md);padding:var(--space-md);margin-top:var(--space-sm)">
+                <div style="font-weight:600;margin-bottom:var(--space-sm);font-size:var(--font-size-sm)">Order Item (optional)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm)">
+                    <div class="form-group">
+                        <label class="form-label" for="item-action">Action</label>
+                        <select id="item-action" class="form-control">
+                            <option value="add">add</option>
+                            <option value="modify">modify</option>
+                            <option value="delete">delete</option>
+                            <option value="noChange">noChange</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="item-spec-name">Service Spec Name</label>
+                        <input type="text" id="item-spec-name" class="form-control" placeholder="e.g. Broadband Internet">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="item-service-name">Service Name</label>
+                    <input type="text" id="item-service-name" class="form-control" placeholder="e.g. Customer A - Broadband">
+                </div>
+            </div>
+
+            <div id="form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="modal-save">Create Order</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── State Transition Modal ─────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="transition-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title" id="transition-title">Update Order State</span>
+            <button class="btn btn--ghost btn--icon" id="transition-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p id="transition-desc"></p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="transition-cancel">Cancel</button>
+            <button class="btn btn--primary" id="transition-confirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Order</span>
+            <button class="btn btn--ghost btn--icon" id="delete-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete order <strong id="delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">
+                Only <em>cancelled</em> orders can be deleted. This action cannot be undone.
+            </p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Toast container ────────────────────────────────────────────────────── -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────────
+const BASE_URL  = 'http://localhost:8000/tmf-api/serviceOrdering/v4/serviceOrder';
+const PAGE_SIZE = 20;
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let currentOffset   = 0;
+let totalCount      = 0;
+let deletingId      = null;
+let transitionId    = null;
+let transitionState = null;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────────
+const tbody        = document.getElementById('order-tbody');
+const totalEl      = document.getElementById('total-count');
+const pageInfoEl   = document.getElementById('page-info');
+const btnPrev      = document.getElementById('btn-prev');
+const btnNext      = document.getElementById('btn-next');
+const filterState  = document.getElementById('filter-state');
+const btnNew       = document.getElementById('btn-new');
+
+const modalBackdrop = document.getElementById('modal-backdrop');
+const modalClose    = document.getElementById('modal-close');
+const modalCancel   = document.getElementById('modal-cancel');
+const modalSave     = document.getElementById('modal-save');
+const formError     = document.getElementById('form-error');
+const fieldName     = document.getElementById('field-name');
+const fieldDesc     = document.getElementById('field-description');
+const fieldCategory = document.getElementById('field-category');
+const fieldPriority = document.getElementById('field-priority');
+const fieldCompDate = document.getElementById('field-completion-date');
+const itemAction    = document.getElementById('item-action');
+const itemSpecName  = document.getElementById('item-spec-name');
+const itemSvcName   = document.getElementById('item-service-name');
+
+const transBackdrop  = document.getElementById('transition-backdrop');
+const transTitle     = document.getElementById('transition-title');
+const transDesc      = document.getElementById('transition-desc');
+const transClose     = document.getElementById('transition-close');
+const transCancel    = document.getElementById('transition-cancel');
+const transConfirm   = document.getElementById('transition-confirm');
+
+const deleteBackdrop = document.getElementById('delete-backdrop');
+const deleteName     = document.getElementById('delete-name');
+const deleteClose    = document.getElementById('delete-close');
+const deleteCancel   = document.getElementById('delete-cancel');
+const deleteConfirm  = document.getElementById('delete-confirm');
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function stateBadge(s) {
+    const cls = s === 'inProgress' ? 'inprogress' : s;
+    return `<span class="badge badge--${cls}">${s}</span>`;
+}
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle:'short', timeStyle:'short' }); }
+    catch { return iso; }
+}
+
+async function apiRequest(method, url, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    const headers = res.headers;
+    let data = null;
+    if (res.status !== 204) {
+        data = await res.json();
+    }
+    if (!res.ok) {
+        const msg = data?.detail || `HTTP ${res.status}`;
+        throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
+    return { data, headers };
+}
+
+function nextActions(state) {
+    const map = {
+        acknowledged: [{ label: 'Start',    state: 'inProgress',  cls: 'btn--primary' },
+                       { label: 'Cancel',   state: 'cancelled',   cls: 'btn--ghost'   }],
+        inProgress:   [{ label: 'Complete', state: 'completed',   cls: 'btn--success' },
+                       { label: 'Fail',     state: 'failed',      cls: 'btn--warning' },
+                       { label: 'Cancel',   state: 'cancelled',   cls: 'btn--ghost'   }],
+        completed:    [],
+        failed:       [],
+        cancelled:    [],
+    };
+    return map[state] || [];
+}
+
+// ── Load ───────────────────────────────────────────────────────────────────────
+async function loadOrders() {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+    try {
+        const params = new URLSearchParams({ offset: currentOffset, limit: PAGE_SIZE });
+        const state = filterState.value;
+        if (state) params.set('state', state);
+
+        const res = await fetch(`${BASE_URL}?${params}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        totalCount = parseInt(res.headers.get('X-Total-Count') || data.length, 10);
+
+        totalEl.textContent    = `${totalCount} total`;
+        pageInfoEl.textContent = totalCount === 0
+            ? 'No results'
+            : `${currentOffset + 1}–${Math.min(currentOffset + data.length, totalCount)} of ${totalCount}`;
+
+        btnPrev.disabled = currentOffset <= 0;
+        btnNext.disabled = currentOffset + PAGE_SIZE >= totalCount;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <div class="empty-state__icon">📦</div>
+                        <div class="empty-state__title">No orders found</div>
+                        <div class="empty-state__desc">Create your first Service Order to get started.</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(order => {
+            const actions = nextActions(order.state);
+            const actionBtns = actions.map(a =>
+                `<button class="btn ${a.cls} btn--sm" onclick="startTransition('${escHtml(order.id)}','${escHtml(order.state)}','${a.state}','${escHtml(a.label)}')">${a.label}</button>`
+            ).join('');
+            const deleteBtn = order.state === 'cancelled'
+                ? `<button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(order.id)}','${escHtml(order.id.slice(0,8))}…')">Delete</button>`
+                : '';
+
+            return `
+            <tr>
+                <td class="name-cell">${escHtml(order.name || '—')}</td>
+                <td>${escHtml(order.category || '—')}</td>
+                <td>${escHtml(order.priority || '—')}</td>
+                <td>${stateBadge(order.state)}</td>
+                <td class="muted">${fmtDate(order.order_date)}</td>
+                <td class="items-count">${(order.order_item || []).length}</td>
+                <td class="id-cell truncate" style="max-width:120px" title="${escHtml(order.id)}">${escHtml(order.id.slice(0,8))}…</td>
+                <td class="actions-cell">${actionBtns}${deleteBtn}</td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state empty-state--error">
+            <div class="empty-state__icon">⚠️</div>
+            <div class="empty-state__title">Failed to load</div>
+            <div class="empty-state__desc">${escHtml(err.message)}</div>
+        </div></td></tr>`;
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Create Order ───────────────────────────────────────────────────────────────
+btnNew.addEventListener('click', () => {
+    fieldName.value = '';
+    fieldDesc.value = '';
+    fieldCategory.value = '';
+    fieldPriority.value = '';
+    fieldCompDate.value = '';
+    itemAction.value = 'add';
+    itemSpecName.value = '';
+    itemSvcName.value = '';
+    formError.style.display = 'none';
+    modalBackdrop.classList.add('open');
+    fieldName.focus();
+});
+
+modalClose.addEventListener('click',   () => modalBackdrop.classList.remove('open'));
+modalCancel.addEventListener('click',  () => modalBackdrop.classList.remove('open'));
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('open'); });
+
+modalSave.addEventListener('click', async () => {
+    const name = fieldName.value.trim();
+    if (!name) {
+        formError.textContent = 'Name is required.';
+        formError.style.display = 'block';
+        fieldName.focus();
+        return;
+    }
+    formError.style.display = 'none';
+    modalSave.disabled = true;
+    modalSave.innerHTML = '<span class="loader"></span>';
+
+    const payload = {
+        name,
+        description: fieldDesc.value.trim() || null,
+        category:    fieldCategory.value.trim() || null,
+        priority:    fieldPriority.value.trim() || null,
+        requested_completion_date: fieldCompDate.value ? new Date(fieldCompDate.value).toISOString() : null,
+        order_item: [],
+    };
+
+    const specName = itemSpecName.value.trim();
+    if (specName) {
+        payload.order_item.push({
+            order_item_id:  '1',
+            action:         itemAction.value,
+            service_spec_name: specName,
+            service_name:   itemSvcName.value.trim() || null,
+        });
+    }
+
+    try {
+        await apiRequest('POST', BASE_URL, payload);
+        showToast('Order created', 'success');
+        modalBackdrop.classList.remove('open');
+        currentOffset = 0;
+        await loadOrders();
+    } catch (err) {
+        formError.textContent = err.message;
+        formError.style.display = 'block';
+        showToast(err.message, 'error');
+    } finally {
+        modalSave.disabled = false;
+        modalSave.textContent = 'Create Order';
+    }
+});
+
+// ── State Transition ───────────────────────────────────────────────────────────
+function startTransition(id, currentState, targetState, label) {
+    transitionId    = id;
+    transitionState = targetState;
+    transTitle.textContent = `${label} Order`;
+    transDesc.innerHTML    = `Transition order state from <strong>${currentState}</strong> to <strong>${targetState}</strong>?`;
+    transBackdrop.classList.add('open');
+}
+
+transClose.addEventListener('click',   () => transBackdrop.classList.remove('open'));
+transCancel.addEventListener('click',  () => transBackdrop.classList.remove('open'));
+transBackdrop.addEventListener('click', e => { if (e.target === transBackdrop) transBackdrop.classList.remove('open'); });
+
+transConfirm.addEventListener('click', async () => {
+    if (!transitionId || !transitionState) return;
+    transConfirm.disabled = true;
+    try {
+        await apiRequest('PATCH', `${BASE_URL}/${transitionId}`, { state: transitionState });
+        showToast(`Order moved to ${transitionState}`, 'success');
+        transBackdrop.classList.remove('open');
+        await loadOrders();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        transConfirm.disabled = false;
+        transitionId = null;
+        transitionState = null;
+    }
+});
+
+// ── Delete ─────────────────────────────────────────────────────────────────────
+function startDelete(id, label) {
+    deletingId = id;
+    deleteName.textContent = label;
+    deleteBackdrop.classList.add('open');
+}
+
+deleteClose.addEventListener('click',   () => deleteBackdrop.classList.remove('open'));
+deleteCancel.addEventListener('click',  () => deleteBackdrop.classList.remove('open'));
+deleteBackdrop.addEventListener('click', e => { if (e.target === deleteBackdrop) deleteBackdrop.classList.remove('open'); });
+
+deleteConfirm.addEventListener('click', async () => {
+    if (!deletingId) return;
+    deleteConfirm.disabled = true;
+    try {
+        await apiRequest('DELETE', `${BASE_URL}/${deletingId}`);
+        showToast('Order deleted', 'success');
+        deleteBackdrop.classList.remove('open');
+        deletingId = null;
+        if (currentOffset > 0 && currentOffset >= totalCount - 1) {
+            currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        }
+        await loadOrders();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        deleteConfirm.disabled = false;
+    }
+});
+
+// ── Pagination ─────────────────────────────────────────────────────────────────
+btnPrev.addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - PAGE_SIZE); loadOrders(); });
+btnNext.addEventListener('click', () => { currentOffset += PAGE_SIZE; loadOrders(); });
+
+// ── Filter ─────────────────────────────────────────────────────────────────────
+filterState.addEventListener('change', () => { currentOffset = 0; loadOrders(); });
+
+// ── showToast (fallback if api-client.js doesn't define it) ───────────────────
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadOrders();
+</script>
+</body>
+</html>

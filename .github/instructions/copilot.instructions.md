@@ -4,8 +4,7 @@
 # Plan
 
 ## General plan guidelines
-
-- All the plans make should be saved in the [/doos/Plans](/docs/plans/) folder.
+- Each plan created with /plan must be saved in the [/docs/Plans](/docs/plans/) folder.
 - The plan should be in markdown format and should be named after the task it is related to. For example, if the task is "Implement feature X", the plan should be named "implement-feature-x.md".
 - The plan should be detailed and should include the following sections:
   - **Objective**: A clear statement of what the plan aims to achieve.
