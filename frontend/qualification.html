@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Qualification — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .id-cell             { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell        { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+        .badge--acknowledged { background: #f1f5f9; color: #475569; }
+        .badge--inProgress   { background: #dbeafe; color: #1d4ed8; }
+        .badge--accepted     { background: #dcfce7; color: #166534; }
+        .badge--rejected     { background: #fee2e2; color: #991b1b; }
+        .badge--cancelled    { background: #fef3c7; color: #92400e; }
+
+        .items-list          { margin: 0; padding: 0; list-style: none; }
+        .items-list li       { display: flex; gap: var(--space-sm); font-size: var(--font-size-sm); padding: 4px 0; border-bottom: 1px solid var(--colour-border); }
+        .items-list li:last-child { border-bottom: none; }
+        .item-spec           { font-family: var(--font-mono); color: var(--colour-text-muted); flex-shrink: 0; }
+        .item-msg            { color: var(--colour-text-muted); word-break: break-all; }
+
+        .item-row            { display: grid; grid-template-columns: 1fr 100px auto; gap: var(--space-sm); align-items: center; margin-bottom: var(--space-sm); }
+        .item-row button     { align-self: flex-end; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link active" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Service Qualification</div>
+                <div class="topbar__subtitle">TMF645 — Pre-sales feasibility checks for service delivery</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" id="btn-new">+ New Qualification</button>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="card">
+                <div class="card__header">
+                    <div style="display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap">
+                        <select class="form-control form-control--sm" id="filter-state" style="width:180px">
+                            <option value="">All states</option>
+                            <option value="acknowledged">acknowledged</option>
+                            <option value="inProgress">inProgress</option>
+                            <option value="accepted">accepted</option>
+                            <option value="rejected">rejected</option>
+                            <option value="cancelled">cancelled</option>
+                        </select>
+                    </div>
+                    <span id="total-count" class="text-muted text-sm"></span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="quals-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>State</th>
+                                <th>Items</th>
+                                <th>Expected Date</th>
+                                <th>Expiry</th>
+                                <th>Created</th>
+                                <th>ID</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="quals-tbody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="loader"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span class="pagination__info" id="page-info">—</span>
+                    <button class="btn btn--ghost btn--sm" id="btn-prev" disabled>‹ Prev</button>
+                    <button class="btn btn--ghost btn--sm" id="btn-next" disabled>Next ›</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── Create Qualification Modal ─────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="max-width:560px">
+        <div class="modal__header">
+            <span class="modal__title" id="modal-title">New Qualification Request</span>
+            <button class="btn btn--ghost btn--icon" id="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="field-name">Name <span class="required">*</span></label>
+                <input type="text" id="field-name" class="form-control" placeholder="e.g. FTTH feasibility for Customer A" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="field-description">Description</label>
+                <textarea id="field-description" class="form-control" placeholder="Optional description…"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="field-expected-date">Expected Qualification Date</label>
+                    <input type="datetime-local" id="field-expected-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="field-expiry-date">Expiration Date</label>
+                    <input type="datetime-local" id="field-expiry-date" class="form-control">
+                </div>
+            </div>
+
+            <!-- Qualification Items -->
+            <div class="form-group">
+                <label class="form-label">Qualification Items</label>
+                <div id="items-container"></div>
+                <button type="button" class="btn btn--ghost btn--sm" id="btn-add-item" style="margin-top:var(--space-sm)">+ Add Item</button>
+            </div>
+
+            <div id="form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="modal-save">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Qualification Detail Modal ─────────────────────────────────────────── -->
+<div class="modal-backdrop" id="detail-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" style="max-width:520px">
+        <div class="modal__header">
+            <span class="modal__title" id="detail-title">Qualification Details</span>
+            <button class="btn btn--ghost btn--icon" id="detail-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body" id="detail-body"></div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="detail-ok">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── State Transition Modal ─────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="transition-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title" id="transition-title">Update State</span>
+            <button class="btn btn--ghost btn--icon" id="transition-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p id="transition-desc"></p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="transition-cancel">Cancel</button>
+            <button class="btn btn--primary" id="transition-confirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Qualification</span>
+            <button class="btn btn--ghost btn--icon" id="delete-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <p>Delete qualification <strong id="delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">
+                Only <em>accepted</em>, <em>rejected</em>, or <em>cancelled</em> qualifications can be deleted.
+                This action cannot be undone.
+            </p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Toast container ────────────────────────────────────────────────────── -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20;
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let currentOffset   = 0;
+let totalCount      = 0;
+let deletingId      = null;
+let transitionId    = null;
+let transitionState = null;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────────
+const tbody       = document.getElementById('quals-tbody');
+const totalEl     = document.getElementById('total-count');
+const pageInfoEl  = document.getElementById('page-info');
+const btnPrev     = document.getElementById('btn-prev');
+const btnNext     = document.getElementById('btn-next');
+const filterState = document.getElementById('filter-state');
+const btnNew      = document.getElementById('btn-new');
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function stateBadge(s) {
+    return `<span class="badge badge--${s}">${s}</span>`;
+}
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle:'short', timeStyle:'short' }); }
+    catch { return iso; }
+}
+
+function nextActions(state) {
+    const map = {
+        acknowledged: [
+            { label: 'Evaluate',  state: 'inProgress', cls: 'btn--primary' },
+            { label: 'Cancel',    state: 'cancelled',  cls: 'btn--ghost'   },
+        ],
+        inProgress: [
+            { label: 'Accept',    state: 'accepted',   cls: 'btn--success' },
+            { label: 'Reject',    state: 'rejected',   cls: 'btn--warning' },
+            { label: 'Cancel',    state: 'cancelled',  cls: 'btn--ghost'   },
+        ],
+        accepted:  [],
+        rejected:  [],
+        cancelled: [],
+    };
+    return map[state] || [];
+}
+
+// ── Load ───────────────────────────────────────────────────────────────────────
+async function loadQualifications() {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+    try {
+        const params = { offset: currentOffset, limit: PAGE_SIZE };
+        const stateFilter = filterState.value;
+        if (stateFilter) params.state = stateFilter;
+
+        const { data, headers } = await QualificationClient.list(params);
+        totalCount = parseInt(headers.get('X-Total-Count') || data.length, 10);
+
+        totalEl.textContent    = `${totalCount} total`;
+        pageInfoEl.textContent = totalCount === 0
+            ? 'No results'
+            : `${currentOffset + 1}–${Math.min(currentOffset + data.length, totalCount)} of ${totalCount}`;
+
+        btnPrev.disabled = currentOffset <= 0;
+        btnNext.disabled = currentOffset + PAGE_SIZE >= totalCount;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <div class="empty-state__icon">✅</div>
+                        <div class="empty-state__title">No qualifications found</div>
+                        <div class="empty-state__desc">Create a qualification request to check service feasibility.</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(q => {
+            const actions = nextActions(q.state);
+            const actionBtns = actions.map(a =>
+                `<button class="btn ${a.cls} btn--sm" onclick="startTransition('${escHtml(q.id)}','${escHtml(q.state)}','${a.state}','${escHtml(a.label)}')">${escHtml(a.label)}</button>`
+            ).join('');
+
+            const detailBtn = `<button class="btn btn--ghost btn--sm" onclick="showDetail('${escHtml(q.id)}')">Detail</button>`;
+
+            const canDelete = q.state === 'accepted' || q.state === 'rejected' || q.state === 'cancelled';
+            const deleteBtn = canDelete
+                ? `<button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(q.id)}','${escHtml(q.name)}')">Delete</button>`
+                : '';
+
+            const itemCount = q.items ? q.items.length : 0;
+
+            return `
+            <tr>
+                <td>${escHtml(q.name || '—')}</td>
+                <td>${stateBadge(q.state)}</td>
+                <td class="muted text-sm">${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
+                <td class="muted">${fmtDate(q.expected_qualification_date)}</td>
+                <td class="muted">${fmtDate(q.expiration_date)}</td>
+                <td class="muted">${fmtDate(q.created_at)}</td>
+                <td class="id-cell" title="${escHtml(q.id)}">${q.id.slice(0,8)}…</td>
+                <td class="actions-cell">${actionBtns}${detailBtn}${deleteBtn}</td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state empty-state--error">
+            <div class="empty-state__icon">⚠️</div>
+            <div class="empty-state__title">Failed to load</div>
+            <div class="empty-state__desc">${escHtml(err.message)}</div>
+        </div></td></tr>`;
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Detail ─────────────────────────────────────────────────────────────────────
+async function showDetail(id) {
+    const detailBody     = document.getElementById('detail-body');
+    const detailTitle    = document.getElementById('detail-title');
+    const detailBackdrop = document.getElementById('detail-backdrop');
+
+    detailTitle.textContent = 'Qualification Details';
+    detailBody.innerHTML    = '<div class="empty-state"><div class="loader"></div></div>';
+    detailBackdrop.classList.add('open');
+
+    try {
+        const { data: q } = await QualificationClient.get(id);
+        detailTitle.textContent = q.name;
+
+        const itemsHtml = q.items && q.items.length > 0
+            ? `<ul class="items-list">${q.items.map(i =>
+                `<li>
+                    ${stateBadge(i.state)}
+                    ${i.service_spec_id ? `<span class="item-spec" title="Spec ID">${i.service_spec_id.slice(0,8)}…</span>` : ''}
+                    <span class="item-msg">${escHtml(i.qualifier_message || '—')}</span>
+                </li>`
+              ).join('')}</ul>`
+            : '<span class="text-muted text-sm">No items</span>';
+
+        detailBody.innerHTML = `
+            <dl style="display:grid;grid-template-columns:160px 1fr;gap:var(--space-sm) var(--space-md)">
+                <dt class="text-muted text-sm">ID</dt>             <dd class="id-cell">${escHtml(q.id)}</dd>
+                <dt class="text-muted text-sm">State</dt>          <dd>${stateBadge(q.state)}</dd>
+                <dt class="text-muted text-sm">Description</dt>    <dd class="text-muted text-sm">${escHtml(q.description || '—')}</dd>
+                <dt class="text-muted text-sm">Expected Date</dt>  <dd>${fmtDate(q.expected_qualification_date)}</dd>
+                <dt class="text-muted text-sm">Expiry Date</dt>    <dd>${fmtDate(q.expiration_date)}</dd>
+                <dt class="text-muted text-sm">Created</dt>        <dd>${fmtDate(q.created_at)}</dd>
+            </dl>
+            <div style="margin-top:var(--space-md)">
+                <div class="form-label" style="margin-bottom:var(--space-sm)">Qualification Items</div>
+                ${itemsHtml}
+            </div>`;
+    } catch (err) {
+        detailBody.innerHTML = `<div class="empty-state empty-state--error">${escHtml(err.message)}</div>`;
+    }
+}
+
+document.getElementById('detail-close').addEventListener('click', () => document.getElementById('detail-backdrop').classList.remove('open'));
+document.getElementById('detail-ok').addEventListener('click',    () => document.getElementById('detail-backdrop').classList.remove('open'));
+document.getElementById('detail-backdrop').addEventListener('click', e => { if (e.target === document.getElementById('detail-backdrop')) document.getElementById('detail-backdrop').classList.remove('open'); });
+
+// ── Create Qualification ────────────────────────────────────────────────────────
+const modalBackdrop    = document.getElementById('modal-backdrop');
+const modalClose       = document.getElementById('modal-close');
+const modalCancel      = document.getElementById('modal-cancel');
+const modalSave        = document.getElementById('modal-save');
+const formError        = document.getElementById('form-error');
+const itemsContainer   = document.getElementById('items-container');
+const btnAddItem       = document.getElementById('btn-add-item');
+
+let itemRows = [];
+
+function addItemRow() {
+    const idx = itemRows.length;
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'item-row';
+    rowDiv.innerHTML = `
+        <input type="text" class="form-control form-control--sm" placeholder="Qualifier message (optional)" data-item-msg>
+        <select class="form-control form-control--sm" data-item-state>
+            <option value="approved">approved</option>
+            <option value="rejected">rejected</option>
+            <option value="unableToProvide">unableToProvide</option>
+        </select>
+        <button type="button" class="btn btn--ghost btn--sm btn--icon" onclick="removeItemRow(${idx})">✕</button>`;
+    itemsContainer.appendChild(rowDiv);
+    itemRows.push(rowDiv);
+}
+
+function removeItemRow(idx) {
+    if (itemRows[idx]) {
+        itemRows[idx].remove();
+        itemRows[idx] = null;
+    }
+}
+
+function collectItems() {
+    return itemRows
+        .filter(r => r !== null && r.isConnected)
+        .map(r => ({
+            qualifier_message: r.querySelector('[data-item-msg]').value.trim() || null,
+            state:             r.querySelector('[data-item-state]').value,
+        }));
+}
+
+btnAddItem.addEventListener('click', addItemRow);
+
+btnNew.addEventListener('click', () => {
+    document.getElementById('field-name').value         = '';
+    document.getElementById('field-description').value  = '';
+    document.getElementById('field-expected-date').value = '';
+    document.getElementById('field-expiry-date').value  = '';
+    itemsContainer.innerHTML = '';
+    itemRows = [];
+    formError.style.display = 'none';
+    modalBackdrop.classList.add('open');
+    document.getElementById('field-name').focus();
+});
+
+modalClose.addEventListener('click',    () => modalBackdrop.classList.remove('open'));
+modalCancel.addEventListener('click',   () => modalBackdrop.classList.remove('open'));
+modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('open'); });
+
+modalSave.addEventListener('click', async () => {
+    const name = document.getElementById('field-name').value.trim();
+    if (!name) {
+        formError.textContent = 'Name is required.';
+        formError.style.display = 'block';
+        return;
+    }
+    formError.style.display = 'none';
+    modalSave.disabled = true;
+    modalSave.innerHTML = '<span class="loader"></span>';
+
+    const expectedDate = document.getElementById('field-expected-date').value;
+    const expiryDate   = document.getElementById('field-expiry-date').value;
+
+    const payload = {
+        name,
+        description:                  document.getElementById('field-description').value.trim() || null,
+        expected_qualification_date:  expectedDate ? new Date(expectedDate).toISOString() : null,
+        expiration_date:              expiryDate   ? new Date(expiryDate).toISOString()   : null,
+        items:                        collectItems(),
+    };
+
+    try {
+        await QualificationClient.create(payload);
+        modalBackdrop.classList.remove('open');
+        showToast('Qualification request created.', 'success');
+        currentOffset = 0;
+        await loadQualifications();
+    } catch (err) {
+        formError.textContent = err.message;
+        formError.style.display = 'block';
+    } finally {
+        modalSave.disabled = false;
+        modalSave.textContent = 'Create';
+    }
+});
+
+// ── State Transition ───────────────────────────────────────────────────────────
+const transBackdrop = document.getElementById('transition-backdrop');
+const transTitle    = document.getElementById('transition-title');
+const transDesc     = document.getElementById('transition-desc');
+const transClose    = document.getElementById('transition-close');
+const transCancel   = document.getElementById('transition-cancel');
+const transConfirm  = document.getElementById('transition-confirm');
+
+function startTransition(id, currentState, targetState, label) {
+    transitionId    = id;
+    transitionState = targetState;
+    transTitle.textContent = `${label} Qualification`;
+    transDesc.textContent  = `Transition state from "${currentState}" → "${targetState}". Continue?`;
+    transBackdrop.classList.add('open');
+}
+
+transClose.addEventListener('click',   () => transBackdrop.classList.remove('open'));
+transCancel.addEventListener('click',  () => transBackdrop.classList.remove('open'));
+transBackdrop.addEventListener('click', e => { if (e.target === transBackdrop) transBackdrop.classList.remove('open'); });
+
+transConfirm.addEventListener('click', async () => {
+    transBackdrop.classList.remove('open');
+    transConfirm.disabled = true;
+    try {
+        await QualificationClient.patch(transitionId, { state: transitionState });
+        showToast(`Qualification transitioned to "${transitionState}".`, 'success');
+        await loadQualifications();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        transConfirm.disabled = false;
+    }
+});
+
+// ── Delete ─────────────────────────────────────────────────────────────────────
+const deleteBackdrop = document.getElementById('delete-backdrop');
+const deleteNameEl   = document.getElementById('delete-name');
+const deleteClose    = document.getElementById('delete-close');
+const deleteCancel   = document.getElementById('delete-cancel');
+const deleteConfirm  = document.getElementById('delete-confirm');
+
+function startDelete(id, name) {
+    deletingId = id;
+    deleteNameEl.textContent = name;
+    deleteBackdrop.classList.add('open');
+}
+
+deleteClose.addEventListener('click',   () => deleteBackdrop.classList.remove('open'));
+deleteCancel.addEventListener('click',  () => deleteBackdrop.classList.remove('open'));
+deleteBackdrop.addEventListener('click', e => { if (e.target === deleteBackdrop) deleteBackdrop.classList.remove('open'); });
+
+deleteConfirm.addEventListener('click', async () => {
+    deleteBackdrop.classList.remove('open');
+    deleteConfirm.disabled = true;
+    try {
+        await QualificationClient.delete(deletingId);
+        showToast('Qualification deleted.', 'success');
+        await loadQualifications();
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        deleteConfirm.disabled = false;
+    }
+});
+
+// ── Pagination & Filter ────────────────────────────────────────────────────────
+btnPrev.addEventListener('click', () => {
+    if (currentOffset > 0) {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadQualifications();
+    }
+});
+
+btnNext.addEventListener('click', () => {
+    if (currentOffset + PAGE_SIZE < totalCount) {
+        currentOffset += PAGE_SIZE;
+        loadQualifications();
+    }
+});
+
+filterState.addEventListener('change', () => { currentOffset = 0; loadQualifications(); });
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadQualifications();
+</script>
+
+</body>
+</html>

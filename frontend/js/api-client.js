@@ -328,3 +328,50 @@ const ProvisioningClient = {
         return apiDelete(`${PROVISIONING_BASE}/${id}`);
     },
 };
+
+/* ── QualificationClient ─────────────────────────────────────────────────────── */
+
+const QUALIFICATION_BASE = '/tmf-api/serviceQualificationManagement/v4/checkServiceQualification';
+
+const QualificationClient = {
+    /**
+     * List ServiceQualifications with pagination and optional state filter.
+     * @param {{ offset?: number, limit?: number, state?: string }} params
+     */
+    list(params = {}) {
+        return apiGet(QUALIFICATION_BASE, params);
+    },
+
+    /**
+     * Get a single ServiceQualification by ID.
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${QUALIFICATION_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new ServiceQualification request.
+     * @param {object} body
+     */
+    create(body) {
+        return apiPost(QUALIFICATION_BASE, body);
+    },
+
+    /**
+     * Partially update a ServiceQualification (PATCH) — used for state transitions.
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${QUALIFICATION_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a terminal or acknowledged ServiceQualification.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${QUALIFICATION_BASE}/${id}`);
+    },
+};

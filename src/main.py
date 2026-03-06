@@ -13,6 +13,7 @@ from src.config import settings
 from src.inventory.api.router import router as inventory_router
 from src.order.api.router import router as order_router
 from src.provisioning.api.router import router as provisioning_router
+from src.qualification.api.router import router as qualification_router
 from src.shared.db.session import engine
 from src.shared.events.bus import EventBus
 from src.shared.events.schemas import TMFEvent
@@ -62,11 +63,9 @@ app.include_router(catalog_router)
 app.include_router(order_router)
 app.include_router(inventory_router)
 app.include_router(provisioning_router)
+app.include_router(qualification_router)
 
 # Future routers (placeholder — uncomment as modules are implemented):
-#
-# from src.qualification.api.router import router as qualification_router
-# app.include_router(qualification_router)
 #
 # from src.assurance.api.router import router as assurance_router
 # app.include_router(assurance_router)
