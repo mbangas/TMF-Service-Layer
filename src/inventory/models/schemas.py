@@ -84,6 +84,38 @@ class ServiceCharacteristicResponse(ServiceCharacteristicBase):
     updated_at: datetime
 
 
+# ── ServiceRelationship ───────────────────────────────────────────────────────
+
+VALID_RELATIONSHIP_TYPES = {"dependency", "isContainedIn", "isReplacedBy", "hasPart"}
+
+
+class ServiceRelationshipCreate(BaseModel):
+    """Request body for creating a ServiceRelationship (TMF638)."""
+
+    relationship_type: str = Field(
+        ...,
+        description="Relationship type: dependency | isContainedIn | isReplacedBy | hasPart",
+    )
+    related_service_id: str = Field(..., description="UUID of the related Service instance")
+    related_service_name: str | None = Field(default=None, description="Name of the related service")
+    related_service_href: str | None = Field(default=None, description="Href of the related service")
+
+
+class ServiceRelationshipResponse(BaseModel):
+    """Response body for a ServiceRelationship (TMF638)."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    service_id: str
+    relationship_type: str
+    related_service_id: str
+    related_service_name: str | None = None
+    related_service_href: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
 # ── Service ───────────────────────────────────────────────────────────────────
 
 class ServiceCreate(BaseModel):
