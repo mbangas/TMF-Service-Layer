@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Testing — TMF Service Layer</title>
+    <title>Service Testing �?" TMF Service Layer</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* ── Tab navigation ──────────────────────────────────────────────────── */
+        /* �"?�"? Tab navigation �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
         .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
         .tab-btn            { padding: var(--space-sm) var(--space-md); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); transition: color .15s, border-color .15s; }
         .tab-btn.active     { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
         .tab-panel          { display: none; }
         .tab-panel.active   { display: block; }
 
-        /* ── State badges — spec lifecycle ───────────────────────────────────── */
+        /* �"?�"? State badges �?" spec lifecycle �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
         .badge--active      { background: #dcfce7; color: #166534; }
         .badge--retired     { background: #fef3c7; color: #92400e; }
         .badge--obsolete    { background: #f1f5f9; color: #475569; }
 
-        /* ── State badges — test lifecycle ───────────────────────────────────── */
+        /* �"?�"? State badges �?" test lifecycle �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
         .badge--planned     { background: #e0f2fe; color: #075985; }
         .badge--inProgress  { background: #fef3c7; color: #92400e; }
         .badge--completed   { background: #dcfce7; color: #166534; }
         .badge--failed      { background: #fee2e2; color: #991b1b; }
         .badge--cancelled   { background: #f1f5f9; color: #475569; }
 
-        /* ── Measure result badges ────────────────────────────────────────────── */
+        /* �"?�"? Measure result badges �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
         .badge--pass        { background: #dcfce7; color: #166534; }
         .badge--fail        { background: #fee2e2; color: #991b1b; }
         .badge--inconclusive{ background: #fef3c7; color: #92400e; }
@@ -33,7 +33,7 @@
         .id-cell            { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
         .actions-cell       { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
 
-        /* ── Measures sub-panel ───────────────────────────────────────────────── */
+        /* �"?�"? Measures sub-panel �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
         .measures-panel     { background: var(--colour-surface); border-top: 1px solid var(--colour-border); padding: var(--space-sm) var(--space-md); }
         .measures-panel table { margin: 0; }
         .measures-panel th, .measures-panel td { font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); }
@@ -45,7 +45,7 @@
 
 <div class="app-shell">
 
-    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <!-- �"?�"? Sidebar �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? -->
     <aside class="sidebar">
         <div class="sidebar__logo">
             <div class="sidebar__logo-title">TMF Service Layer</div>
@@ -93,40 +93,40 @@
         </div>
     </aside>
 
-    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <!-- ── Main Content ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── -->
     <main class="content">
 
         <!-- Topbar -->
         <div class="topbar">
             <div>
                 <div class="topbar__title">Service Testing</div>
-                <div class="topbar__subtitle">TMF653 Service Test Management — Test specifications, test runs, and test measures</div>
+                <div class="topbar__subtitle">TMF653 Service Test Management �?" Test specifications, test runs, and test measures</div>
             </div>
         </div>
 
         <!-- Page body -->
         <div class="page-body">
 
-        <!-- ── Tabs ─────────────────────────────────────────────────────────── -->
+        <!-- �"?�"? Tabs �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('specs', this)">📋 Test Specifications</button>
-            <button class="tab-btn" onclick="switchTab('tests', this)">🧪 Service Tests</button>
+            <button class="tab-btn active" onclick="switchTab('specs', this)">�Y"< Test Specifications</button>
+            <button class="tab-btn" onclick="switchTab('tests', this)">�Y�� Service Tests</button>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════════
+        <!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
              TAB: TEST SPECIFICATIONS
-             ════════════════════════════════════════════════════════════════════ -->
+             �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
         <div id="tab-specs" class="tab-panel active">
             <div class="section-header">
                 <h2 class="section-title">Test Specifications</h2>
                 <button class="btn btn--primary" onclick="openModal('spec-create-modal')">+ Create Specification</button>
             </div>
-            <p class="section-description">Test specification templates that define the parameters and expected outcomes for service tests. Lifecycle: <code>active → retired → obsolete</code>. Only <code>obsolete</code> specifications may be deleted. An <code>obsolete</code> specification cannot be used to create new test runs.</p>
+            <p class="section-description">Test specification templates that define the parameters and expected outcomes for service tests. Lifecycle: <code>active �?' retired �?' obsolete</code>. Only <code>obsolete</code> specifications may be deleted. An <code>obsolete</code> specification cannot be used to create new test runs.</p>
 
             <div class="card">
                 <div class="card__header">
                     <h3 class="card__title">Specifications</h3>
-                    <button class="btn btn--secondary btn--sm" onclick="loadSpecs()">↻ Refresh</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadSpecs()">�?� Refresh</button>
                 </div>
                 <div class="card__body">
                     <table class="table">
@@ -141,27 +141,27 @@
                             </tr>
                         </thead>
                         <tbody id="specs-tbody">
-                            <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+                            <tr><td colspan="6" class="empty-state">Loading�?�</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════════════
+        <!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
              TAB: SERVICE TESTS
-             ════════════════════════════════════════════════════════════════════ -->
+             �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
         <div id="tab-tests" class="tab-panel">
             <div class="section-header">
                 <h2 class="section-title">Service Tests</h2>
                 <button class="btn btn--primary" onclick="openModal('test-create-modal')">+ Create Test</button>
             </div>
-            <p class="section-description">Active test runs against service instances. Lifecycle: <code>planned → inProgress → completed | failed | cancelled</code>. Test measures can only be added when the test is <code>inProgress</code>. Only terminal-state tests (<code>completed</code>, <code>failed</code>, <code>cancelled</code>) may be deleted.</p>
+            <p class="section-description">Active test runs against service instances. Lifecycle: <code>planned �?' inProgress �?' completed | failed | cancelled</code>. Test measures can only be added when the test is <code>inProgress</code>. Only terminal-state tests (<code>completed</code>, <code>failed</code>, <code>cancelled</code>) may be deleted.</p>
 
             <div class="card">
                 <div class="card__header">
                     <h3 class="card__title">Tests</h3>
-                    <button class="btn btn--secondary btn--sm" onclick="loadTests()">↻ Refresh</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadTests()">�?� Refresh</button>
                 </div>
                 <div class="card__body">
                     <table class="table">
@@ -178,7 +178,7 @@
                             </tr>
                         </thead>
                         <tbody id="tests-tbody">
-                            <tr><td colspan="8" class="empty-state">Loading…</td></tr>
+                            <tr><td colspan="8" class="empty-state">Loading�?�</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -189,38 +189,37 @@
     </main>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════════════════
+<!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
      MODALS
-     ════════════════════════════════════════════════════════════════════════════ -->
+     �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
 
 <!-- Create Test Specification -->
-<div id="spec-create-modal" class="modal" style="display:none">
-    <div class="modal__overlay" onclick="closeModal('spec-create-modal')"></div>
-    <div class="modal__dialog">
+<div id="spec-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('spec-create-modal')">
+    <div class="modal">
         <div class="modal__header">
             <h2 class="modal__title">Create Test Specification</h2>
-            <button class="modal__close" onclick="closeModal('spec-create-modal')">✕</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('spec-create-modal')" aria-label="Close">�o.</button>
         </div>
         <div class="modal__body">
             <div class="form-group">
                 <label class="form-label">Name <span class="required">*</span></label>
-                <input id="spec-name" class="form-input" placeholder="e.g. Connectivity Test Spec v1">
+                <input id="spec-name" class="form-control" placeholder="e.g. Connectivity Test Spec v1">
             </div>
             <div class="form-group">
                 <label class="form-label">Test Type</label>
-                <input id="spec-test-type" class="form-input" placeholder="e.g. functional, performance, regression">
+                <input id="spec-test-type" class="form-control" placeholder="e.g. functional, performance, regression">
             </div>
             <div class="form-group">
                 <label class="form-label">Version</label>
-                <input id="spec-version" class="form-input" placeholder="e.g. 1.0">
+                <input id="spec-version" class="form-control" placeholder="e.g. 1.0">
             </div>
             <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea id="spec-description" class="form-input" rows="2" placeholder="Optional description of this test specification…"></textarea>
+                <textarea id="spec-description" class="form-control" rows="2" placeholder="Optional description of this test specification�?�"></textarea>
             </div>
             <div class="form-group">
                 <label class="form-label">Service Spec ID (optional)</label>
-                <input id="spec-service-spec-id" class="form-input" placeholder="UUID of catalog ServiceSpecification">
+                <input id="spec-service-spec-id" class="form-control" placeholder="UUID of catalog ServiceSpecification">
             </div>
         </div>
         <div class="modal__footer">
@@ -231,26 +230,25 @@
 </div>
 
 <!-- Create Service Test -->
-<div id="test-create-modal" class="modal" style="display:none">
-    <div class="modal__overlay" onclick="closeModal('test-create-modal')"></div>
-    <div class="modal__dialog">
+<div id="test-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('test-create-modal')">
+    <div class="modal">
         <div class="modal__header">
             <h2 class="modal__title">Create Service Test</h2>
-            <button class="modal__close" onclick="closeModal('test-create-modal')">✕</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('test-create-modal')" aria-label="Close">�o.</button>
         </div>
         <div class="modal__body">
             <div class="form-group">
                 <label class="form-label">Name <span class="required">*</span></label>
-                <input id="test-name" class="form-input" placeholder="e.g. Connectivity Test — Edge Router">
+                <input id="test-name" class="form-control" placeholder="e.g. Connectivity Test �?" Edge Router">
             </div>
             <div class="form-group">
                 <label class="form-label">Service ID <span class="required">*</span></label>
-                <input id="test-service-id" class="form-input" placeholder="UUID of an active Service instance">
+                <input id="test-service-id" class="form-control" placeholder="UUID of an active Service instance">
             </div>
             <div class="form-group">
                 <label class="form-label">Test Mode</label>
-                <select id="test-mode" class="form-input">
-                    <option value="">— select —</option>
+                <select id="test-mode" class="form-control">
+                    <option value="">�?" select �?"</option>
                     <option value="automated">automated</option>
                     <option value="manual">manual</option>
                     <option value="hybrid">hybrid</option>
@@ -258,11 +256,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea id="test-description" class="form-input" rows="2" placeholder="Optional description of this test run…"></textarea>
+                <textarea id="test-description" class="form-control" rows="2" placeholder="Optional description of this test run�?�"></textarea>
             </div>
             <div class="form-group">
                 <label class="form-label">Test Specification ID (optional)</label>
-                <input id="test-spec-id" class="form-input" placeholder="UUID of a non-obsolete TestSpecification">
+                <input id="test-spec-id" class="form-control" placeholder="UUID of a non-obsolete TestSpecification">
             </div>
         </div>
         <div class="modal__footer">
@@ -273,32 +271,31 @@
 </div>
 
 <!-- Add Test Measure -->
-<div id="measure-create-modal" class="modal" style="display:none">
-    <div class="modal__overlay" onclick="closeModal('measure-create-modal')"></div>
-    <div class="modal__dialog">
+<div id="measure-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('measure-create-modal')">
+    <div class="modal" style="max-width:420px">
         <div class="modal__header">
             <h2 class="modal__title">Add Test Measure</h2>
-            <button class="modal__close" onclick="closeModal('measure-create-modal')">✕</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('measure-create-modal')" aria-label="Close">�o.</button>
         </div>
         <div class="modal__body">
             <p class="text-muted">Test must be <code>inProgress</code> to add measures.</p>
             <input type="hidden" id="measure-test-id">
             <div class="form-group">
                 <label class="form-label">Metric Name <span class="required">*</span></label>
-                <input id="measure-metric-name" class="form-input" placeholder="e.g. latency_ms, packet_loss_pct">
+                <input id="measure-metric-name" class="form-control" placeholder="e.g. latency_ms, packet_loss_pct">
             </div>
             <div class="form-group">
                 <label class="form-label">Metric Value</label>
-                <input id="measure-metric-value" type="number" step="any" class="form-input" placeholder="e.g. 42.5">
+                <input id="measure-metric-value" type="number" step="any" class="form-control" placeholder="e.g. 42.5">
             </div>
             <div class="form-group">
                 <label class="form-label">Unit</label>
-                <input id="measure-unit" class="form-input" placeholder="e.g. ms, %, Mbps">
+                <input id="measure-unit" class="form-control" placeholder="e.g. ms, %, Mbps">
             </div>
             <div class="form-group">
                 <label class="form-label">Result <span class="required">*</span></label>
-                <select id="measure-result" class="form-input">
-                    <option value="">— select —</option>
+                <select id="measure-result" class="form-control">
+                    <option value="">�?" select �?"</option>
                     <option value="pass">pass</option>
                     <option value="fail">fail</option>
                     <option value="inconclusive">inconclusive</option>
@@ -313,11 +310,11 @@
 </div>
 
 <script>
-// ── Config ─────────────────────────────────────────────────────────────────────
+// �"?�"? Config �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 const SPEC_API = '/tmf-api/serviceTest/v4/serviceTestSpecification';
 const TEST_API = '/tmf-api/serviceTest/v4/serviceTest';
 
-// ── Tab switching ──────────────────────────────────────────────────────────────
+// �"?�"? Tab switching �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -327,11 +324,11 @@ function switchTab(name, btn) {
     if (name === 'tests') loadTests();
 }
 
-// ── Modal helpers ──────────────────────────────────────────────────────────────
-function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+// �"?�"? Modal helpers �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// ── Generic REST helpers ───────────────────────────────────────────────────────
+// �"?�"? Generic REST helpers �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 async function apiFetch(url, opts = {}) {
     const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json', ...opts.headers },
@@ -349,19 +346,19 @@ function badge(state, extra = '') {
 }
 
 function truncate(str, n = 8) {
-    return str ? `${str.substring(0, n)}…` : '—';
+    return str ? `${str.substring(0, n)}�?�` : '�?"';
 }
 
-// ── XSS-safe string escape ─────────────────────────────────────────────────────
+// �"?�"? XSS-safe string escape �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 function escHtml(str) {
     const d = document.createElement('div');
     d.appendChild(document.createTextNode(str || ''));
     return d.innerHTML;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
 // TEST SPECIFICATIONS
-// ═══════════════════════════════════════════════════════════════════════════════
+// �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
 
 async function loadSpecs() {
     const tbody = document.getElementById('specs-tbody');
@@ -375,8 +372,8 @@ async function loadSpecs() {
             <tr>
                 <td class="id-cell" title="${s.id}">${truncate(s.id)}</td>
                 <td>${escHtml(s.name)}</td>
-                <td>${s.test_type ? escHtml(s.test_type) : '—'}</td>
-                <td>${s.version ? escHtml(s.version) : '—'}</td>
+                <td>${s.test_type ? escHtml(s.test_type) : '�?"'}</td>
+                <td>${s.version ? escHtml(s.version) : '�?"'}</td>
                 <td>${badge(s.lifecycle_status)}</td>
                 <td class="actions-cell">${specActions(s)}</td>
             </tr>`).join('');
@@ -396,7 +393,7 @@ function specActions(s) {
     if (s.lifecycle_status === 'obsolete') {
         btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteSpec('${s.id}')">Delete</button>`);
     }
-    return btns.join('') || '—';
+    return btns.join('') || '�?"';
 }
 
 async function transitionSpec(id, state) {
@@ -429,9 +426,9 @@ async function deleteSpec(id) {
     } catch (e) { alert(e.message); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
 // SERVICE TESTS
-// ═══════════════════════════════════════════════════════════════════════════════
+// �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
 
 async function loadTests() {
     const tbody = document.getElementById('tests-tbody');
@@ -454,11 +451,11 @@ function buildTestRow(t) {
         <tr>
             <td class="id-cell" title="${t.id}">${truncate(t.id)}</td>
             <td>${escHtml(t.name)}</td>
-            <td>${t.mode ? escHtml(t.mode) : '—'}</td>
+            <td>${t.mode ? escHtml(t.mode) : '�?"'}</td>
             <td>${badge(t.state)}</td>
             <td class="id-cell" title="${t.service_id}">${truncate(t.service_id)}</td>
-            <td>${t.start_date_time ? new Date(t.start_date_time).toLocaleString() : '—'}</td>
-            <td>${t.end_date_time   ? new Date(t.end_date_time).toLocaleString()   : '—'}</td>
+            <td>${t.start_date_time ? new Date(t.start_date_time).toLocaleString() : '�?"'}</td>
+            <td>${t.end_date_time   ? new Date(t.end_date_time).toLocaleString()   : '�?"'}</td>
             <td class="actions-cell">${testActions(t)}</td>
         </tr>
         <tr id="${measuresRowId}" style="${hasMeasures ? '' : 'display:none'}">
@@ -485,10 +482,10 @@ function buildMeasuresTable(measures, testId) {
                 ${measures.map(m => `
                     <tr>
                         <td>${escHtml(m.metric_name)}</td>
-                        <td>${m.metric_value != null ? m.metric_value : '—'}</td>
-                        <td>${m.unit ? escHtml(m.unit) : '—'}</td>
+                        <td>${m.metric_value != null ? m.metric_value : '�?"'}</td>
+                        <td>${m.unit ? escHtml(m.unit) : '�?"'}</td>
                         <td>${badge(m.result)}</td>
-                        <td>${m.captured_at ? new Date(m.captured_at).toLocaleString() : '—'}</td>
+                        <td>${m.captured_at ? new Date(m.captured_at).toLocaleString() : '�?"'}</td>
                     </tr>`).join('')}
             </tbody>
         </table>`;
@@ -512,9 +509,9 @@ function testActions(t) {
     // Toggle measures panel
     const hasMeasures = t.measures && t.measures.length > 0;
     if (hasMeasures || t.state === 'inProgress') {
-        btns.push(`<button class="btn btn--secondary btn--sm" onclick="toggleMeasures('${t.id}')">📋 Measures</button>`);
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="toggleMeasures('${t.id}')">�Y"< Measures</button>`);
     }
-    return btns.join('') || '—';
+    return btns.join('') || '�?"';
 }
 
 function toggleMeasures(testId) {
@@ -552,9 +549,9 @@ async function deleteTest(id) {
     } catch (e) { alert(e.message); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
 // TEST MEASURES
-// ═══════════════════════════════════════════════════════════════════════════════
+// �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
 
 function openAddMeasure(testId) {
     document.getElementById('measure-test-id').value = testId;
@@ -581,7 +578,7 @@ async function addMeasure() {
     } catch (e) { alert(e.message); }
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────────
+// �"?�"? Init �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
 window.addEventListener('DOMContentLoaded', loadSpecs);
 </script>
 </body>
