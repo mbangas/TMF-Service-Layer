@@ -375,3 +375,114 @@ const QualificationClient = {
         return apiDelete(`${QUALIFICATION_BASE}/${id}`);
     },
 };
+
+/* ── CategoryClient (TMFC006 — ServiceCategory) ──────────────────────────────── */
+
+const CATEGORY_BASE = '/tmf-api/serviceCatalogManagement/v4/serviceCategory';
+
+const CategoryClient = {
+    /**
+     * List ServiceCategories with pagination and optional filters.
+     * @param {{ offset?: number, limit?: number, lifecycle_status?: string, is_root?: string }} params
+     */
+    list(params = {}) { return apiGet(CATEGORY_BASE, params); },
+
+    /**
+     * Get a single ServiceCategory by ID.
+     * @param {string} id
+     */
+    get(id) { return apiGet(`${CATEGORY_BASE}/${id}`); },
+
+    /**
+     * Create a new ServiceCategory.
+     * @param {object} body
+     */
+    create(body) { return apiPost(CATEGORY_BASE, body); },
+
+    /**
+     * Partially update a ServiceCategory (PATCH).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) { return apiPatch(`${CATEGORY_BASE}/${id}`, body); },
+
+    /**
+     * Delete a ServiceCategory.
+     * @param {string} id
+     */
+    delete(id) { return apiDelete(`${CATEGORY_BASE}/${id}`); },
+};
+
+/* ── CandidateClient (TMFC006 — ServiceCandidate) ────────────────────────────── */
+
+const CANDIDATE_BASE = '/tmf-api/serviceCatalogManagement/v4/serviceCandidate';
+
+const CandidateClient = {
+    /**
+     * List ServiceCandidates with pagination and optional lifecycle_status filter.
+     * @param {{ offset?: number, limit?: number, lifecycle_status?: string }} params
+     */
+    list(params = {}) { return apiGet(CANDIDATE_BASE, params); },
+
+    /**
+     * Get a single ServiceCandidate by ID.
+     * @param {string} id
+     */
+    get(id) { return apiGet(`${CANDIDATE_BASE}/${id}`); },
+
+    /**
+     * Create a new ServiceCandidate.
+     * @param {object} body
+     */
+    create(body) { return apiPost(CANDIDATE_BASE, body); },
+
+    /**
+     * Partially update a ServiceCandidate (PATCH).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) { return apiPatch(`${CANDIDATE_BASE}/${id}`, body); },
+
+    /**
+     * Delete a ServiceCandidate.
+     * @param {string} id
+     */
+    delete(id) { return apiDelete(`${CANDIDATE_BASE}/${id}`); },
+};
+
+/* ── ServiceCatalogClient (TMFC006 — ServiceCatalog container) ───────────────── */
+
+const SERVICE_CATALOG_BASE = '/tmf-api/serviceCatalogManagement/v4/serviceCatalog';
+
+const ServiceCatalogClient = {
+    /**
+     * List ServiceCatalogs with pagination and optional lifecycle_status filter.
+     * @param {{ offset?: number, limit?: number, lifecycle_status?: string }} params
+     */
+    list(params = {}) { return apiGet(SERVICE_CATALOG_BASE, params); },
+
+    /**
+     * Get a single ServiceCatalog by ID.
+     * @param {string} id
+     */
+    get(id) { return apiGet(`${SERVICE_CATALOG_BASE}/${id}`); },
+
+    /**
+     * Create a new ServiceCatalog.
+     * @param {object} body
+     */
+    create(body) { return apiPost(SERVICE_CATALOG_BASE, body); },
+
+    /**
+     * Partially update a ServiceCatalog (PATCH).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) { return apiPatch(`${SERVICE_CATALOG_BASE}/${id}`, body); },
+
+    /**
+     * Delete a ServiceCatalog.
+     * @param {string} id
+     */
+    delete(id) { return apiDelete(`${SERVICE_CATALOG_BASE}/${id}`); },
+};

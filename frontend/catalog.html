@@ -6,9 +6,58 @@
     <title>Service Catalog — TMF Service Layer</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .name-cell { font-weight: 600; }
-        .id-cell   { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .name-cell    { font-weight: 600; }
+        .id-cell      { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
         .actions-cell { display: flex; gap: var(--space-xs); }
+
+        /* ── Tabs ── */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--colour-border);
+            background: var(--colour-surface);
+            padding: 0 var(--space-xl);
+            flex-shrink: 0;
+            gap: 0;
+        }
+        .tab-btn {
+            padding: var(--space-sm) var(--space-md);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--colour-text-muted);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: color var(--transition), border-color var(--transition);
+            margin-bottom: -1px;
+            white-space: nowrap;
+        }
+        .tab-btn:hover  { color: var(--colour-text); }
+        .tab-btn.active { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
+
+        .tab-panel        { display: none; }
+        .tab-panel.active { display: block; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+            flex-wrap: wrap;
+        }
+        .section-header__filters { display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; }
+
+        select[multiple].form-control { height: 120px; }
+
+        .form-hint {
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: 4px;
+        }
+
+        .badge--root  { background: rgba(52,211,153,0.15); color: var(--colour-success); }
+        .badge--child { background: rgba(96,165,250,0.15); color: var(--colour-info); }
     </style>
 </head>
 <body>
@@ -70,89 +119,182 @@
         <div class="topbar">
             <div>
                 <div class="topbar__title">Service Catalog</div>
-                <div class="topbar__subtitle">TMF633 — ServiceSpecification management</div>
+                <div class="topbar__subtitle">TMF633 / TMFC006 — Full Catalog Management</div>
             </div>
-            <div class="topbar__actions">
-                <select id="filter-status" class="form-control" style="width:160px">
-                    <option value="">All statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
-                    <option value="obsolete">Obsolete</option>
-                    <option value="retired">Retired</option>
-                </select>
-                <button class="btn btn--primary" id="btn-new">
-                    ＋ New Specification
-                </button>
-            </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="specs">&#x1F4C4; Specifications</button>
+            <button class="tab-btn" data-tab="catalogs">&#x1F5C2; Catalogs</button>
+            <button class="tab-btn" data-tab="categories">&#x1F5C3; Categories</button>
+            <button class="tab-btn" data-tab="candidates">&#x1F517; Candidates</button>
         </div>
 
         <!-- Page body -->
         <div class="page-body">
-            <div class="card">
-                <div class="card__header">
-                    <span class="card__title">Service Specifications</span>
-                    <span id="total-count" class="text-muted text-sm"></span>
-                </div>
 
-                <div class="table-wrapper">
-                    <table id="spec-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Version</th>
-                                <th>Status</th>
-                                <th>Bundle</th>
-                                <th>Last Update</th>
-                                <th>ID</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="spec-tbody">
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <div class="loader"></div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Specifications tab -->
+            <div id="tab-specs" class="tab-panel active">
+                <div class="section-header">
+                    <span class="text-muted text-sm" id="spec-total-count"></span>
+                    <div class="section-header__filters">
+                        <select id="spec-filter-status" class="form-control" style="width:160px">
+                            <option value="">All statuses</option>
+                            <option value="draft">Draft</option>
+                            <option value="active">Active</option>
+                            <option value="obsolete">Obsolete</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                        <button class="btn btn--primary" id="btn-new-spec">+ New Specification</button>
+                    </div>
                 </div>
-
-                <!-- Pagination -->
-                <div class="pagination">
-                    <span class="pagination__info" id="page-info">—</span>
-                    <button class="btn btn--ghost btn--sm" id="btn-prev" disabled>‹ Prev</button>
-                    <button class="btn btn--ghost btn--sm" id="btn-next" disabled>Next ›</button>
+                <div class="card">
+                    <div class="card__header"><span class="card__title">Service Specifications</span></div>
+                    <div class="table-wrapper">
+                        <table><thead><tr>
+                            <th>Name</th><th>Version</th><th>Status</th>
+                            <th>Bundle</th><th>Last Update</th><th>ID</th><th></th>
+                        </tr></thead>
+                        <tbody id="spec-tbody"><tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination__info" id="spec-page-info">—</span>
+                        <button class="btn btn--ghost btn--sm" id="spec-btn-prev" disabled>&#8249; Prev</button>
+                        <button class="btn btn--ghost btn--sm" id="spec-btn-next" disabled>Next &#8250;</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
-</div>
 
-<!-- ── Create / Edit Modal ─────────────────────────────────────────────────── -->
-<div class="modal-backdrop" id="modal-backdrop">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <!-- Catalogs tab -->
+            <div id="tab-catalogs" class="tab-panel">
+                <div class="section-header">
+                    <span class="text-muted text-sm" id="cat-total-count"></span>
+                    <div class="section-header__filters">
+                        <select id="cat-filter-status" class="form-control" style="width:160px">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="obsolete">Obsolete</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                        <button class="btn btn--primary" id="btn-new-catalog">+ New Catalog</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card__header"><span class="card__title">Service Catalogs</span></div>
+                    <div class="table-wrapper">
+                        <table><thead><tr>
+                            <th>Name</th><th>Version</th><th>Status</th>
+                            <th>Categories</th><th>Last Update</th><th>ID</th><th></th>
+                        </tr></thead>
+                        <tbody id="catalog-tbody"><tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination__info" id="cat-page-info">—</span>
+                        <button class="btn btn--ghost btn--sm" id="cat-btn-prev" disabled>&#8249; Prev</button>
+                        <button class="btn btn--ghost btn--sm" id="cat-btn-next" disabled>Next &#8250;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories tab -->
+            <div id="tab-categories" class="tab-panel">
+                <div class="section-header">
+                    <span class="text-muted text-sm" id="category-total-count"></span>
+                    <div class="section-header__filters">
+                        <select id="category-filter-status" class="form-control" style="width:160px">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="obsolete">Obsolete</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                        <select id="category-filter-root" class="form-control" style="width:140px">
+                            <option value="">All types</option>
+                            <option value="true">Root only</option>
+                            <option value="false">Children only</option>
+                        </select>
+                        <button class="btn btn--primary" id="btn-new-category">+ New Category</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card__header"><span class="card__title">Service Categories</span></div>
+                    <div class="table-wrapper">
+                        <table><thead><tr>
+                            <th>Name</th><th>Version</th><th>Status</th>
+                            <th>Type</th><th>Parent</th><th>Last Update</th><th>ID</th><th></th>
+                        </tr></thead>
+                        <tbody id="category-tbody"><tr><td colspan="8"><div class="empty-state"><div class="loader"></div></div></td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination__info" id="category-page-info">—</span>
+                        <button class="btn btn--ghost btn--sm" id="category-btn-prev" disabled>&#8249; Prev</button>
+                        <button class="btn btn--ghost btn--sm" id="category-btn-next" disabled>Next &#8250;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Candidates tab -->
+            <div id="tab-candidates" class="tab-panel">
+                <div class="section-header">
+                    <span class="text-muted text-sm" id="cand-total-count"></span>
+                    <div class="section-header__filters">
+                        <select id="cand-filter-status" class="form-control" style="width:160px">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="obsolete">Obsolete</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                        <button class="btn btn--primary" id="btn-new-candidate">+ New Candidate</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card__header"><span class="card__title">Service Candidates</span></div>
+                    <div class="table-wrapper">
+                        <table><thead><tr>
+                            <th>Name</th><th>Version</th><th>Status</th>
+                            <th>Specification</th><th>Categories</th><th>Last Update</th><th>ID</th><th></th>
+                        </tr></thead>
+                        <tbody id="candidate-tbody"><tr><td colspan="8"><div class="empty-state"><div class="loader"></div></div></td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination__info" id="cand-page-info">—</span>
+                        <button class="btn btn--ghost btn--sm" id="cand-btn-prev" disabled>&#8249; Prev</button>
+                        <button class="btn btn--ghost btn--sm" id="cand-btn-next" disabled>Next &#8250;</button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+<!-- ══ Spec Modal ══════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="spec-modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="spec-modal-title">
         <div class="modal__header">
-            <span class="modal__title" id="modal-title">New Service Specification</span>
-            <button class="btn btn--ghost btn--icon" id="modal-close" aria-label="Close">✕</button>
+            <span class="modal__title" id="spec-modal-title">New Service Specification</span>
+            <button class="btn btn--ghost btn--icon" id="spec-modal-close" aria-label="Close">&#x2715;</button>
         </div>
         <div class="modal__body">
             <div class="form-group">
-                <label class="form-label" for="field-name">Name <span class="required">*</span></label>
-                <input type="text" id="field-name" class="form-control" placeholder="e.g. Broadband Internet Service" required>
+                <label class="form-label" for="spec-field-name">Name <span class="required">*</span></label>
+                <input type="text" id="spec-field-name" class="form-control" placeholder="e.g. Broadband Internet Service">
             </div>
             <div class="form-group">
-                <label class="form-label" for="field-description">Description</label>
-                <textarea id="field-description" class="form-control" placeholder="Optional description…"></textarea>
+                <label class="form-label" for="spec-field-description">Description</label>
+                <textarea id="spec-field-description" class="form-control" placeholder="Optional description"></textarea>
             </div>
             <div class="form-group">
-                <label class="form-label" for="field-version">Version</label>
-                <input type="text" id="field-version" class="form-control" placeholder="1.0" value="1.0">
+                <label class="form-label" for="spec-field-version">Version</label>
+                <input type="text" id="spec-field-version" class="form-control" placeholder="1.0" value="1.0">
             </div>
             <div class="form-group">
-                <label class="form-label" for="field-status">Lifecycle Status</label>
-                <select id="field-status" class="form-control">
+                <label class="form-label" for="spec-field-status">Lifecycle Status</label>
+                <select id="spec-field-status" class="form-control">
                     <option value="draft">Draft</option>
                     <option value="active">Active</option>
                     <option value="obsolete">Obsolete</option>
@@ -160,35 +302,215 @@
                 </select>
             </div>
             <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-sm)">
-                <input type="checkbox" id="field-bundle" style="width:16px;height:16px;accent-color:var(--colour-primary)">
-                <label class="form-label" for="field-bundle" style="margin:0">Is Bundle</label>
+                <input type="checkbox" id="spec-field-bundle" style="width:16px;height:16px;accent-color:var(--colour-primary)">
+                <label class="form-label" for="spec-field-bundle" style="margin:0">Is Bundle</label>
             </div>
-            <div id="form-error" class="form-error" style="display:none"></div>
+            <div id="spec-form-error" class="form-error" style="display:none"></div>
         </div>
         <div class="modal__footer">
-            <button class="btn btn--ghost" id="modal-cancel">Cancel</button>
-            <button class="btn btn--primary" id="modal-save">Save</button>
+            <button class="btn btn--ghost" id="spec-modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="spec-modal-save">Save</button>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop" id="spec-delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Specification</span>
+            <button class="btn btn--ghost btn--icon" id="spec-delete-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete <strong id="spec-delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">Only specifications in <em>draft</em> or <em>retired</em> status can be deleted. This action cannot be undone.</p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="spec-delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="spec-delete-confirm">Delete</button>
         </div>
     </div>
 </div>
 
-<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
-<div class="modal-backdrop" id="delete-backdrop">
-    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+<!-- ══ Catalog Modal ═══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="catalog-modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="catalog-modal-title">
         <div class="modal__header">
-            <span class="modal__title">Delete Specification</span>
-            <button class="btn btn--ghost btn--icon" id="delete-close" aria-label="Close">✕</button>
+            <span class="modal__title" id="catalog-modal-title">New Service Catalog</span>
+            <button class="btn btn--ghost btn--icon" id="catalog-modal-close" aria-label="Close">&#x2715;</button>
         </div>
         <div class="modal__body">
-            <p>Are you sure you want to delete <strong id="delete-name"></strong>?</p>
-            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">
-                Only specifications in <em>draft</em> or <em>retired</em> status can be deleted.
-                This action cannot be undone.
-            </p>
+            <div class="form-group">
+                <label class="form-label" for="catalog-field-name">Name <span class="required">*</span></label>
+                <input type="text" id="catalog-field-name" class="form-control" placeholder="e.g. Residential Services Catalog">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="catalog-field-description">Description</label>
+                <textarea id="catalog-field-description" class="form-control" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="catalog-field-version">Version</label>
+                <input type="text" id="catalog-field-version" class="form-control" placeholder="1.0" value="1.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="catalog-field-status">Lifecycle Status</label>
+                <select id="catalog-field-status" class="form-control">
+                    <option value="active">Active</option>
+                    <option value="obsolete">Obsolete</option>
+                    <option value="retired">Retired</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="catalog-field-categories">Categories</label>
+                <select id="catalog-field-categories" class="form-control" multiple></select>
+                <div class="form-hint">Hold Ctrl / Cmd to select multiple.</div>
+            </div>
+            <div id="catalog-form-error" class="form-error" style="display:none"></div>
         </div>
         <div class="modal__footer">
-            <button class="btn btn--ghost" id="delete-cancel">Cancel</button>
-            <button class="btn btn--danger" id="delete-confirm">Delete</button>
+            <button class="btn btn--ghost" id="catalog-modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="catalog-modal-save">Save</button>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop" id="catalog-delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Catalog</span>
+            <button class="btn btn--ghost btn--icon" id="catalog-delete-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete <strong id="catalog-delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">This action cannot be undone.</p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="catalog-delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="catalog-delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Category Modal ══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="category-modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="category-modal-title">New Service Category</span>
+            <button class="btn btn--ghost btn--icon" id="category-modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="category-field-name">Name <span class="required">*</span></label>
+                <input type="text" id="category-field-name" class="form-control" placeholder="e.g. Voice Services">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="category-field-description">Description</label>
+                <textarea id="category-field-description" class="form-control" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="category-field-version">Version</label>
+                <input type="text" id="category-field-version" class="form-control" placeholder="1.0" value="1.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="category-field-status">Lifecycle Status</label>
+                <select id="category-field-status" class="form-control">
+                    <option value="active">Active</option>
+                    <option value="obsolete">Obsolete</option>
+                    <option value="retired">Retired</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-sm)">
+                <input type="checkbox" id="category-field-is-root" checked style="width:16px;height:16px;accent-color:var(--colour-primary)">
+                <label class="form-label" for="category-field-is-root" style="margin:0">Is Root Category</label>
+            </div>
+            <div class="form-group" id="category-parent-group" style="display:none">
+                <label class="form-label" for="category-field-parent">Parent Category</label>
+                <select id="category-field-parent" class="form-control">
+                    <option value="">— none —</option>
+                </select>
+            </div>
+            <div id="category-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="category-modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="category-modal-save">Save</button>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop" id="category-delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Category</span>
+            <button class="btn btn--ghost btn--icon" id="category-delete-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete <strong id="category-delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">This action cannot be undone.</p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="category-delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="category-delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Candidate Modal ═════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="candidate-modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="candidate-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="candidate-modal-title">New Service Candidate</span>
+            <button class="btn btn--ghost btn--icon" id="candidate-modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="candidate-field-name">Name <span class="required">*</span></label>
+                <input type="text" id="candidate-field-name" class="form-control" placeholder="e.g. Basic VoIP Candidate">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="candidate-field-description">Description</label>
+                <textarea id="candidate-field-description" class="form-control" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="candidate-field-version">Version</label>
+                <input type="text" id="candidate-field-version" class="form-control" placeholder="1.0" value="1.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="candidate-field-status">Lifecycle Status</label>
+                <select id="candidate-field-status" class="form-control">
+                    <option value="active">Active</option>
+                    <option value="obsolete">Obsolete</option>
+                    <option value="retired">Retired</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="candidate-field-spec">Service Specification</label>
+                <select id="candidate-field-spec" class="form-control">
+                    <option value="">— none —</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="candidate-field-categories">Categories</label>
+                <select id="candidate-field-categories" class="form-control" multiple></select>
+                <div class="form-hint">Hold Ctrl / Cmd to select multiple.</div>
+            </div>
+            <div id="candidate-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="candidate-modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="candidate-modal-save">Save</button>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop" id="candidate-delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Candidate</span>
+            <button class="btn btn--ghost btn--icon" id="candidate-delete-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete <strong id="candidate-delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">This action cannot be undone.</p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="candidate-delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="candidate-delete-confirm">Delete</button>
         </div>
     </div>
 </div>
@@ -196,232 +518,516 @@
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
-<script src="js/api-client.js?v=6"></script>
+<script src="js/api-client.js?v=7"></script>
 <script>
-// ── State ──────────────────────────────────────────────────────────────────────
+// ══ SHARED ════════════════════════════════════════════════════════════════════
 const PAGE_SIZE = 20;
-let currentOffset = 0;
-let totalCount    = 0;
-let editingId     = null;
-let deletingId    = null;
-
-// ── DOM refs ───────────────────────────────────────────────────────────────────
-const tbody          = document.getElementById('spec-tbody');
-const totalEl        = document.getElementById('total-count');
-const pageInfoEl     = document.getElementById('page-info');
-const btnPrev        = document.getElementById('btn-prev');
-const btnNext        = document.getElementById('btn-next');
-const filterStatus   = document.getElementById('filter-status');
-const btnNew         = document.getElementById('btn-new');
-
-const modalBackdrop  = document.getElementById('modal-backdrop');
-const modalTitle     = document.getElementById('modal-title');
-const modalClose     = document.getElementById('modal-close');
-const modalCancel    = document.getElementById('modal-cancel');
-const modalSave      = document.getElementById('modal-save');
-const formError      = document.getElementById('form-error');
-const fieldName      = document.getElementById('field-name');
-const fieldDesc      = document.getElementById('field-description');
-const fieldVersion   = document.getElementById('field-version');
-const fieldStatus    = document.getElementById('field-status');
-const fieldBundle    = document.getElementById('field-bundle');
-
-const deleteBackdrop = document.getElementById('delete-backdrop');
-const deleteName     = document.getElementById('delete-name');
-const deleteClose    = document.getElementById('delete-close');
-const deleteCancel   = document.getElementById('delete-cancel');
-const deleteConfirm  = document.getElementById('delete-confirm');
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-function statusBadge(s) {
-    return `<span class="badge badge--${s}">${s}</span>`;
-}
-
-function fmtDate(iso) {
-    if (!iso) return '—';
-    try { return new Date(iso).toLocaleString(undefined, { dateStyle:'short', timeStyle:'short' }); }
-    catch { return iso; }
-}
-
-function openModal() { modalBackdrop.classList.add('open'); fieldName.focus(); }
-function closeModal() { modalBackdrop.classList.remove('open'); resetForm(); }
-function openDeleteModal() { deleteBackdrop.classList.add('open'); }
-function closeDeleteModal() { deleteBackdrop.classList.remove('open'); deletingId = null; }
-
-function resetForm() {
-    editingId = null;
-    fieldName.value    = '';
-    fieldDesc.value    = '';
-    fieldVersion.value = '1.0';
-    fieldStatus.value  = 'draft';
-    fieldBundle.checked = false;
-    formError.style.display = 'none';
-    modalTitle.textContent  = 'New Service Specification';
-    modalSave.textContent   = 'Save';
-}
-
-// ── List / Load ────────────────────────────────────────────────────────────────
-async function loadSpecs() {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
-    try {
-        const params = { offset: currentOffset, limit: PAGE_SIZE };
-        const status = filterStatus.value;
-        if (status) params.lifecycle_status = status;
-
-        const { data, headers } = await CatalogClient.list(params);
-        totalCount = parseInt(headers.get('X-Total-Count') || data.length, 10);
-
-        totalEl.textContent   = `${totalCount} total`;
-        pageInfoEl.textContent = totalCount === 0
-            ? 'No results'
-            : `${currentOffset + 1}–${Math.min(currentOffset + data.length, totalCount)} of ${totalCount}`;
-
-        btnPrev.disabled = currentOffset <= 0;
-        btnNext.disabled = currentOffset + PAGE_SIZE >= totalCount;
-
-        if (data.length === 0) {
-            tbody.innerHTML = `
-                <tr><td colspan="7">
-                    <div class="empty-state">
-                        <div class="empty-state__icon">📋</div>
-                        <div class="empty-state__title">No specifications found</div>
-                        <div class="empty-state__desc">Create your first Service Specification to get started.</div>
-                    </div>
-                </td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = data.map(spec => `
-            <tr>
-                <td class="name-cell">${escHtml(spec.name)}</td>
-                <td>${escHtml(spec.version || '—')}</td>
-                <td>${statusBadge(spec.lifecycle_status)}</td>
-                <td>${spec.is_bundle ? '<span class="badge badge--info">Bundle</span>' : '—'}</td>
-                <td class="muted">${fmtDate(spec.last_update || spec.updated_at)}</td>
-                <td class="id-cell truncate" style="max-width:120px" title="${escHtml(spec.id)}">${escHtml(spec.id)}</td>
-                <td class="actions-cell">
-                    <button class="btn btn--ghost btn--sm" onclick="startEdit('${escHtml(spec.id)}')">Edit</button>
-                    <button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(spec.id)}','${escHtml(spec.name)}')">Delete</button>
-                </td>
-            </tr>
-        `).join('');
-    } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state empty-state--error">
-            <div class="empty-state__icon">⚠️</div>
-            <div class="empty-state__title">Failed to load</div>
-            <div class="empty-state__desc">${escHtml(err.message)}</div>
-        </div></td></tr>`;
-        showToast(err.message, 'error');
-    }
-}
 
 function escHtml(str) {
     return String(str ?? '')
         .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
         .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-
-// ── Create / Edit ──────────────────────────────────────────────────────────────
-btnNew.addEventListener('click', () => { resetForm(); openModal(); });
-
-async function startEdit(id) {
-    editingId = id;
-    try {
-        const { data } = await CatalogClient.get(id);
-        fieldName.value      = data.name    || '';
-        fieldDesc.value      = data.description || '';
-        fieldVersion.value   = data.version || '1.0';
-        fieldStatus.value    = data.lifecycle_status || 'draft';
-        fieldBundle.checked  = !!data.is_bundle;
-        modalTitle.textContent = 'Edit Service Specification';
-        modalSave.textContent  = 'Update';
-        openModal();
-    } catch (err) {
-        showToast(err.message, 'error');
-    }
+function statusBadge(s) { return `<span class="badge badge--${escHtml(s)}">${escHtml(s)}</span>`; }
+function fmtDate(iso) {
+    if (!iso) return '&mdash;';
+    try { return new Date(iso).toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'}); }
+    catch { return iso; }
+}
+function loadingRow(cols) { return `<tr><td colspan="${cols}"><div class="empty-state"><div class="loader"></div></div></td></tr>`; }
+function emptyRow(cols, icon, title, desc) {
+    return `<tr><td colspan="${cols}"><div class="empty-state"><div class="empty-state__icon">${icon}</div><div class="empty-state__title">${title}</div><div class="empty-state__desc">${desc}</div></div></td></tr>`;
+}
+function errorRow(cols, msg) {
+    return `<tr><td colspan="${cols}"><div class="empty-state empty-state--error"><div class="empty-state__icon">&#x26A0;</div><div class="empty-state__title">Failed to load</div><div class="empty-state__desc">${escHtml(msg)}</div></div></td></tr>`;
+}
+function updatePager(totalEl, pageInfoEl, btnPrev, btnNext, offset, data, total) {
+    if (totalEl)    totalEl.textContent    = `${total} total`;
+    if (pageInfoEl) pageInfoEl.textContent = total === 0 ? 'No results' : `${offset+1}&ndash;${Math.min(offset+data.length,total)} of ${total}`;
+    if (btnPrev) btnPrev.disabled = offset <= 0;
+    if (btnNext) btnNext.disabled = offset + PAGE_SIZE >= total;
 }
 
-modalClose.addEventListener('click',  closeModal);
-modalCancel.addEventListener('click', closeModal);
-modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
+// ══ TABS ══════════════════════════════════════════════════════════════════════
+const tabBtns   = document.querySelectorAll('.tab-btn');
+const tabPanels = document.querySelectorAll('.tab-panel');
+const loaded    = { specs:false, catalogs:false, categories:false, candidates:false };
 
-modalSave.addEventListener('click', async () => {
-    const name = fieldName.value.trim();
-    if (!name) {
-        formError.textContent = 'Name is required.';
-        formError.style.display = 'block';
-        fieldName.focus();
-        return;
-    }
-    formError.style.display = 'none';
-    modalSave.disabled = true;
-    modalSave.innerHTML = '<span class="loader"></span>';
-
-    const payload = {
-        name,
-        description:      fieldDesc.value.trim() || null,
-        version:          fieldVersion.value.trim() || '1.0',
-        lifecycle_status: fieldStatus.value,
-        is_bundle:        fieldBundle.checked,
-    };
-
-    try {
-        if (editingId) {
-            await CatalogClient.patch(editingId, payload);
-            showToast('Specification updated', 'success');
-        } else {
-            await CatalogClient.create(payload);
-            showToast('Specification created', 'success');
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        tabBtns.forEach(b  => b.classList.toggle('active', b.dataset.tab === tab));
+        tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
+        if (!loaded[tab]) {
+            if (tab === 'specs')      loadSpecs();
+            if (tab === 'catalogs')   loadCatalogs();
+            if (tab === 'categories') loadCategories();
+            if (tab === 'candidates') loadCandidates();
         }
-        closeModal();
-        await loadSpecs();
-    } catch (err) {
-        formError.textContent = err.message;
-        formError.style.display = 'block';
-        showToast(err.message, 'error');
-    } finally {
-        modalSave.disabled = false;
-        modalSave.textContent = editingId ? 'Update' : 'Save';
-    }
+    });
 });
 
-// ── Delete ─────────────────────────────────────────────────────────────────────
-function startDelete(id, name) {
-    deletingId = id;
-    deleteName.textContent = name;
-    openDeleteModal();
+// ══ SERVICE SPECIFICATIONS ════════════════════════════════════════════════════
+const specState = { offset:0, total:0, editingId:null, deletingId:null };
+
+const specTbody    = document.getElementById('spec-tbody');
+const specTotalEl  = document.getElementById('spec-total-count');
+const specPageInfo = document.getElementById('spec-page-info');
+const specBtnPrev  = document.getElementById('spec-btn-prev');
+const specBtnNext  = document.getElementById('spec-btn-next');
+const specFilter   = document.getElementById('spec-filter-status');
+
+async function loadSpecs() {
+    loaded.specs = true;
+    specTbody.innerHTML = loadingRow(7);
+    try {
+        const params = { offset:specState.offset, limit:PAGE_SIZE };
+        if (specFilter.value) params.lifecycle_status = specFilter.value;
+        const { data, headers } = await CatalogClient.list(params);
+        specState.total = parseInt(headers.get('X-Total-Count') || data.length, 10);
+        updatePager(specTotalEl, specPageInfo, specBtnPrev, specBtnNext, specState.offset, data, specState.total);
+        if (!data.length) { specTbody.innerHTML = emptyRow(7,'&#x1F4CB;','No specifications found','Create your first Service Specification to get started.'); return; }
+        specTbody.innerHTML = data.map(s => `<tr>
+            <td class="name-cell">${escHtml(s.name)}</td>
+            <td>${escHtml(s.version||'&mdash;')}</td>
+            <td>${statusBadge(s.lifecycle_status)}</td>
+            <td>${s.is_bundle?'<span class="badge badge--info">Bundle</span>':'&mdash;'}</td>
+            <td class="muted">${fmtDate(s.last_update||s.updated_at)}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(s.id)}">${escHtml(s.id)}</td>
+            <td class="actions-cell">
+                <button class="btn btn--ghost btn--sm" onclick="startEditSpec('${escHtml(s.id)}')">Edit</button>
+                <button class="btn btn--danger btn--sm" onclick="startDeleteSpec('${escHtml(s.id)}','${escHtml(s.name)}')">Delete</button>
+            </td></tr>`).join('');
+    } catch(err) { specTbody.innerHTML = errorRow(7,err.message); showToast(err.message,'error'); }
 }
 
-deleteClose.addEventListener('click',  closeDeleteModal);
-deleteCancel.addEventListener('click', closeDeleteModal);
-deleteBackdrop.addEventListener('click', e => { if (e.target === deleteBackdrop) closeDeleteModal(); });
+const specModalBD    = document.getElementById('spec-modal-backdrop');
+const specModalTitle = document.getElementById('spec-modal-title');
+const specModalSave  = document.getElementById('spec-modal-save');
+const specFormErr    = document.getElementById('spec-form-error');
+const specFldName    = document.getElementById('spec-field-name');
+const specFldDesc    = document.getElementById('spec-field-description');
+const specFldVer     = document.getElementById('spec-field-version');
+const specFldStatus  = document.getElementById('spec-field-status');
+const specFldBundle  = document.getElementById('spec-field-bundle');
 
-deleteConfirm.addEventListener('click', async () => {
-    if (!deletingId) return;
-    deleteConfirm.disabled = true;
+function openSpecModal()  { specModalBD.classList.add('open'); specFldName.focus(); }
+function closeSpecModal() { specModalBD.classList.remove('open'); resetSpecForm(); }
+function resetSpecForm() {
+    specState.editingId = null;
+    specFldName.value=''; specFldDesc.value=''; specFldVer.value='1.0';
+    specFldStatus.value='draft'; specFldBundle.checked=false;
+    specFormErr.style.display='none';
+    specModalTitle.textContent='New Service Specification'; specModalSave.textContent='Save';
+}
+
+document.getElementById('btn-new-spec').addEventListener('click', ()=>{resetSpecForm();openSpecModal();});
+document.getElementById('spec-modal-close').addEventListener('click', closeSpecModal);
+document.getElementById('spec-modal-cancel').addEventListener('click', closeSpecModal);
+specModalBD.addEventListener('click', e=>{if(e.target===specModalBD)closeSpecModal();});
+
+async function startEditSpec(id) {
+    specState.editingId = id;
     try {
-        await CatalogClient.delete(deletingId);
-        showToast('Specification deleted', 'success');
-        closeDeleteModal();
-        if (currentOffset > 0 && currentOffset >= totalCount - 1) {
-            currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
-        }
-        await loadSpecs();
-    } catch (err) {
-        showToast(err.message, 'error');
-    } finally {
-        deleteConfirm.disabled = false;
-    }
+        const {data} = await CatalogClient.get(id);
+        specFldName.value=data.name||''; specFldDesc.value=data.description||'';
+        specFldVer.value=data.version||'1.0'; specFldStatus.value=data.lifecycle_status||'draft';
+        specFldBundle.checked=!!data.is_bundle;
+        specModalTitle.textContent='Edit Service Specification'; specModalSave.textContent='Update';
+        openSpecModal();
+    } catch(err){showToast(err.message,'error');}
+}
+
+specModalSave.addEventListener('click', async ()=>{
+    const name = specFldName.value.trim();
+    if (!name) { specFormErr.textContent='Name is required.'; specFormErr.style.display='block'; specFldName.focus(); return; }
+    specFormErr.style.display='none'; specModalSave.disabled=true; specModalSave.innerHTML='<span class="loader"></span>';
+    try {
+        const payload={name,description:specFldDesc.value.trim()||null,version:specFldVer.value.trim()||'1.0',lifecycle_status:specFldStatus.value,is_bundle:specFldBundle.checked};
+        if (specState.editingId) { await CatalogClient.patch(specState.editingId,payload); showToast('Specification updated','success'); }
+        else { await CatalogClient.create(payload); showToast('Specification created','success'); }
+        closeSpecModal(); await loadSpecs();
+    } catch(err){specFormErr.textContent=err.message;specFormErr.style.display='block';showToast(err.message,'error');}
+    finally{specModalSave.disabled=false;specModalSave.textContent=specState.editingId?'Update':'Save';}
 });
 
-// ── Pagination ─────────────────────────────────────────────────────────────────
-btnPrev.addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - PAGE_SIZE); loadSpecs(); });
-btnNext.addEventListener('click', () => { currentOffset += PAGE_SIZE; loadSpecs(); });
+const specDelBD   = document.getElementById('spec-delete-backdrop');
+const specDelName = document.getElementById('spec-delete-name');
+function closeSpecDelete(){ specDelBD.classList.remove('open'); specState.deletingId=null; }
+function startDeleteSpec(id,name){ specState.deletingId=id; specDelName.textContent=name; specDelBD.classList.add('open'); }
+document.getElementById('spec-delete-close').addEventListener('click', closeSpecDelete);
+document.getElementById('spec-delete-cancel').addEventListener('click', closeSpecDelete);
+specDelBD.addEventListener('click', e=>{if(e.target===specDelBD)closeSpecDelete();});
+document.getElementById('spec-delete-confirm').addEventListener('click', async function(){
+    if (!specState.deletingId) return; this.disabled=true;
+    try {
+        await CatalogClient.delete(specState.deletingId); showToast('Specification deleted','success');
+        closeSpecDelete();
+        if (specState.offset>0 && specState.offset>=specState.total-1) specState.offset=Math.max(0,specState.offset-PAGE_SIZE);
+        await loadSpecs();
+    } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
+});
 
-// ── Filter ─────────────────────────────────────────────────────────────────────
-filterStatus.addEventListener('change', () => { currentOffset = 0; loadSpecs(); });
+specBtnPrev.addEventListener('click',()=>{specState.offset=Math.max(0,specState.offset-PAGE_SIZE);loadSpecs();});
+specBtnNext.addEventListener('click',()=>{specState.offset+=PAGE_SIZE;loadSpecs();});
+specFilter.addEventListener('change',()=>{specState.offset=0;loadSpecs();});
 
-// ── Init ───────────────────────────────────────────────────────────────────────
+// ══ SERVICE CATALOGS ══════════════════════════════════════════════════════════
+const catState = {offset:0,total:0,editingId:null,deletingId:null};
+
+const catTbody    = document.getElementById('catalog-tbody');
+const catTotalEl  = document.getElementById('cat-total-count');
+const catPageInfo = document.getElementById('cat-page-info');
+const catBtnPrev  = document.getElementById('cat-btn-prev');
+const catBtnNext  = document.getElementById('cat-btn-next');
+const catFilter   = document.getElementById('cat-filter-status');
+
+async function loadCatalogs() {
+    loaded.catalogs = true;
+    catTbody.innerHTML = loadingRow(7);
+    try {
+        const params={offset:catState.offset,limit:PAGE_SIZE};
+        if (catFilter.value) params.lifecycle_status=catFilter.value;
+        const {data,headers} = await ServiceCatalogClient.list(params);
+        catState.total = parseInt(headers.get('X-Total-Count')||data.length,10);
+        updatePager(catTotalEl,catPageInfo,catBtnPrev,catBtnNext,catState.offset,data,catState.total);
+        if (!data.length) { catTbody.innerHTML=emptyRow(7,'&#x1F5C2;','No catalogs found','Create your first Service Catalog to get started.'); return; }
+        catTbody.innerHTML = data.map(c=>`<tr>
+            <td class="name-cell">${escHtml(c.name)}</td>
+            <td>${escHtml(c.version||'&mdash;')}</td>
+            <td>${statusBadge(c.lifecycle_status)}</td>
+            <td>${c.categories&&c.categories.length?`<span class="badge badge--info">${c.categories.length}</span>`:'&mdash;'}</td>
+            <td class="muted">${fmtDate(c.last_update||c.updated_at)}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(c.id)}">${escHtml(c.id)}</td>
+            <td class="actions-cell">
+                <button class="btn btn--ghost btn--sm" onclick="startEditCatalog('${escHtml(c.id)}')">Edit</button>
+                <button class="btn btn--danger btn--sm" onclick="startDeleteCatalog('${escHtml(c.id)}','${escHtml(c.name)}')">Delete</button>
+            </td></tr>`).join('');
+    } catch(err){catTbody.innerHTML=errorRow(7,err.message);showToast(err.message,'error');}
+}
+
+async function populateCategoryOptions(selectEl, selectedIds=[]) {
+    try {
+        const {data} = await CategoryClient.list({limit:100});
+        selectEl.innerHTML = data.map(c=>`<option value="${escHtml(c.id)}" ${selectedIds.includes(c.id)?'selected':''}>${escHtml(c.name)}</option>`).join('');
+    } catch { selectEl.innerHTML=''; }
+}
+function getSelectedIds(sel){ return Array.from(sel.selectedOptions).map(o=>o.value); }
+
+const catModalBD       = document.getElementById('catalog-modal-backdrop');
+const catModalTitle    = document.getElementById('catalog-modal-title');
+const catModalSave     = document.getElementById('catalog-modal-save');
+const catFormErr       = document.getElementById('catalog-form-error');
+const catFldName       = document.getElementById('catalog-field-name');
+const catFldDesc       = document.getElementById('catalog-field-description');
+const catFldVer        = document.getElementById('catalog-field-version');
+const catFldStatus     = document.getElementById('catalog-field-status');
+const catFldCategories = document.getElementById('catalog-field-categories');
+
+function openCatModal()  { catModalBD.classList.add('open'); catFldName.focus(); }
+function closeCatModal() { catModalBD.classList.remove('open'); resetCatForm(); }
+function resetCatForm() {
+    catState.editingId=null; catFldName.value=''; catFldDesc.value=''; catFldVer.value='1.0';
+    catFldStatus.value='active'; catFldCategories.innerHTML='';
+    catFormErr.style.display='none';
+    catModalTitle.textContent='New Service Catalog'; catModalSave.textContent='Save';
+}
+document.getElementById('btn-new-catalog').addEventListener('click', async ()=>{resetCatForm();await populateCategoryOptions(catFldCategories);openCatModal();});
+document.getElementById('catalog-modal-close').addEventListener('click', closeCatModal);
+document.getElementById('catalog-modal-cancel').addEventListener('click', closeCatModal);
+catModalBD.addEventListener('click', e=>{if(e.target===catModalBD)closeCatModal();});
+
+async function startEditCatalog(id) {
+    catState.editingId=id;
+    try {
+        const {data}=await ServiceCatalogClient.get(id);
+        const selectedIds=(data.categories||[]).map(c=>c.id);
+        catFldName.value=data.name||''; catFldDesc.value=data.description||'';
+        catFldVer.value=data.version||'1.0'; catFldStatus.value=data.lifecycle_status||'active';
+        await populateCategoryOptions(catFldCategories,selectedIds);
+        catModalTitle.textContent='Edit Service Catalog'; catModalSave.textContent='Update';
+        openCatModal();
+    } catch(err){showToast(err.message,'error');}
+}
+
+catModalSave.addEventListener('click', async ()=>{
+    const name=catFldName.value.trim();
+    if (!name){catFormErr.textContent='Name is required.';catFormErr.style.display='block';catFldName.focus();return;}
+    catFormErr.style.display='none'; catModalSave.disabled=true; catModalSave.innerHTML='<span class="loader"></span>';
+    try {
+        const payload={name,description:catFldDesc.value.trim()||null,version:catFldVer.value.trim()||'1.0',lifecycle_status:catFldStatus.value,category_ids:getSelectedIds(catFldCategories)};
+        if (catState.editingId){await ServiceCatalogClient.patch(catState.editingId,payload);showToast('Catalog updated','success');}
+        else{await ServiceCatalogClient.create(payload);showToast('Catalog created','success');}
+        closeCatModal(); await loadCatalogs();
+    } catch(err){catFormErr.textContent=err.message;catFormErr.style.display='block';showToast(err.message,'error');}
+    finally{catModalSave.disabled=false;catModalSave.textContent=catState.editingId?'Update':'Save';}
+});
+
+const catDelBD   = document.getElementById('catalog-delete-backdrop');
+const catDelName = document.getElementById('catalog-delete-name');
+function closeCatDelete(){ catDelBD.classList.remove('open'); catState.deletingId=null; }
+function startDeleteCatalog(id,name){ catState.deletingId=id; catDelName.textContent=name; catDelBD.classList.add('open'); }
+document.getElementById('catalog-delete-close').addEventListener('click', closeCatDelete);
+document.getElementById('catalog-delete-cancel').addEventListener('click', closeCatDelete);
+catDelBD.addEventListener('click', e=>{if(e.target===catDelBD)closeCatDelete();});
+document.getElementById('catalog-delete-confirm').addEventListener('click', async function(){
+    if (!catState.deletingId) return; this.disabled=true;
+    try {
+        await ServiceCatalogClient.delete(catState.deletingId); showToast('Catalog deleted','success');
+        closeCatDelete();
+        if (catState.offset>0&&catState.offset>=catState.total-1) catState.offset=Math.max(0,catState.offset-PAGE_SIZE);
+        await loadCatalogs();
+    } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
+});
+
+catBtnPrev.addEventListener('click',()=>{catState.offset=Math.max(0,catState.offset-PAGE_SIZE);loadCatalogs();});
+catBtnNext.addEventListener('click',()=>{catState.offset+=PAGE_SIZE;loadCatalogs();});
+catFilter.addEventListener('change',()=>{catState.offset=0;loadCatalogs();});
+
+// ══ SERVICE CATEGORIES ════════════════════════════════════════════════════════
+const categoryState = {offset:0,total:0,editingId:null,deletingId:null};
+
+const categoryTbody    = document.getElementById('category-tbody');
+const categoryTotalEl  = document.getElementById('category-total-count');
+const categoryPageInfo = document.getElementById('category-page-info');
+const categoryBtnPrev  = document.getElementById('category-btn-prev');
+const categoryBtnNext  = document.getElementById('category-btn-next');
+const categoryFilter   = document.getElementById('category-filter-status');
+const categoryFilterRoot = document.getElementById('category-filter-root');
+
+async function loadCategories() {
+    loaded.categories = true;
+    categoryTbody.innerHTML = loadingRow(8);
+    try {
+        const params={offset:categoryState.offset,limit:PAGE_SIZE};
+        if (categoryFilter.value) params.lifecycle_status=categoryFilter.value;
+        if (categoryFilterRoot.value) params.is_root=categoryFilterRoot.value;
+        const {data,headers} = await CategoryClient.list(params);
+        categoryState.total = parseInt(headers.get('X-Total-Count')||data.length,10);
+        updatePager(categoryTotalEl,categoryPageInfo,categoryBtnPrev,categoryBtnNext,categoryState.offset,data,categoryState.total);
+        if (!data.length){categoryTbody.innerHTML=emptyRow(8,'&#x1F5C3;','No categories found','Create your first Service Category to get started.');return;}
+        categoryTbody.innerHTML = data.map(c=>`<tr>
+            <td class="name-cell">${escHtml(c.name)}</td>
+            <td>${escHtml(c.version||'&mdash;')}</td>
+            <td>${statusBadge(c.lifecycle_status)}</td>
+            <td>${c.is_root?'<span class="badge badge--root">Root</span>':'<span class="badge badge--child">Child</span>'}</td>
+            <td class="muted">${c.parent_id?`<span class="id-cell" title="${escHtml(c.parent_id)}">${escHtml(c.parent_id.slice(0,8))}&hellip;</span>`:'&mdash;'}</td>
+            <td class="muted">${fmtDate(c.last_update||c.updated_at)}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(c.id)}">${escHtml(c.id)}</td>
+            <td class="actions-cell">
+                <button class="btn btn--ghost btn--sm" onclick="startEditCategory('${escHtml(c.id)}')">Edit</button>
+                <button class="btn btn--danger btn--sm" onclick="startDeleteCategory('${escHtml(c.id)}','${escHtml(c.name)}')">Delete</button>
+            </td></tr>`).join('');
+    } catch(err){categoryTbody.innerHTML=errorRow(8,err.message);showToast(err.message,'error');}
+}
+
+const categoryModalBD    = document.getElementById('category-modal-backdrop');
+const categoryModalTitle = document.getElementById('category-modal-title');
+const categoryModalSave  = document.getElementById('category-modal-save');
+const categoryFormErr    = document.getElementById('category-form-error');
+const categoryFldName    = document.getElementById('category-field-name');
+const categoryFldDesc    = document.getElementById('category-field-description');
+const categoryFldVer     = document.getElementById('category-field-version');
+const categoryFldStatus  = document.getElementById('category-field-status');
+const categoryFldIsRoot  = document.getElementById('category-field-is-root');
+const categoryFldParent  = document.getElementById('category-field-parent');
+const categoryParentGroup = document.getElementById('category-parent-group');
+
+async function populateParentOptions(excludeId=null, selectedId=null) {
+    try {
+        const {data}=await CategoryClient.list({limit:100});
+        const opts=data.filter(c=>c.id!==excludeId).map(c=>`<option value="${escHtml(c.id)}" ${c.id===selectedId?'selected':''}>${escHtml(c.name)}</option>`).join('');
+        categoryFldParent.innerHTML=`<option value="">— none —</option>${opts}`;
+    } catch { categoryFldParent.innerHTML='<option value="">— none —</option>'; }
+}
+
+function openCategoryModal()  { categoryModalBD.classList.add('open'); categoryFldName.focus(); }
+function closeCategoryModal() { categoryModalBD.classList.remove('open'); resetCategoryForm(); }
+function resetCategoryForm() {
+    categoryState.editingId=null; categoryFldName.value=''; categoryFldDesc.value=''; categoryFldVer.value='1.0';
+    categoryFldStatus.value='active'; categoryFldIsRoot.checked=true; categoryFldParent.value='';
+    categoryParentGroup.style.display='none'; categoryFormErr.style.display='none';
+    categoryModalTitle.textContent='New Service Category'; categoryModalSave.textContent='Save';
+}
+
+categoryFldIsRoot.addEventListener('change',()=>{ categoryParentGroup.style.display=categoryFldIsRoot.checked?'none':'flex'; });
+
+document.getElementById('btn-new-category').addEventListener('click', async ()=>{resetCategoryForm();await populateParentOptions();openCategoryModal();});
+document.getElementById('category-modal-close').addEventListener('click', closeCategoryModal);
+document.getElementById('category-modal-cancel').addEventListener('click', closeCategoryModal);
+categoryModalBD.addEventListener('click', e=>{if(e.target===categoryModalBD)closeCategoryModal();});
+
+async function startEditCategory(id) {
+    categoryState.editingId=id;
+    try {
+        const {data}=await CategoryClient.get(id);
+        categoryFldName.value=data.name||''; categoryFldDesc.value=data.description||'';
+        categoryFldVer.value=data.version||'1.0'; categoryFldStatus.value=data.lifecycle_status||'active';
+        categoryFldIsRoot.checked=!!data.is_root;
+        categoryParentGroup.style.display=data.is_root?'none':'flex';
+        await populateParentOptions(id,data.parent_id);
+        categoryFldParent.value=data.parent_id||'';
+        categoryModalTitle.textContent='Edit Service Category'; categoryModalSave.textContent='Update';
+        openCategoryModal();
+    } catch(err){showToast(err.message,'error');}
+}
+
+categoryModalSave.addEventListener('click', async ()=>{
+    const name=categoryFldName.value.trim();
+    if (!name){categoryFormErr.textContent='Name is required.';categoryFormErr.style.display='block';categoryFldName.focus();return;}
+    categoryFormErr.style.display='none'; categoryModalSave.disabled=true; categoryModalSave.innerHTML='<span class="loader"></span>';
+    const isRoot=categoryFldIsRoot.checked;
+    try {
+        const payload={name,description:categoryFldDesc.value.trim()||null,version:categoryFldVer.value.trim()||'1.0',lifecycle_status:categoryFldStatus.value,is_root:isRoot,parent_id:isRoot?null:(categoryFldParent.value||null)};
+        if (categoryState.editingId){await CategoryClient.patch(categoryState.editingId,payload);showToast('Category updated','success');}
+        else{await CategoryClient.create(payload);showToast('Category created','success');}
+        closeCategoryModal(); await loadCategories();
+    } catch(err){categoryFormErr.textContent=err.message;categoryFormErr.style.display='block';showToast(err.message,'error');}
+    finally{categoryModalSave.disabled=false;categoryModalSave.textContent=categoryState.editingId?'Update':'Save';}
+});
+
+const categoryDelBD   = document.getElementById('category-delete-backdrop');
+const categoryDelName = document.getElementById('category-delete-name');
+function closeCategoryDelete(){ categoryDelBD.classList.remove('open'); categoryState.deletingId=null; }
+function startDeleteCategory(id,name){ categoryState.deletingId=id; categoryDelName.textContent=name; categoryDelBD.classList.add('open'); }
+document.getElementById('category-delete-close').addEventListener('click', closeCategoryDelete);
+document.getElementById('category-delete-cancel').addEventListener('click', closeCategoryDelete);
+categoryDelBD.addEventListener('click', e=>{if(e.target===categoryDelBD)closeCategoryDelete();});
+document.getElementById('category-delete-confirm').addEventListener('click', async function(){
+    if (!categoryState.deletingId) return; this.disabled=true;
+    try {
+        await CategoryClient.delete(categoryState.deletingId); showToast('Category deleted','success');
+        closeCategoryDelete();
+        if (categoryState.offset>0&&categoryState.offset>=categoryState.total-1) categoryState.offset=Math.max(0,categoryState.offset-PAGE_SIZE);
+        await loadCategories();
+    } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
+});
+
+categoryBtnPrev.addEventListener('click',()=>{categoryState.offset=Math.max(0,categoryState.offset-PAGE_SIZE);loadCategories();});
+categoryBtnNext.addEventListener('click',()=>{categoryState.offset+=PAGE_SIZE;loadCategories();});
+categoryFilter.addEventListener('change',()=>{categoryState.offset=0;loadCategories();});
+categoryFilterRoot.addEventListener('change',()=>{categoryState.offset=0;loadCategories();});
+
+// ══ SERVICE CANDIDATES ════════════════════════════════════════════════════════
+const candState = {offset:0,total:0,editingId:null,deletingId:null};
+
+const candTbody    = document.getElementById('candidate-tbody');
+const candTotalEl  = document.getElementById('cand-total-count');
+const candPageInfo = document.getElementById('cand-page-info');
+const candBtnPrev  = document.getElementById('cand-btn-prev');
+const candBtnNext  = document.getElementById('cand-btn-next');
+const candFilter   = document.getElementById('cand-filter-status');
+
+async function loadCandidates() {
+    loaded.candidates = true;
+    candTbody.innerHTML = loadingRow(8);
+    try {
+        const params={offset:candState.offset,limit:PAGE_SIZE};
+        if (candFilter.value) params.lifecycle_status=candFilter.value;
+        const {data,headers} = await CandidateClient.list(params);
+        candState.total = parseInt(headers.get('X-Total-Count')||data.length,10);
+        updatePager(candTotalEl,candPageInfo,candBtnPrev,candBtnNext,candState.offset,data,candState.total);
+        if (!data.length){candTbody.innerHTML=emptyRow(8,'&#x1F517;','No candidates found','Create a Service Candidate to link a Specification to Categories.');return;}
+        candTbody.innerHTML = data.map(c=>`<tr>
+            <td class="name-cell">${escHtml(c.name)}</td>
+            <td>${escHtml(c.version||'&mdash;')}</td>
+            <td>${statusBadge(c.lifecycle_status)}</td>
+            <td>${c.service_specification?`<span class="badge badge--info" title="${escHtml(c.service_specification.id)}">${escHtml(c.service_specification.name||c.service_specification.id)}</span>`:'&mdash;'}</td>
+            <td>${c.categories&&c.categories.length?c.categories.map(cat=>`<span class="badge badge--info">${escHtml(cat.name||cat.id)}</span>`).join(' '):'&mdash;'}</td>
+            <td class="muted">${fmtDate(c.last_update||c.updated_at)}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(c.id)}">${escHtml(c.id)}</td>
+            <td class="actions-cell">
+                <button class="btn btn--ghost btn--sm" onclick="startEditCandidate('${escHtml(c.id)}')">Edit</button>
+                <button class="btn btn--danger btn--sm" onclick="startDeleteCandidate('${escHtml(c.id)}','${escHtml(c.name)}')">Delete</button>
+            </td></tr>`).join('');
+    } catch(err){candTbody.innerHTML=errorRow(8,err.message);showToast(err.message,'error');}
+}
+
+async function populateSpecOptions(selectedId=null) {
+    try {
+        const {data}=await CatalogClient.list({limit:100});
+        candFldSpec.innerHTML='<option value="">— none —</option>'+data.map(s=>`<option value="${escHtml(s.id)}" ${s.id===selectedId?'selected':''}>${escHtml(s.name)}</option>`).join('');
+    } catch { candFldSpec.innerHTML='<option value="">— none —</option>'; }
+}
+
+const candModalBD       = document.getElementById('candidate-modal-backdrop');
+const candModalTitle    = document.getElementById('candidate-modal-title');
+const candModalSave     = document.getElementById('candidate-modal-save');
+const candFormErr       = document.getElementById('candidate-form-error');
+const candFldName       = document.getElementById('candidate-field-name');
+const candFldDesc       = document.getElementById('candidate-field-description');
+const candFldVer        = document.getElementById('candidate-field-version');
+const candFldStatus     = document.getElementById('candidate-field-status');
+const candFldSpec       = document.getElementById('candidate-field-spec');
+const candFldCategories = document.getElementById('candidate-field-categories');
+
+function openCandModal()  { candModalBD.classList.add('open'); candFldName.focus(); }
+function closeCandModal() { candModalBD.classList.remove('open'); resetCandForm(); }
+function resetCandForm() {
+    candState.editingId=null; candFldName.value=''; candFldDesc.value=''; candFldVer.value='1.0';
+    candFldStatus.value='active'; candFldSpec.innerHTML=''; candFldCategories.innerHTML='';
+    candFormErr.style.display='none';
+    candModalTitle.textContent='New Service Candidate'; candModalSave.textContent='Save';
+}
+
+document.getElementById('btn-new-candidate').addEventListener('click', async ()=>{
+    resetCandForm();
+    await Promise.all([populateSpecOptions(), populateCategoryOptions(candFldCategories)]);
+    openCandModal();
+});
+document.getElementById('candidate-modal-close').addEventListener('click', closeCandModal);
+document.getElementById('candidate-modal-cancel').addEventListener('click', closeCandModal);
+candModalBD.addEventListener('click', e=>{if(e.target===candModalBD)closeCandModal();});
+
+async function startEditCandidate(id) {
+    candState.editingId=id;
+    try {
+        const {data}=await CandidateClient.get(id);
+        const selectedCatIds=(data.categories||[]).map(c=>c.id);
+        const selectedSpecId=data.service_specification?data.service_specification.id:null;
+        candFldName.value=data.name||''; candFldDesc.value=data.description||'';
+        candFldVer.value=data.version||'1.0'; candFldStatus.value=data.lifecycle_status||'active';
+        await Promise.all([populateSpecOptions(selectedSpecId), populateCategoryOptions(candFldCategories,selectedCatIds)]);
+        candModalTitle.textContent='Edit Service Candidate'; candModalSave.textContent='Update';
+        openCandModal();
+    } catch(err){showToast(err.message,'error');}
+}
+
+candModalSave.addEventListener('click', async ()=>{
+    const name=candFldName.value.trim();
+    if (!name){candFormErr.textContent='Name is required.';candFormErr.style.display='block';candFldName.focus();return;}
+    candFormErr.style.display='none'; candModalSave.disabled=true; candModalSave.innerHTML='<span class="loader"></span>';
+    try {
+        const payload={name,description:candFldDesc.value.trim()||null,version:candFldVer.value.trim()||'1.0',lifecycle_status:candFldStatus.value,service_spec_id:candFldSpec.value||null,category_ids:getSelectedIds(candFldCategories)};
+        if (candState.editingId){await CandidateClient.patch(candState.editingId,payload);showToast('Candidate updated','success');}
+        else{await CandidateClient.create(payload);showToast('Candidate created','success');}
+        closeCandModal(); await loadCandidates();
+    } catch(err){candFormErr.textContent=err.message;candFormErr.style.display='block';showToast(err.message,'error');}
+    finally{candModalSave.disabled=false;candModalSave.textContent=candState.editingId?'Update':'Save';}
+});
+
+const candDelBD   = document.getElementById('candidate-delete-backdrop');
+const candDelName = document.getElementById('candidate-delete-name');
+function closeCandDelete(){ candDelBD.classList.remove('open'); candState.deletingId=null; }
+function startDeleteCandidate(id,name){ candState.deletingId=id; candDelName.textContent=name; candDelBD.classList.add('open'); }
+document.getElementById('candidate-delete-close').addEventListener('click', closeCandDelete);
+document.getElementById('candidate-delete-cancel').addEventListener('click', closeCandDelete);
+candDelBD.addEventListener('click', e=>{if(e.target===candDelBD)closeCandDelete();});
+document.getElementById('candidate-delete-confirm').addEventListener('click', async function(){
+    if (!candState.deletingId) return; this.disabled=true;
+    try {
+        await CandidateClient.delete(candState.deletingId); showToast('Candidate deleted','success');
+        closeCandDelete();
+        if (candState.offset>0&&candState.offset>=candState.total-1) candState.offset=Math.max(0,candState.offset-PAGE_SIZE);
+        await loadCandidates();
+    } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
+});
+
+candBtnPrev.addEventListener('click',()=>{candState.offset=Math.max(0,candState.offset-PAGE_SIZE);loadCandidates();});
+candBtnNext.addEventListener('click',()=>{candState.offset+=PAGE_SIZE;loadCandidates();});
+candFilter.addEventListener('change',()=>{candState.offset=0;loadCandidates();});
+
+// ══ INIT ══════════════════════════════════════════════════════════════════════
 loadSpecs();
 </script>
 </body>
