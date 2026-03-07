@@ -46,9 +46,18 @@ async function apiFetch(path, options = {}) {
     }
 
     if (!response.ok) {
-        const message =
-            (data && (data.detail || data.message || JSON.stringify(data))) ||
-            `HTTP ${response.status}`;
+        const raw = (data && (data.detail || data.message)) || null;
+        let message;
+        if (!raw) {
+            message = data ? JSON.stringify(data) : `HTTP ${response.status}`;
+        } else if (typeof raw === 'string') {
+            message = raw;
+        } else if (Array.isArray(raw) && raw.length > 0) {
+            // FastAPI validation errors: [{loc, msg, type}, ...]
+            message = raw.map(e => e.msg || JSON.stringify(e)).join('; ');
+        } else {
+            message = JSON.stringify(raw);
+        }
         const error = new Error(message);
         error.status = response.status;
         error.data = data;

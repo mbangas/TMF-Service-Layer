@@ -1204,7 +1204,7 @@ async function initCharacteristicsTab() {
     if (loaded.characteristics) return;
     loaded.characteristics = true;
     try {
-        const {data} = await CatalogClient.list({limit:200});
+        const {data} = await CatalogClient.list({limit:100});
         charSpecSel.innerHTML = '<option value="">— Select a Specification —</option>' +
             data.map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name)} (${escHtml(s.version||'1.0')})</option>`).join('');
     } catch(err) { showToast('Could not load specifications: '+err.message,'error'); }
