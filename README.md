@@ -123,6 +123,26 @@ The **Service Inventory** module tracks all active (and historical) service inst
 
 ### Running the Application
 
+**With Docker Compose (recommended):**
+
+```bash
+docker compose up --build
+```
+
+**Directly with Uvicorn:**
+
+```bash
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Once running, the application is available at:
+
+| Endpoint | URL |
+|---|---|
+| API Base | <http://localhost:8000> |
+| Interactive docs (Swagger UI) | <http://localhost:8000/docs> |
+| Alternative docs (ReDoc) | <http://localhost:8000/redoc> |
+
 > **Note:** The application is currently under active development. Setup and run instructions will be updated as each module is implemented. See [docs/plans/](docs/plans/) for the current development roadmap.
 
 ### Updating the Project
