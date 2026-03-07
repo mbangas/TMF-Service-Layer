@@ -156,3 +156,244 @@ class ServiceSpecificationResponse(BaseEntity):
     service_level_specification: list[ServiceLevelSpecResponse] = Field(
         default_factory=list
     )
+
+
+# ── Reference types (embedded in responses) ───────────────────────────────────
+
+class ServiceSpecificationRef(BaseModel):
+    """Lightweight reference to a ServiceSpecification embedded in responses."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    href: str | None = None
+    name: str | None = None
+    version: str | None = None
+    type: str | None = Field(default=None, alias="@type")
+
+
+class ServiceCategoryRef(BaseModel):
+    """Lightweight reference to a ServiceCategory embedded in responses."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    href: str | None = None
+    name: str | None = None
+    type: str | None = Field(default=None, alias="@type")
+
+
+class ServiceCandidateRef(BaseModel):
+    """Lightweight reference to a ServiceCandidate embedded in responses."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    href: str | None = None
+    name: str | None = None
+    type: str | None = Field(default=None, alias="@type")
+
+
+# ── ServiceCategory ───────────────────────────────────────────────────────────
+
+class ServiceCategoryCreate(BaseModel):
+    """Request body for creating a ServiceCategory (TMF633 POST)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = Field(default="1.0")
+    lifecycle_status: str = Field(default="active")
+    is_root: bool = Field(default=True)
+    parent_id: str | None = Field(default=None, description="ID of the parent category")
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCategoryUpdate(BaseModel):
+    """Request body for full replacement (PUT) of a ServiceCategory."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = None
+    lifecycle_status: str = Field(default="active")
+    is_root: bool = False
+    parent_id: str | None = None
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCategoryPatch(BaseModel):
+    """Request body for partial update (PATCH) of a ServiceCategory."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = None
+    lifecycle_status: str | None = None
+    is_root: bool | None = None
+    parent_id: str | None = None
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCategoryResponse(BaseEntity):
+    """Response body for a ServiceCategory resource (TMF633)."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    version: str | None = None
+    lifecycle_status: str = "active"
+    is_root: bool = True
+    parent_id: str | None = None
+    last_update: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    sub_categories: list["ServiceCategoryRef"] = Field(default_factory=list)
+    service_candidates: list["ServiceCandidateRef"] = Field(default_factory=list)
+
+
+# ── ServiceCandidate ──────────────────────────────────────────────────────────
+
+class ServiceCandidateCreate(BaseModel):
+    """Request body for creating a ServiceCandidate (TMF633 POST)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = Field(default="1.0")
+    lifecycle_status: str = Field(default="active")
+    service_spec_id: str | None = Field(
+        default=None,
+        description="ID of the ServiceSpecification this candidate represents",
+    )
+    category_ids: list[str] = Field(
+        default_factory=list,
+        description="IDs of ServiceCategory resources to associate",
+    )
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCandidateUpdate(BaseModel):
+    """Request body for full replacement (PUT) of a ServiceCandidate."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = None
+    lifecycle_status: str = Field(default="active")
+    service_spec_id: str | None = None
+    category_ids: list[str] = Field(default_factory=list)
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCandidatePatch(BaseModel):
+    """Request body for partial update (PATCH) of a ServiceCandidate."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = None
+    lifecycle_status: str | None = None
+    service_spec_id: str | None = None
+    category_ids: list[str] | None = None
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCandidateResponse(BaseEntity):
+    """Response body for a ServiceCandidate resource (TMF633)."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    version: str | None = None
+    lifecycle_status: str = "active"
+    last_update: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    service_specification: ServiceSpecificationRef | None = None
+    categories: list[ServiceCategoryRef] = Field(default_factory=list)
+
+
+# ── ServiceCatalog ────────────────────────────────────────────────────────────
+
+class ServiceCatalogCreate(BaseModel):
+    """Request body for creating a ServiceCatalog (TMF633 POST)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = Field(default="1.0")
+    lifecycle_status: str = Field(default="active")
+    category_ids: list[str] = Field(
+        default_factory=list,
+        description="IDs of ServiceCategory resources to include in this catalog",
+    )
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCatalogUpdate(BaseModel):
+    """Request body for full replacement (PUT) of a ServiceCatalog."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = None
+    lifecycle_status: str = Field(default="active")
+    category_ids: list[str] = Field(default_factory=list)
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCatalogPatch(BaseModel):
+    """Request body for partial update (PATCH) of a ServiceCatalog."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = None
+    version: str | None = None
+    lifecycle_status: str | None = None
+    category_ids: list[str] | None = None
+    type: str | None = Field(default=None, alias="@type")
+    base_type: str | None = Field(default=None, alias="@baseType")
+    schema_location: str | None = Field(default=None, alias="@schemaLocation")
+
+
+class ServiceCatalogResponse(BaseEntity):
+    """Response body for a ServiceCatalog resource (TMF633)."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    version: str | None = None
+    lifecycle_status: str = "active"
+    last_update: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    categories: list[ServiceCategoryRef] = Field(default_factory=list)
+
+
+# ── Forward-reference resolution ──────────────────────────────────────────────
+
+ServiceCategoryResponse.model_rebuild()
+

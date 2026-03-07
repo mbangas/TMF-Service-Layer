@@ -1,11 +1,49 @@
-"""SQLAlchemy ORM models for TMF633 Service Catalog Management."""
+"""SQLAlchemy ORM models for TMF633 Service Catalog Management (TMFC006)."""
 
 import uuid
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, String, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.shared.db.base import Base, TimestampMixin
+
+# ── Association tables (M2M) ──────────────────────────────────────────────────
+
+# ServiceCatalog ↔ ServiceCategory
+service_catalog_category = Table(
+    "service_catalog_category",
+    Base.metadata,
+    Column(
+        "catalog_id",
+        String(36),
+        ForeignKey("service_catalog.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "category_id",
+        String(36),
+        ForeignKey("service_category.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
+
+# ServiceCategory ↔ ServiceCandidate
+service_candidate_category = Table(
+    "service_candidate_category",
+    Base.metadata,
+    Column(
+        "candidate_id",
+        String(36),
+        ForeignKey("service_candidate.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "category_id",
+        String(36),
+        ForeignKey("service_category.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
 
 
 class ServiceSpecCharacteristicOrm(Base, TimestampMixin):
@@ -111,5 +149,173 @@ class ServiceSpecificationOrm(Base, TimestampMixin):
     service_level_specification: Mapped[list[ServiceLevelSpecificationOrm]] = relationship(
         back_populates="service_specification",
         cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    # Back-reference from ServiceCandidateOrm
+    service_candidates: Mapped[list["ServiceCandidateOrm"]] = relationship(
+        back_populates="service_specification",
+        lazy="selectin",
+    )
+
+
+# ── ServiceCategory ───────────────────────────────────────────────────────────
+
+
+class ServiceCategoryOrm(Base, TimestampMixin):
+    """SQLAlchemy model for TMF633 ``ServiceCategory``.
+
+    Supports hierarchical categorisation (parent/sub-categories).
+    Lifecycle states: draft → active → obsolete → retired
+    """
+
+    __tablename__ = "service_category"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    href: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    lifecycle_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="active",
+        index=True,
+    )
+    is_root: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    last_update: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Self-referencing hierarchy
+    parent_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("service_category.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    parent: Mapped["ServiceCategoryOrm | None"] = relationship(
+        "ServiceCategoryOrm",
+        back_populates="sub_categories",
+        remote_side="ServiceCategoryOrm.id",
+    )
+    sub_categories: Mapped[list["ServiceCategoryOrm"]] = relationship(
+        "ServiceCategoryOrm",
+        back_populates="parent",
+        lazy="noload",
+    )
+
+    # TMF annotation fields
+    type: Mapped[str | None] = mapped_column("type", String(128), nullable=True)
+    base_type: Mapped[str | None] = mapped_column("base_type", String(128), nullable=True)
+    schema_location: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+    # M2M: ServiceCatalog ↔ ServiceCategory (back-reference — noload prevents circular cascade)
+    catalogs: Mapped[list["ServiceCatalogOrm"]] = relationship(
+        secondary=service_catalog_category,
+        back_populates="categories",
+        lazy="noload",
+    )
+    # M2M: ServiceCategory ↔ ServiceCandidate (back-reference — noload prevents circular cascade)
+    service_candidates: Mapped[list["ServiceCandidateOrm"]] = relationship(
+        secondary=service_candidate_category,
+        back_populates="categories",
+        lazy="noload",
+    )
+
+
+# ── ServiceCandidate ──────────────────────────────────────────────────────────
+
+
+class ServiceCandidateOrm(Base, TimestampMixin):
+    """SQLAlchemy model for TMF633 ``ServiceCandidate``.
+
+    Links a ``ServiceSpecification`` to one or more ``ServiceCategory`` entries.
+    Lifecycle states: draft → active → obsolete → retired
+    """
+
+    __tablename__ = "service_candidate"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    href: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    lifecycle_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="active",
+        index=True,
+    )
+    last_update: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Optional FK to the ServiceSpecification this candidate represents
+    service_spec_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("service_specification.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    service_specification: Mapped["ServiceSpecificationOrm | None"] = relationship(
+        back_populates="service_candidates",
+        lazy="selectin",
+    )
+
+    # TMF annotation fields
+    type: Mapped[str | None] = mapped_column("type", String(128), nullable=True)
+    base_type: Mapped[str | None] = mapped_column("base_type", String(128), nullable=True)
+    schema_location: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+    # M2M: ServiceCategory ↔ ServiceCandidate
+    categories: Mapped[list[ServiceCategoryOrm]] = relationship(
+        secondary=service_candidate_category,
+        back_populates="service_candidates",
+        lazy="selectin",
+    )
+
+
+# ── ServiceCatalog ────────────────────────────────────────────────────────────
+
+
+class ServiceCatalogOrm(Base, TimestampMixin):
+    """SQLAlchemy model for TMF633 ``ServiceCatalog``.
+
+    Top-level catalog container; aggregates ``ServiceCategory`` entries.
+    Lifecycle states: active → obsolete → retired
+    """
+
+    __tablename__ = "service_catalog"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    href: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    lifecycle_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="active",
+        index=True,
+    )
+    last_update: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # TMF annotation fields
+    type: Mapped[str | None] = mapped_column("type", String(128), nullable=True)
+    base_type: Mapped[str | None] = mapped_column("base_type", String(128), nullable=True)
+    schema_location: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+    # M2M: ServiceCatalog ↔ ServiceCategory
+    categories: Mapped[list[ServiceCategoryOrm]] = relationship(
+        secondary=service_catalog_category,
+        back_populates="catalogs",
         lazy="selectin",
     )
