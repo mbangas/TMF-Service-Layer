@@ -118,7 +118,7 @@ class ServiceLevelSpecResponse(ServiceLevelSpecBase):
 
 # ── ServiceSpecRelationship ──────────────────────────────────────────────────
 
-VALID_RELATIONSHIP_TYPES = {"dependency", "isContainedIn", "isReplacedBy", "hasPart"}
+VALID_RELATIONSHIP_TYPES = {"dependency", "isContainedIn", "isReplacedBy", "hasPart", "bundled"}
 
 
 class ServiceSpecRelationshipCreate(BaseModel):
@@ -126,7 +126,7 @@ class ServiceSpecRelationshipCreate(BaseModel):
 
     relationship_type: str = Field(
         ...,
-        description="Relationship type: dependency | isContainedIn | isReplacedBy | hasPart",
+        description="Relationship type: dependency | isContainedIn | isReplacedBy | hasPart | bundled",
     )
     related_spec_id: str = Field(..., description="UUID of the related ServiceSpecification")
     related_spec_name: str | None = Field(default=None, description="Name of the related spec")

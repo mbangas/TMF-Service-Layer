@@ -80,7 +80,7 @@ async def create_spec_relationship(
     """Create a new ``ServiceSpecRelationship``.
 
     Valid ``relationship_type`` values: ``dependency``, ``isContainedIn``,
-    ``isReplacedBy``, ``hasPart``.
+    ``isReplacedBy``, ``hasPart``, ``bundled``.
 
     Returns 409 if the exact triple (spec → related_spec, type) already exists.
     Returns 422 for self-reference or invalid relationship type.

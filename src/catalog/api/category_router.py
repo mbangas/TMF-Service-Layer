@@ -45,7 +45,7 @@ def _get_service(db: AsyncSession = Depends(get_db)) -> ServiceCategoryService:
 async def list_categories(
     response: Response,
     offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, ge=1, le=100),
+    limit: int = Query(default=20, ge=1, le=200),
     lifecycle_status: str | None = Query(default=None),
     is_root: bool | None = Query(default=None, description="Filter root categories only"),
     service: ServiceCategoryService = Depends(_get_service),

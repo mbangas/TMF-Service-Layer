@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda — Criação de Ordens de Serviço | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Help page specific ── */
+        .help-content {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p {
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+            line-height: 1.8;
+        }
+
+        .step-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .step-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--colour-surface-alt);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--colour-primary);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            flex-shrink: 0;
+        }
+        .step-card__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .step-card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-top: 2px;
+        }
+        .step-card__body {
+            padding: var(--space-xl);
+        }
+        .step-card__body p,
+        .step-card__body li {
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+        }
+        .step-card__body ul,
+        .step-card__body ol {
+            padding-left: var(--space-xl);
+            margin-top: var(--space-sm);
+        }
+        .step-card__body li {
+            margin-bottom: var(--space-xs);
+        }
+        .step-card__body h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--colour-text);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ── API call blocks ── */
+        .api-block {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-left: 3px solid var(--colour-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #a5d6a7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .api-block .method { color: #82b1ff; font-weight: 700; }
+        .api-block .url    { color: #80cbc4; }
+        .api-block .key    { color: #ce93d8; }
+        .api-block .val    { color: #a5d6a7; }
+        .api-block .comment{ color: #546e7a; }
+
+        /* ── Info / Warning callouts ── */
+        .callout {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin: var(--space-md) 0;
+        }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Summary checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--colour-primary-dim);
+            color: var(--colour-primary);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-lg);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--colour-border);
+            margin: var(--space-xl) 0;
+        }
+
+        /* TMF reference pills */
+        .tmf-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: rgba(79,126,248,0.15);
+            color: var(--colour-primary);
+            border: 1px solid rgba(79,126,248,0.3);
+            margin-left: var(--space-xs);
+        }
+
+        /* ── Field reference table ── */
+        .field-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .field-table th { padding: 8px 12px; text-align: left; color: var(--colour-text-muted); border-bottom: 1px solid var(--colour-border); }
+        .field-table td { padding: 8px 12px; border-bottom: 1px solid var(--colour-border); color: var(--colour-text-muted); }
+        .field-table td:first-child { font-family: var(--font-mono); font-size: 11px; color: var(--colour-text); }
+        .field-table .req  { color: var(--colour-success); font-weight: 600; }
+        .field-table .opt  { color: var(--colour-text-muted); }
+
+        /* ── Generate example data section ── */
+        .gen-progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--colour-surface-alt);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        .gen-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--colour-primary), #34d399);
+            border-radius: var(--radius-full);
+            transition: width 0.35s ease;
+        }
+        .gen-progress-label {
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-md);
+        }
+        .gen-log {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #94a3b8;
+            max-height: 260px;
+            overflow-y: auto;
+            line-height: 1.9;
+        }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            :root {
+                --colour-bg:           #ffffff;
+                --colour-surface:      #f8f9fc;
+                --colour-surface-alt:  #eef0f6;
+                --colour-border:       #d1d5db;
+                --colour-text:         #111827;
+                --colour-text-muted:   #4b5563;
+                --colour-primary:      #2563eb;
+                --colour-success:      #059669;
+                --colour-warning:      #d97706;
+                --colour-danger:       #dc2626;
+                --colour-info:         #2563eb;
+            }
+            body { background: #fff; color: #111; }
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-orders, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; color: #111; }
+            .step-card { border: 1px solid #d1d5db; border-radius: 6px; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .callout--info    { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .callout--success { background: #ecfdf5; border-color: #10b981; }
+            .api-block { background: #1e293b; border-color: #334155; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+            .diagram-wrapper { background: #f8fafc; border-color: #d1d5db; break-inside: avoid; }
+            .tmf-pill { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .step-card { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link active" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">&#x2753; Guia de Criação de Ordens de Serviço</div>
+                <div class="topbar__subtitle">Como criar, gerir e acompanhar ordens de serviço — TMF641</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
+                <a href="orders.html" class="btn btn--ghost btn--sm">&#8592; Voltar às Ordens</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica como criar e gerir <strong style="color:var(--colour-text)">Ordens de Serviço</strong>
+                    na TMF Service Layer (TMF641). O exemplo utilizado é a encomenda do serviço
+                    <strong style="color:var(--colour-text)">VM Completa</strong> — um bundle composto por
+                    três serviços elementares: <em>VM Elementar vCenter</em>, <em>Gestão de Utilizadores e Passwords</em>
+                    e <em>Associação de Storage à VM</em>.
+                </p>
+                <p style="margin-top:var(--space-sm);">
+                    O catálogo deve estar configurado antes de criar ordens.
+                    Consulte o <a href="catalog-help.html" style="color:var(--colour-primary);">Guia de Configuração do Catálogo</a>
+                    para preparar as especificações, candidatos e categorias.
+                </p>
+            </div>
+
+            <!-- ══ PRÉ-REQUISITO ════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x26A0;</div>
+                    <div>
+                        <div class="step-card__title">Pré-requisito — Catálogo Configurado</div>
+                        <div class="step-card__subtitle">As especificações e categorias devem existir antes de criar ordens</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Para criar uma Ordem de Serviço é necessário que existam no catálogo:</p>
+                    <ul>
+                        <li><strong>ServiceSpecification</strong> activa — define o tipo de serviço a encomendar (ex: "VM Completa")</li>
+                        <li><strong>ServiceCategory</strong> — categoriza a ordem para filtragem e organização</li>
+                        <li><strong>ServiceCandidate</strong> — publica a especificação no catálogo, tornando-a ordenável</li>
+                    </ul>
+
+                    <!-- Prerequisite flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 120" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-pre" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                            </defs>
+                            <!-- Catalog -->
+                            <rect x="10" y="30" width="150" height="50" rx="8" fill="rgba(79,126,248,0.10)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="85" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">ServiceSpec</text>
+                            <text x="85" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">VM Completa (bundle)</text>
+
+                            <line x1="160" y1="55" x2="198" y2="55" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-pre)"/>
+                            <text x="179" y="47" text-anchor="middle" font-size="9" fill="#94a3b8">publica</text>
+
+                            <rect x="200" y="30" width="150" height="50" rx="8" fill="rgba(79,126,248,0.08)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="275" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">Candidate</text>
+                            <text x="275" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">VM Completa (cand.)</text>
+
+                            <line x1="350" y1="55" x2="388" y2="55" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-pre)"/>
+                            <text x="369" y="47" text-anchor="middle" font-size="9" fill="#94a3b8">associado</text>
+
+                            <rect x="390" y="30" width="150" height="50" rx="8" fill="rgba(79,126,248,0.08)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="465" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">Category</text>
+                            <text x="465" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">Virtualização</text>
+
+                            <line x1="540" y1="55" x2="578" y2="55" stroke="#34d399" stroke-width="2" marker-end="url(#arr-pre)"/>
+                            <text x="559" y="47" text-anchor="middle" font-size="9" fill="#34d399">permite</text>
+
+                            <rect x="580" y="22" width="190" height="66" rx="10" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+                            <text x="675" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">&#x2714; Order</text>
+                            <text x="675" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">pode ser criada</text>
+                        </svg>
+                        <figcaption>Pré-condições para criar uma Ordem de Serviço</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Ainda não criou o catálogo?
+                            Utilize o <a href="catalog-help.html" style="color:var(--colour-primary);">Guia do Catálogo</a>
+                            ou a secção <strong>Gerar Dados de Exemplo</strong> no final desta página
+                            para criar automaticamente as ordens de teste com base nas specs existentes.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ VISÃO GERAL DA ORDEM ══════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x1F5FA;</div>
+                    <div>
+                        <div class="step-card__title">Estrutura de uma Ordem de Serviço</div>
+                        <div class="step-card__subtitle">Campos e relacionamentos do recurso ServiceOrder (TMF641)</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma <code>ServiceOrder</code> agrupa um ou mais <strong>itens de ordem</strong>
+                        (<code>OrderItem</code>). Cada item referencia uma especificação de serviço e
+                        define a acção a executar.
+                    </p>
+
+                    <!-- Order structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 320" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- ServiceOrder outer -->
+                            <rect x="10" y="10" width="760" height="295" rx="12"
+                                  fill="rgba(79,126,248,0.05)" stroke="#4f7ef8" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="36" font-size="12" font-weight="700" fill="#4f7ef8">ServiceOrder</text>
+                            <text x="160" y="36" font-size="11" fill="#94a3b8">(TMF641)</text>
+
+                            <!-- Header fields -->
+                            <rect x="30" y="48" width="300" height="130" rx="8"
+                                  fill="rgba(79,126,248,0.08)" stroke="#4f7ef8" stroke-width="1"/>
+                            <text x="180" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#4f7ef8">Cabeçalho da Ordem</text>
+                            <text x="45"  y="90"  font-size="10" fill="#94a3b8">name        <tspan fill="#34d399" font-weight="600">*</tspan>  "Aprovisionamento VM Alpha"</text>
+                            <text x="45"  y="108" font-size="10" fill="#94a3b8">description     "Projecto Alpha - DC Lisboa"</text>
+                            <text x="45"  y="126" font-size="10" fill="#94a3b8">category        "Virtualização"</text>
+                            <text x="45"  y="144" font-size="10" fill="#94a3b8">priority        "high"</text>
+                            <text x="45"  y="162" font-size="10" fill="#94a3b8">requestedCompletionDate  2026-04-01</text>
+
+                            <!-- State -->
+                            <rect x="350" y="48" width="200" height="130" rx="8"
+                                  fill="rgba(251,191,36,0.07)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="450" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Estado</text>
+                            <text x="365" y="90"  font-size="10" fill="#94a3b8">state  <tspan fill="#fbbf24">acknowledged</tspan></text>
+                            <text x="365" y="108" font-size="10" fill="#94a3b8">       → inProgress</text>
+                            <text x="365" y="126" font-size="10" fill="#94a3b8">       → completed</text>
+                            <text x="365" y="144" font-size="10" fill="#94a3b8">       → failed</text>
+                            <text x="365" y="162" font-size="10" fill="#94a3b8">       → cancelled</text>
+
+                            <!-- Dates -->
+                            <rect x="565" y="48" width="185" height="130" rx="8"
+                                  fill="rgba(96,165,250,0.06)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="657" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Datas (auto)</text>
+                            <text x="580" y="90"  font-size="10" fill="#94a3b8">orderDate    (criação)</text>
+                            <text x="580" y="108" font-size="10" fill="#94a3b8">startDate    (início)</text>
+                            <text x="580" y="126" font-size="10" fill="#94a3b8">completionDate</text>
+                            <text x="580" y="144" font-size="10" fill="#94a3b8">              (fim real)</text>
+
+                            <!-- OrderItem -->
+                            <rect x="30" y="200" width="720" height="90" rx="8"
+                                  fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5,3"/>
+                            <text x="50" y="222" font-size="11" font-weight="700" fill="#34d399">orderItem  [ ]</text>
+                            <text x="180" y="222" font-size="10" fill="#94a3b8">— pode ter múltiplos itens; cada um activa um serviço</text>
+
+                            <rect x="50"  y="232" width="195" height="44" rx="6" fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1"/>
+                            <text x="147" y="250" text-anchor="middle" font-size="10" font-weight="600" fill="#34d399">Item 1</text>
+                            <text x="147" y="266" text-anchor="middle" font-size="9" fill="#94a3b8">action: add | service_spec_name: VM Completa</text>
+
+                            <rect x="260" y="232" width="195" height="44" rx="6" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1" stroke-dasharray="4,3"/>
+                            <text x="357" y="250" text-anchor="middle" font-size="10" fill="#94a3b8">Item 2 (opcional)</text>
+                            <text x="357" y="266" text-anchor="middle" font-size="9" fill="#94a3b8">action: add | service_spec_name: …</text>
+
+                            <text x="480" y="260" font-size="12" fill="#94a3b8">…</text>
+                        </svg>
+                        <figcaption>Diagrama 1 — Estrutura de uma ServiceOrder: cabeçalho, estado e lista de itens</figcaption>
+                    </figure>
+
+                    <h4>Campos da ServiceOrder</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Obrigatório</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo da ordem (ex: "Aprovisionamento VM Alpha")</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição detalhada do pedido</td></tr>
+                            <tr><td>category</td><td class="opt">não</td><td>string</td><td>Categoria da ordem (deve corresponder a uma ServiceCategory existente)</td></tr>
+                            <tr><td>priority</td><td class="opt">não</td><td>string</td><td>Prioridade de execução (ex: "1", "high", "normal")</td></tr>
+                            <tr><td>requested_completion_date</td><td class="opt">não</td><td>datetime</td><td>Data/hora limite pretendida para conclusão</td></tr>
+                            <tr><td>order_item</td><td class="opt">não</td><td>array</td><td>Lista de itens a encomendar (ver campos abaixo)</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Campos de cada OrderItem</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Obrigatório</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>order_item_id</td><td class="req">sim</td><td>string</td><td>Identificador do item dentro da ordem (ex: "1", "2")</td></tr>
+                            <tr><td>action</td><td class="req">sim</td><td>enum</td><td>add | modify | delete | noChange</td></tr>
+                            <tr><td>service_spec_name</td><td class="opt">não</td><td>string</td><td>Nome da ServiceSpecification a ordenar (ex: "VM Completa")</td></tr>
+                            <tr><td>service_name</td><td class="opt">não</td><td>string</td><td>Nome da instância de serviço a criar (ex: "vm-alpha-001")</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                Guia Passo a Passo
+            </h2>
+
+            <!-- ══ PASSO 1 ═══ Criar uma Ordem ═══════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Criar uma Ordem de Serviço</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF641 POST /serviceOrder</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma ordem pode ser criada via interface ou API. O exemplo abaixo encomenda o
+                        bundle <strong>VM Completa</strong> para o Projecto Alpha.
+                    </p>
+
+                    <h4>1a — Ordenar o Bundle VM Completa (recomendado)</h4>
+                    <p>
+                        Esta é a forma mais comum: encomendar o bundle que inclui os três serviços
+                        elementares (<em>VM</em>, <em>Utilizadores</em> e <em>Storage</em>) com um único item de ordem.
+                        O motor de orquestração respeita as dependências de execução definidas nas especificações.
+                    </p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Aprovisionamento VM Completa — Projecto Alpha"</span>,
+  <span class="key">"description"</span>: <span class="val">"Provisionar VM Completa para equipa de desenvolvimento"</span>,
+  <span class="key">"category"</span>:    <span class="val">"Virtualização"</span>,
+  <span class="key">"priority"</span>:    <span class="val">"high"</span>,
+  <span class="key">"order_item"</span>: [
+    <span class="key">{</span>
+      <span class="key">"order_item_id"</span>:    <span class="val">"1"</span>,
+      <span class="key">"action"</span>:          <span class="val">"add"</span>,
+      <span class="key">"service_spec_name"</span>: <span class="val">"VM Completa"</span>,
+      <span class="key">"service_name"</span>:     <span class="val">"vm-alpha-001"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "state": "acknowledged", … }</span></div>
+
+                    <h4>1b — Ordenar apenas um Serviço Elementar</h4>
+                    <p>
+                        Pode encomendar qualquer serviço elementar individualmente.
+                        Exemplo: adicionar apenas storage a uma VM já existente.
+                    </p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Storage Extra — vm-alpha-001"</span>,
+  <span class="key">"description"</span>: <span class="val">"Adicionar 200 GB SSD à VM existente"</span>,
+  <span class="key">"category"</span>:    <span class="val">"Virtualização"</span>,
+  <span class="key">"order_item"</span>: [
+    <span class="key">{</span>
+      <span class="key">"order_item_id"</span>:    <span class="val">"1"</span>,
+      <span class="key">"action"</span>:          <span class="val">"add"</span>,
+      <span class="key">"service_spec_name"</span>: <span class="val">"Associação de Storage à VM"</span>,
+      <span class="key">"service_name"</span>:     <span class="val">"storage-vm-alpha-001"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <h4>1c — Ordem com múltiplos itens independentes</h4>
+                    <p>
+                        Numa mesma ordem pode incluir vários itens, cada um referenciando uma
+                        especificação diferente. Útil quando se quer aprovisionar várias VMs em simultâneo.
+                    </p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>: <span class="val">"Aprovisionamento VMs — Projectos Alpha e Beta"</span>,
+  <span class="key">"order_item"</span>: [
+    <span class="key">{</span> <span class="key">"order_item_id"</span>: <span class="val">"1"</span>, <span class="key">"action"</span>: <span class="val">"add"</span>, <span class="key">"service_spec_name"</span>: <span class="val">"VM Completa"</span>, <span class="key">"service_name"</span>: <span class="val">"vm-alpha-001"</span> <span class="key">}</span>,
+    <span class="key">{</span> <span class="key">"order_item_id"</span>: <span class="val">"2"</span>, <span class="key">"action"</span>: <span class="val">"add"</span>, <span class="key">"service_spec_name"</span>: <span class="val">"VM Completa"</span>, <span class="key">"service_name"</span>: <span class="val">"vm-beta-001"</span> <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: <strong>Orders → botão "+ New Order"</strong>.
+                            Preencha o nome, seleccione a categoria, seleccione a especificação no
+                            campo <em>Service Spec Name</em> e clique <strong>"Create Order"</strong>.
+                            A ordem é criada no estado <code>acknowledged</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 2 ═══ Ciclo de Vida ═══════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida — Transições de Estado</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF641 PATCH /serviceOrder/{id}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Após a criação, a ordem segue um ciclo de vida definido pelo TMF641.
+                        As transições de estado são feitas via <code>PATCH</code> na API
+                        ou pelos botões de acção na interface.
+                    </p>
+
+                    <!-- State machine diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 380" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-sm" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#94a3b8"/>
+                                </marker>
+                                <marker id="arr-sm-ok" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                                <marker id="arr-sm-warn" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/>
+                                </marker>
+                                <marker id="arr-sm-err" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#f87171"/>
+                                </marker>
+                                <marker id="arr-sm-grey" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#64748b"/>
+                                </marker>
+                            </defs>
+
+                            <!-- acknowledged -->
+                            <rect x="290" y="20" width="200" height="54" rx="27"
+                                  fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="2"/>
+                            <text x="390" y="44" text-anchor="middle" font-size="13" font-weight="700" fill="#4f7ef8">acknowledged</text>
+                            <text x="390" y="62" text-anchor="middle" font-size="10" fill="#94a3b8">criada / aceite pelo motor</text>
+
+                            <!-- acknowledged → inProgress -->
+                            <line x1="390" y1="74" x2="390" y2="128" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-sm-warn)"/>
+                            <rect x="400" y="90" width="80" height="20" rx="4" fill="rgba(251,191,36,0.10)"/>
+                            <text x="440" y="104" text-anchor="middle" font-size="9" font-weight="600" fill="#fbbf24">▶ Start</text>
+
+                            <!-- inProgress -->
+                            <rect x="265" y="130" width="250" height="54" rx="27"
+                                  fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="390" y="154" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">inProgress</text>
+                            <text x="390" y="172" text-anchor="middle" font-size="10" fill="#94a3b8">aprovisionamento em execução</text>
+
+                            <!-- inProgress → completed (right path) -->
+                            <path d="M 515 157 Q 640 157 640 230" stroke="#34d399" stroke-width="2" fill="none" marker-end="url(#arr-sm-ok)"/>
+                            <rect x="552" y="170" width="80" height="20" rx="4" fill="rgba(52,211,153,0.10)"/>
+                            <text x="592" y="184" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">&#x2714; Complete</text>
+
+                            <!-- inProgress → failed (left path) -->
+                            <path d="M 265 157 Q 140 157 140 230" stroke="#f87171" stroke-width="2" fill="none" marker-end="url(#arr-sm-err)"/>
+                            <rect x="148" y="170" width="60" height="20" rx="4" fill="rgba(248,113,113,0.10)"/>
+                            <text x="178" y="184" text-anchor="middle" font-size="9" font-weight="600" fill="#f87171">&#x2715; Fail</text>
+
+                            <!-- inProgress → cancelled (down) -->
+                            <line x1="390" y1="184" x2="390" y2="238" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr-sm-grey)" stroke-dasharray="5,3"/>
+                            <rect x="400" y="198" width="70" height="20" rx="4" fill="rgba(100,116,139,0.10)"/>
+                            <text x="435" y="212" text-anchor="middle" font-size="9" fill="#64748b">&#x2715; Cancel</text>
+
+                            <!-- acknowledged → cancelled -->
+                            <path d="M 290 47 Q 180 47 130 160 Q 120 200 130 230" stroke="#64748b" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-sm-grey)"/>
+                            <text x="142" y="130" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-75,120,140)">Cancel</text>
+
+                            <!-- completed -->
+                            <rect x="530" y="230" width="220" height="54" rx="27"
+                                  fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+                            <text x="640" y="254" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">completed</text>
+                            <text x="640" y="272" text-anchor="middle" font-size="10" fill="#94a3b8">&#x2714; serviço activo</text>
+
+                            <!-- failed -->
+                            <rect x="30" y="230" width="220" height="54" rx="27"
+                                  fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="2"/>
+                            <text x="140" y="254" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">failed</text>
+                            <text x="140" y="272" text-anchor="middle" font-size="10" fill="#94a3b8">erro no aprovisionamento</text>
+
+                            <!-- cancelled -->
+                            <rect x="265" y="240" width="250" height="54" rx="27"
+                                  fill="rgba(100,116,139,0.12)" stroke="#64748b" stroke-width="2"/>
+                            <text x="390" y="264" text-anchor="middle" font-size="13" font-weight="700" fill="#64748b">cancelled</text>
+                            <text x="390" y="282" text-anchor="middle" font-size="10" fill="#94a3b8">ordem cancelada</text>
+
+                            <!-- Terminal states label -->
+                            <text x="390" y="340" text-anchor="middle" font-size="10" fill="#94a3b8">Estados terminais (completed, failed, cancelled) — não podem ser alterados</text>
+                            <line x1="30"  y1="327" x2="250" y2="327" stroke="#f87171" stroke-width="1" stroke-dasharray="3,3"/>
+                            <line x1="265" y1="327" x2="515" y2="327" stroke="#64748b" stroke-width="1" stroke-dasharray="3,3"/>
+                            <line x1="530" y1="327" x2="750" y2="327" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3"/>
+                        </svg>
+                        <figcaption>Diagrama 2 — Máquina de estados TMF641: transições possíveis de uma ServiceOrder</figcaption>
+                    </figure>
+
+                    <h4>Avançar no ciclo de vida via API</h4>
+                    <div class="api-block"><span class="comment">-- Iniciar aprovisionamento --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"inProgress"</span> <span class="key">}</span>
+
+<span class="comment">-- Marcar como concluída --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"completed"</span> <span class="key">}</span>
+
+<span class="comment">-- Cancelar (só de acknowledged ou inProgress) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"cancelled"</span> <span class="key">}</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: use os botões <strong>Start</strong>, <strong>Complete</strong>,
+                            <strong>Fail</strong> e <strong>Cancel</strong> na linha de cada ordem na tabela.
+                            Os botões disponíveis mudam conforme o estado actual.
+                        </div>
+                    </div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Somente ordens no estado <code>cancelled</code></strong> podem ser eliminadas.
+                            Para eliminar uma ordem, cancele-a primeiro e depois use o botão <strong>Delete</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 3 ═══ Múltiplos Itens com Dependências ═════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Dependências entre Itens de Ordem</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF641 OrderItemRelationship</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Quando uma ordem contém vários itens elementares (em vez de um bundle),
+                        é possível declarar <strong>dependências entre itens</strong> dentro da mesma ordem.
+                        Isto garante que o motor de orquestração respeita a ordem de execução.
+                    </p>
+                    <p>
+                        Exemplo: criar os três serviços elementares da VM Completa como itens separados,
+                        com dependências explícitas:
+                    </p>
+
+                    <!-- Multi-item order diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 310" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-dep" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/>
+                                </marker>
+                                <marker id="arr-dep2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                            </defs>
+
+                            <!-- Order envelope -->
+                            <rect x="10" y="10" width="760" height="290" rx="12"
+                                  fill="rgba(79,126,248,0.04)" stroke="#4f7ef8" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#4f7ef8">ServiceOrder</text>
+                            <text x="160" y="34" font-size="10" fill="#94a3b8">— Ordem com 3 itens elementares e dependências explícitas</text>
+
+                            <!-- Item 1 — VM -->
+                            <rect x="30" y="55" width="200" height="80" rx="10"
+                                  fill="rgba(96,165,250,0.12)" stroke="#60a5fa" stroke-width="2"/>
+                            <text x="130" y="83" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">Item 1</text>
+                            <text x="130" y="101" text-anchor="middle" font-size="10" fill="#94a3b8">VM Elementar vCenter</text>
+                            <rect x="60" y="112" width="140" height="18" rx="9" fill="rgba(52,211,153,0.15)" stroke="rgba(52,211,153,0.3)"/>
+                            <text x="130" y="125" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">&#x2190; sem dependências</text>
+
+                            <!-- Arrow Item 2 → Item 1 -->
+                            <line x1="330" y1="88" x2="232" y2="88" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-dep)"/>
+                            <text x="281" y="80" text-anchor="middle" font-size="9" fill="#fbbf24">depende de</text>
+
+                            <!-- Item 2 — Users -->
+                            <rect x="330" y="55" width="200" height="80" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="430" y="83" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">Item 2</text>
+                            <text x="430" y="101" text-anchor="middle" font-size="10" fill="#94a3b8">Gestão de Utilizadores</text>
+                            <rect x="360" y="112" width="140" height="18" rx="9" fill="rgba(251,191,36,0.10)" stroke="rgba(251,191,36,0.3)"/>
+                            <text x="430" y="125" text-anchor="middle" font-size="9" fill="#fbbf24">dep: Item 1</text>
+
+                            <!-- Arrow Item 3 → Item 1 -->
+                            <line x1="630" y1="106" x2="232" y2="106" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-dep)"/>
+                            <text x="431" y="166" text-anchor="middle" font-size="9" fill="#fbbf24">depende de</text>
+
+                            <!-- Item 3 — Storage -->
+                            <rect x="630" y="55" width="130" height="80" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="695" y="83" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">Item 3</text>
+                            <text x="695" y="101" text-anchor="middle" font-size="10" fill="#94a3b8">Assoc. Storage</text>
+                            <rect x="645" y="112" width="100" height="18" rx="9" fill="rgba(251,191,36,0.10)" stroke="rgba(251,191,36,0.3)"/>
+                            <text x="695" y="125" text-anchor="middle" font-size="9" fill="#fbbf24">dep: Item 1</text>
+
+                            <!-- Execution order -->
+                            <rect x="30" y="180" width="720" height="110" rx="8"
+                                  fill="rgba(52,211,153,0.05)" stroke="rgba(52,211,153,0.3)" stroke-width="1" stroke-dasharray="5,3"/>
+                            <text x="390" y="202" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">Ordem de Execução do Motor de Orquestração</text>
+
+                            <!-- Step 1 exec box -->
+                            <rect x="50" y="214" width="160" height="60" rx="8" fill="rgba(96,165,250,0.12)" stroke="#60a5fa"/>
+                            <text x="130" y="238" text-anchor="middle" font-size="10" font-weight="700" fill="#60a5fa">1º  Item 1</text>
+                            <text x="130" y="256" text-anchor="middle" font-size="9" fill="#94a3b8">VM Elementar</text>
+                            <text x="130" y="268" text-anchor="middle" font-size="9" fill="#94a3b8">(inicia primeiro)</text>
+
+                            <line x1="210" y1="244" x2="275" y2="244" stroke="#34d399" stroke-width="2" marker-end="url(#arr-dep2)"/>
+                            <text x="242" y="236" text-anchor="middle" font-size="9" fill="#34d399">após Item 1</text>
+
+                            <!-- Step 2 exec box — parallel -->
+                            <rect x="278" y="214" width="440" height="60" rx="8"
+                                  fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1"/>
+                            <text x="498" y="232" text-anchor="middle" font-size="10" font-weight="600" fill="#34d399">2º  Execução em Paralelo (ambos aguardam Item 1)</text>
+                            <rect x="295" y="240" width="185" height="26" rx="6" fill="rgba(96,165,250,0.10)" stroke="#60a5fa"/>
+                            <text x="387" y="258" text-anchor="middle" font-size="9" fill="#60a5fa">Item 2 — Gestão de Utilizadores</text>
+                            <rect x="496" y="240" width="205" height="26" rx="6" fill="rgba(96,165,250,0.10)" stroke="#60a5fa"/>
+                            <text x="598" y="258" text-anchor="middle" font-size="9" fill="#60a5fa">Item 3 — Associação de Storage</text>
+                        </svg>
+                        <figcaption>Diagrama 3 — Ordem com 3 itens elementares: Item 1 executa primeiro, Items 2 e 3 executam em paralelo após Item 1 concluir</figcaption>
+                    </figure>
+
+                    <h4>Criar a ordem com múltiplos itens</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>: <span class="val">"VM Completa — itens explícitos com dependências"</span>,
+  <span class="key">"order_item"</span>: [
+    <span class="key">{</span>
+      <span class="key">"order_item_id"</span>: <span class="val">"1"</span>, <span class="key">"action"</span>: <span class="val">"add"</span>,
+      <span class="key">"service_spec_name"</span>: <span class="val">"VM Elementar vCenter"</span>,
+      <span class="key">"service_name"</span>: <span class="val">"vm-alpha-001"</span>
+    <span class="key">}</span>,
+    <span class="key">{</span>
+      <span class="key">"order_item_id"</span>: <span class="val">"2"</span>, <span class="key">"action"</span>: <span class="val">"add"</span>,
+      <span class="key">"service_spec_name"</span>: <span class="val">"Gestão de Utilizadores e Passwords"</span>,
+      <span class="key">"service_name"</span>: <span class="val">"users-vm-alpha-001"</span>
+    <span class="key">}</span>,
+    <span class="key">{</span>
+      <span class="key">"order_item_id"</span>: <span class="val">"3"</span>, <span class="key">"action"</span>: <span class="val">"add"</span>,
+      <span class="key">"service_spec_name"</span>: <span class="val">"Associação de Storage à VM"</span>,
+      <span class="key">"service_name"</span>: <span class="val">"storage-vm-alpha-001"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <h4>Adicionar dependências entre itens (após criação da ordem)</h4>
+                    <div class="api-block"><span class="comment">-- Item 2 depende do Item 1 --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;/orderItem/&lt;item2_id&gt;/orderItemRelationship</span>
+<span class="key">{</span>
+  <span class="key">"relationship_type"</span>:  <span class="val">"dependency"</span>,
+  <span class="key">"related_item_label"</span>: <span class="val">"1"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Item 3 depende do Item 1 --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;/orderItem/&lt;item3_id&gt;/orderItemRelationship</span>
+<span class="key">{</span>
+  <span class="key">"relationship_type"</span>:  <span class="val">"dependency"</span>,
+  <span class="key">"related_item_label"</span>: <span class="val">"1"</span>
+<span class="key">}</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: clique no botão <strong>&#x1F4CB; Deps</strong> na linha da ordem.
+                            Na janela que abre, verá todos os itens da ordem.
+                            Use <strong>"+ Add Dep"</strong> em cada item para declarar a dependência,
+                            indicando o <code>order_item_id</code> do item de que depende (ex: "1").
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ RESUMO FINAL ═══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-success);color:white;">&#x2714;</div>
+                    <div>
+                        <div class="step-card__title">Resumo — Checklist para Criação de Ordens</div>
+                        <div class="step-card__subtitle">Todos os passos por ordem, do catálogo à ordem concluída</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+
+                    <!-- E2E flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 400" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-e2e" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                                <marker id="arr-e2e-ok" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                            </defs>
+                            <text x="390" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#e2e8f0">Fluxo Completo — Do Catálogo à Ordem Concluída</text>
+
+                            <!-- Phase 1: Catalog setup -->
+                            <rect x="20" y="36" width="740" height="72" rx="8"
+                                  fill="rgba(79,126,248,0.06)" stroke="#4f7ef8" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="57" font-size="10" font-weight="600" fill="#4f7ef8">FASE 1 — Catálogo (pre-requisito — ver Guia do Catálogo)</text>
+                            <rect x="40"  y="65" width="155" height="30" rx="6" fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="1"/>
+                            <text x="117" y="84" text-anchor="middle" font-size="9" font-weight="600" fill="#4f7ef8">ServiceSpecification</text>
+                            <rect x="210" y="65" width="150" height="30" rx="6" fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="1"/>
+                            <text x="285" y="84" text-anchor="middle" font-size="9" font-weight="600" fill="#4f7ef8">ServiceCategory</text>
+                            <rect x="375" y="65" width="150" height="30" rx="6" fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="1"/>
+                            <text x="450" y="84" text-anchor="middle" font-size="9" font-weight="600" fill="#4f7ef8">ServiceCandidate</text>
+                            <rect x="540" y="65" width="205" height="30" rx="6" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="1"/>
+                            <text x="642" y="84" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">&#x2714; Catálogo Pronto</text>
+
+                            <!-- Arrow 1 → 2 -->
+                            <line x1="390" y1="110" x2="390" y2="136" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-e2e)"/>
+
+                            <!-- Phase 2: Create order -->
+                            <rect x="20" y="138" width="740" height="62" rx="8"
+                                  fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="158" font-size="10" font-weight="600" fill="#fbbf24">FASE 2 — Criação da Ordem (Orders → + New Order)</text>
+                            <text x="390" y="186" text-anchor="middle" font-size="10" fill="#94a3b8">Preencher: Name · Category · Service Spec Name · Service Name → Criar → estado: <tspan fill="#4f7ef8">acknowledged</tspan></text>
+
+                            <!-- Arrow 2 → 3 -->
+                            <line x1="390" y1="202" x2="390" y2="228" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-e2e)"/>
+
+                            <!-- Phase 3: Optionally add deps -->
+                            <rect x="20" y="230" width="740" height="62" rx="8"
+                                  fill="rgba(96,165,250,0.05)" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="250" font-size="10" font-weight="600" fill="#60a5fa">FASE 3 — Declarar Dependências entre Itens (opcional)</text>
+                            <text x="390" y="278" text-anchor="middle" font-size="10" fill="#94a3b8">Botão &#x1F4CB; Deps → "+ Add Dep" → indicar item de origem (order_item_id)</text>
+
+                            <!-- Arrow 3 → 4 -->
+                            <line x1="390" y1="294" x2="390" y2="320" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-e2e)"/>
+
+                            <!-- Phase 4: Lifecycle -->
+                            <rect x="20" y="322" width="740" height="62" rx="8"
+                                  fill="rgba(52,211,153,0.05)" stroke="#34d399" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="342" font-size="10" font-weight="600" fill="#34d399">FASE 4 — Progressão do Ciclo de Vida</text>
+                            <text x="390" y="369" text-anchor="middle" font-size="10" fill="#94a3b8">
+                                <tspan fill="#4f7ef8">acknowledged</tspan>
+                                <tspan fill="#94a3b8"> → </tspan>
+                                <tspan fill="#fbbf24">▶ Start</tspan>
+                                <tspan fill="#94a3b8"> → </tspan>
+                                <tspan fill="#fbbf24">inProgress</tspan>
+                                <tspan fill="#94a3b8"> → </tspan>
+                                <tspan fill="#34d399">✓ Complete</tspan>
+                                <tspan fill="#94a3b8"> → </tspan>
+                                <tspan fill="#34d399">completed ✔</tspan>
+                            </text>
+                        </svg>
+                        <figcaption>Diagrama 4 — Fluxo E2E completo: do catálogo à ordem concluída</figcaption>
+                    </figure>
+
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> Verificar que existem <strong>ServiceSpecifications</strong> activas no catálogo (ex: "VM Completa")</li>
+                        <li><span class="checklist__num">2</span> Verificar que existe uma <strong>ServiceCategory</strong> (ex: "Virtualização") para categorizar a ordem</li>
+                        <li><span class="checklist__num">3</span> Navegar a <strong>Orders → + New Order</strong></li>
+                        <li><span class="checklist__num">4</span> Preencher o <strong>Name</strong> da ordem (obrigatório)</li>
+                        <li><span class="checklist__num">5</span> Seleccionar a <strong>Category</strong> no dropdown</li>
+                        <li><span class="checklist__num">6</span> Seleccionar a <strong>Service Spec Name</strong> no dropdown (ex: "VM Completa")</li>
+                        <li><span class="checklist__num">7</span> Preencher o <strong>Service Name</strong> (nome da instância a criar, ex: "vm-alpha-001")</li>
+                        <li><span class="checklist__num">8</span> Clicar <strong>"Create Order"</strong> — ordem criada no estado <code>acknowledged</code></li>
+                        <li><span class="checklist__num">9</span> Opcionalmente, usar <strong>&#x1F4CB; Deps</strong> para declarar dependências entre itens</li>
+                        <li><span class="checklist__num">10</span> Clicar <strong>Start</strong> para mover para <code>inProgress</code></li>
+                        <li><span class="checklist__num">11</span> Após o aprovisionamento, clicar <strong>Complete</strong> → estado <code>completed</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ══ GERAR DADOS DE EXEMPLO ════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Exemplo</div>
+                        <div class="step-card__subtitle">Cria automaticamente três ordens de serviço usando as especificações existentes no catálogo</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Clique no botão abaixo para gerar automaticamente três ordens de exemplo
+                        com base nas especificações <strong>VM Completa</strong>,
+                        <strong>Associação de Storage à VM</strong> e
+                        <strong>Gestão de Utilizadores e Passwords</strong> existentes no catálogo.
+                    </p>
+                    <p style="margin-top:var(--space-sm)">
+                        Para cada ordem criada, são também configuradas as dependências entre os itens.
+                    </p>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">&#x26A0;&#xFE0F;</span>
+                        <div class="callout__text">
+                            <strong>Pré-requisito:</strong> O catálogo deve ter as especificações criadas.
+                            Use primeiro o botão <strong>"Gerar Dados de Exemplo"</strong> na
+                            <a href="catalog-help.html" style="color:var(--colour-primary);">página de ajuda do Catálogo</a>
+                            se ainda não o fez.
+                            Se clicar mais do que uma vez, as ordens são criadas com sufixo numérico
+                            (ex: <strong>"Aprovisionamento VM Alpha 2"</strong>).
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-orders" onclick="generateOrderExamples()">
+                        &#x1F680; Gerar Dados de Exemplo
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="orders.html" class="back-link">&#8592; Voltar às Ordens de Serviço</a>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=6"></script>
+<script>
+    function printToPDF() {
+        const btn = document.querySelector('.topbar__actions button');
+        btn.disabled = true; btn.textContent = 'A preparar…';
+        setTimeout(function () { window.print(); btn.disabled = false; btn.innerHTML = '&#x1F4E5; Gerar PDF'; }, 120);
+    }
+
+    async function generateOrderExamples() {
+        const btn   = document.getElementById('btn-gen-orders');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_order_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : ' ' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        // Steps:
+        // 1  — buscar specs existentes
+        // 2  — encontrar VM Completa (ou elementares)
+        // 3  — buscar categorias
+        // 4  — criar Ordem 1 (bundle VM Completa)
+        // 5  — criar Ordem 2 (elementar storage)
+        // 6  — criar Ordem 3 (elementar utilizadores + storage, com deps)
+        // 7  — adicionar dep item 2 → item 1 na Ordem 3
+        // 8  — adicionar dep item 3 → item 1 na Ordem 3
+        const TOTAL = 8;
+        let step = 0;
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' — ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        const CAT_BASE   = '/tmf-api/serviceCatalogManagement/v4';
+        const ORDER_BASE = '/tmf-api/serviceOrdering/v4/serviceOrder';
+
+        async function apiGet(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('GET ' + url + ' → HTTP ' + r.status);
+            return r.json();
+        }
+
+        async function apiPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        try {
+            // ── 1. Buscar especificações existentes ───────────────────────
+            progress('A procurar especificações no catálogo…');
+            log('→ GET ' + CAT_BASE + '/serviceSpecification?limit=100&lifecycle_status=active');
+            const specs = await apiGet(CAT_BASE + '/serviceSpecification?limit=100&lifecycle_status=active');
+
+            function findSpec(namePart) {
+                return specs.find(s => s.name && s.name.toLowerCase().includes(namePart.toLowerCase()));
+            }
+
+            const specBundle  = findSpec('VM Completa');
+            const specStorage = findSpec('Associação de Storage');
+            const specUsers   = findSpec('Gestão de Utilizadores');
+            const specVm      = findSpec('VM Elementar');
+
+            if (!specBundle && !specStorage && !specVm) {
+                log('✗ Nenhuma especificação relevante encontrada no catálogo.', 'gen-log-err');
+                log('  → Gere primeiro os dados de exemplo no Guia do Catálogo.', 'gen-log-err');
+                throw new Error('Especificações não encontradas. Crie-as no catálogo primeiro.');
+            }
+
+            log('✓ Especificações encontradas:', 'gen-log-ok');
+            if (specBundle)  log('  • ' + specBundle.name  + '  id:' + specBundle.id,  'gen-log-info');
+            if (specStorage) log('  • ' + specStorage.name + '  id:' + specStorage.id, 'gen-log-info');
+            if (specUsers)   log('  • ' + specUsers.name   + '  id:' + specUsers.id,   'gen-log-info');
+            if (specVm)      log('  • ' + specVm.name      + '  id:' + specVm.id,      'gen-log-info');
+
+            // ── 2. Buscar categorias ──────────────────────────────────────
+            progress('A procurar categorias…');
+            log('→ GET ' + CAT_BASE + '/serviceCategory?limit=100');
+            const categories = await apiGet(CAT_BASE + '/serviceCategory?limit=100');
+            const catVirt = categories.find(c => c.name && c.name.toLowerCase().includes('virtualiza'));
+            const catName = catVirt ? catVirt.name : (categories[0] ? categories[0].name : null);
+            if (catName) {
+                log('✓ Categoria: ' + catName, 'gen-log-ok');
+            } else {
+                log('⚠ Nenhuma categoria encontrada — as ordens serão criadas sem categoria.', 'gen-log-info');
+            }
+
+            // ── 3. Ordem 1 — Bundle VM Completa ──────────────────────────
+            progress('A criar Ordem 1 — Bundle VM Completa…');
+            const bundleSpecName = specBundle ? specBundle.name : (specVm ? specVm.name : 'VM Completa');
+            log('→ POST ' + ORDER_BASE + '  [Ordem 1: ' + bundleSpecName + sfx + ']');
+            const order1 = await apiPost(ORDER_BASE, {
+                name:        'Aprovisionamento VM Alpha' + sfx,
+                description: 'VM Completa para equipa de desenvolvimento — Projecto Alpha',
+                category:    catName || null,
+                priority:    'high',
+                order_item: [
+                    {
+                        order_item_id:    '1',
+                        action:           'add',
+                        service_spec_name: bundleSpecName,
+                        service_name:     'vm-alpha-001' + (count > 1 ? '-' + count : '')
+                    }
+                ]
+            });
+            log('✓ Ordem 1 criada  id:' + order1.id + '  state:' + order1.state, 'gen-log-ok');
+
+            // ── 4. Ordem 2 — Elementar Storage ───────────────────────────
+            progress('A criar Ordem 2 — Storage extra…');
+            const storageSpecName = specStorage ? specStorage.name : 'Associação de Storage à VM';
+            log('→ POST ' + ORDER_BASE + '  [Ordem 2: ' + storageSpecName + ']');
+            const order2 = await apiPost(ORDER_BASE, {
+                name:        'Storage Extra — vm-beta-001' + sfx,
+                description: 'Adicionar 200 GB SSD à VM beta já existente',
+                category:    catName || null,
+                priority:    'normal',
+                order_item: [
+                    {
+                        order_item_id:    '1',
+                        action:           'add',
+                        service_spec_name: storageSpecName,
+                        service_name:     'storage-vm-beta-001' + (count > 1 ? '-' + count : '')
+                    }
+                ]
+            });
+            log('✓ Ordem 2 criada  id:' + order2.id + '  state:' + order2.state, 'gen-log-ok');
+
+            // ── 5. Ordem 3 — 3 itens elementares com deps ────────────────
+            progress('A criar Ordem 3 — itens elementares com dependências…');
+            const vmSpecName      = specVm      ? specVm.name      : 'VM Elementar vCenter';
+            const usersSpecName   = specUsers   ? specUsers.name   : 'Gestão de Utilizadores e Passwords';
+            const storSpecName    = specStorage ? specStorage.name : 'Associação de Storage à VM';
+            log('→ POST ' + ORDER_BASE + '  [Ordem 3: 3 itens elementares]');
+            const order3 = await apiPost(ORDER_BASE, {
+                name:        'VM Completa Explícita — Projecto DevOps' + sfx,
+                description: 'VM com utilizadores e storage — dependências explícitas entre itens',
+                category:    catName || null,
+                priority:    'normal',
+                order_item: [
+                    { order_item_id: '1', action: 'add', service_spec_name: vmSpecName,    service_name: 'vm-devops-001'      + (count > 1 ? '-' + count : '') },
+                    { order_item_id: '2', action: 'add', service_spec_name: usersSpecName, service_name: 'users-devops-001'   + (count > 1 ? '-' + count : '') },
+                    { order_item_id: '3', action: 'add', service_spec_name: storSpecName,  service_name: 'storage-devops-001' + (count > 1 ? '-' + count : '') }
+                ]
+            });
+            log('✓ Ordem 3 criada  id:' + order3.id + '  state:' + order3.state, 'gen-log-ok');
+
+            // Resolve DB item IDs from the returned order_item array
+            const items3 = order3.order_item || [];
+            const dbItem2 = items3.find(i => i.order_item_id === '2');
+            const dbItem3 = items3.find(i => i.order_item_id === '3');
+
+            // ── 6. Dependência item 2 → item 1 na Ordem 3 ────────────────
+            progress('A adicionar dependência: Item 2 → Item 1…');
+            if (dbItem2) {
+                const relUrl2 = ORDER_BASE + '/' + order3.id + '/orderItem/' + dbItem2.id + '/orderItemRelationship';
+                log('→ POST …/orderItem/' + dbItem2.id + '/orderItemRelationship  [dep → item 1]');
+                await apiPost(relUrl2, { relationship_type: 'dependency', related_item_label: '1' });
+                log('✓ Dependência: Item 2 (Utilizadores) → Item 1 (VM)', 'gen-log-ok');
+            } else {
+                log('⚠ Item 2 não encontrado na resposta — a ignorar dependência Item 2 → Item 1.', 'gen-log-info');
+            }
+
+            // ── 7. Dependência item 3 → item 1 na Ordem 3 ────────────────
+            progress('A adicionar dependência: Item 3 → Item 1…');
+            if (dbItem3) {
+                const relUrl3 = ORDER_BASE + '/' + order3.id + '/orderItem/' + dbItem3.id + '/orderItemRelationship';
+                log('→ POST …/orderItem/' + dbItem3.id + '/orderItemRelationship  [dep → item 1]');
+                await apiPost(relUrl3, { relationship_type: 'dependency', related_item_label: '1' });
+                log('✓ Dependência: Item 3 (Storage) → Item 1 (VM)', 'gen-log-ok');
+            } else {
+                log('⚠ Item 3 não encontrado na resposta — a ignorar dependência Item 3 → Item 1.', 'gen-log-info');
+            }
+
+            fill.style.width = '100%';
+            lbl.textContent  = '✅ Concluído — três ordens de serviço criadas com sucesso.';
+            log('', '');
+            log('✅ Ordens criadas:', 'gen-log-info');
+            log('  1. "Aprovisionamento VM Alpha' + sfx + '"  — bundle (1 item)', 'gen-log-info');
+            log('  2. "Storage Extra — vm-beta-001' + sfx + '"  — elementar (1 item)', 'gen-log-info');
+            log('  3. "VM Completa Explícita — Projecto DevOps' + sfx + '"  — 3 itens + deps', 'gen-log-info');
+            log('  → Navegue a Orders para ver e avançar os estados das ordens.', 'gen-log-ok');
+
+        } catch (err) {
+            log('✗ Erro: ' + err.message, 'gen-log-err');
+            lbl.textContent = 'Erro durante a geração de dados. Verifique o log acima.';
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = '&#x1F504; Gerar Novos Dados de Exemplo';
+        }
+    }
+</script>
+</body>
+</html>
