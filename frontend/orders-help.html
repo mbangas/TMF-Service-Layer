@@ -874,14 +874,14 @@
 
                     <h4>Adicionar dependências entre itens (após criação da ordem)</h4>
                     <div class="api-block"><span class="comment">-- Item 2 depende do Item 1 --</span>
-<span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;/orderItem/&lt;item2_id&gt;/orderItemRelationship</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;/serviceOrderItem/&lt;item2_id&gt;/serviceOrderItemRelationship</span>
 <span class="key">{</span>
   <span class="key">"relationship_type"</span>:  <span class="val">"dependency"</span>,
   <span class="key">"related_item_label"</span>: <span class="val">"1"</span>
 <span class="key">}</span>
 
 <span class="comment">-- Item 3 depende do Item 1 --</span>
-<span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;/orderItem/&lt;item3_id&gt;/orderItemRelationship</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceOrdering/v4/serviceOrder/&lt;order_id&gt;/serviceOrderItem/&lt;item3_id&gt;/serviceOrderItemRelationship</span>
 <span class="key">{</span>
   <span class="key">"relationship_type"</span>:  <span class="val">"dependency"</span>,
   <span class="key">"related_item_label"</span>: <span class="val">"1"</span>
@@ -1230,8 +1230,8 @@
             // ── 6. Dependência item 2 → item 1 na Ordem 3 ────────────────
             progress('A adicionar dependência: Item 2 → Item 1…');
             if (dbItem2) {
-                const relUrl2 = ORDER_BASE + '/' + order3.id + '/orderItem/' + dbItem2.id + '/orderItemRelationship';
-                log('→ POST …/orderItem/' + dbItem2.id + '/orderItemRelationship  [dep → item 1]');
+                const relUrl2 = ORDER_BASE + '/' + order3.id + '/serviceOrderItem/' + dbItem2.id + '/serviceOrderItemRelationship';
+                log('→ POST …/serviceOrderItem/' + dbItem2.id + '/serviceOrderItemRelationship  [dep → item 1]');
                 await apiPost(relUrl2, { relationship_type: 'dependency', related_item_label: '1' });
                 log('✓ Dependência: Item 2 (Utilizadores) → Item 1 (VM)', 'gen-log-ok');
             } else {
@@ -1241,8 +1241,8 @@
             // ── 7. Dependência item 3 → item 1 na Ordem 3 ────────────────
             progress('A adicionar dependência: Item 3 → Item 1…');
             if (dbItem3) {
-                const relUrl3 = ORDER_BASE + '/' + order3.id + '/orderItem/' + dbItem3.id + '/orderItemRelationship';
-                log('→ POST …/orderItem/' + dbItem3.id + '/orderItemRelationship  [dep → item 1]');
+                const relUrl3 = ORDER_BASE + '/' + order3.id + '/serviceOrderItem/' + dbItem3.id + '/serviceOrderItemRelationship';
+                log('→ POST …/serviceOrderItem/' + dbItem3.id + '/serviceOrderItemRelationship  [dep → item 1]');
                 await apiPost(relUrl3, { relationship_type: 'dependency', related_item_label: '1' });
                 log('✓ Dependência: Item 3 (Storage) → Item 1 (VM)', 'gen-log-ok');
             } else {
