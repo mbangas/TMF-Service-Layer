@@ -148,6 +148,45 @@ class ServiceLevelSpecificationOrm(Base, TimestampMixin):
     )
 
 
+class ServiceSpecRelationshipOrm(Base, TimestampMixin):
+    """Represents a typed dependency/structural link between two ServiceSpecifications.
+
+    Maps to the TMF633 ``ServiceSpecRelationship`` / SID GB922 ``ServiceSpecificationRelationship``.
+    Supported relationship_type values: dependency | isContainedIn | isReplacedBy | hasPart
+    """
+
+    __tablename__ = "service_spec_relationship"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    relationship_type: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    # FK to the owning specification (RESTRICT — cannot delete a spec that has outgoing rels)
+    spec_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service_specification.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    service_specification: Mapped["ServiceSpecificationOrm"] = relationship(
+        back_populates="spec_relationships",
+        foreign_keys="ServiceSpecRelationshipOrm.spec_id",
+    )
+
+    # FK to the related specification
+    related_spec_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service_specification.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    related_spec_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    related_spec_href: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
 class ServiceSpecificationOrm(Base, TimestampMixin):
     """SQLAlchemy model for TMF633 ``ServiceSpecification``.
 
@@ -194,6 +233,13 @@ class ServiceSpecificationOrm(Base, TimestampMixin):
     service_candidates: Mapped[list["ServiceCandidateOrm"]] = relationship(
         back_populates="service_specification",
         lazy="selectin",
+    )
+    # Outgoing spec-to-spec relationships (TMF633 ServiceSpecRelationship)
+    spec_relationships: Mapped[list["ServiceSpecRelationshipOrm"]] = relationship(
+        back_populates="service_specification",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        foreign_keys="ServiceSpecRelationshipOrm.spec_id",
     )
 
 

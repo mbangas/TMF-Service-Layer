@@ -265,7 +265,28 @@
         </div>
     </div>
 </div>
-
+<!-- ── Service Dependencies panel ───────────────────────────────────────── -->
+<div class="modal-backdrop" id="deps-panel-backdrop">
+    <div class="modal" style="max-width:520px" role="dialog" aria-modal="true" aria-labelledby="deps-panel-title">
+        <div class="modal__header">
+            <span class="modal__title" id="deps-panel-title">Service Dependencies</span>
+            <button class="btn btn--ghost btn--icon" id="deps-panel-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="deps-panel-svc-id" style="margin-bottom:var(--space-md)"></p>
+            <div class="table-wrapper">
+                <table><thead><tr>
+                    <th>Type</th><th>Related Service</th><th>Related ID</th>
+                </tr></thead>
+                <tbody id="deps-panel-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="deps-panel-ok">Close</button>
+        </div>
+    </div>
+</div>
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
@@ -367,6 +388,10 @@ async function loadJobs() {
 
             const detailBtn = `<button class="btn btn--ghost btn--sm" onclick="showDetail('${escHtml(job.id)}')">Detail</button>`;
 
+            const depBtn = job.service_id
+                ? `<button class="btn btn--ghost btn--sm" onclick="showJobDeps('${escHtml(job.service_id)}')" title="Service dependencies">&#x1F517; Deps</button>`
+                : '';
+
             const canDelete = job.state === 'failed' || job.state === 'cancelled';
             const deleteBtn = canDelete
                 ? `<button class="btn btn--danger btn--sm" onclick="startDelete('${escHtml(job.id)}','${escHtml(job.name)}')">Delete</button>`
@@ -384,7 +409,7 @@ async function loadJobs() {
                     ${job.error_message ? escHtml(job.error_message.slice(0,30)) + '…' : '—'}
                 </td>
                 <td class="id-cell" title="${escHtml(job.id)}">${job.id.slice(0,8)}…</td>
-                <td class="actions-cell">${actionBtns}${detailBtn}${deleteBtn}</td>
+                <td class="actions-cell">${actionBtns}${detailBtn}${depBtn}${deleteBtn}</td>
             </tr>`;
         }).join('');
     } catch (err) {
@@ -630,7 +655,32 @@ btnNext.addEventListener('click', () => {
 
 filterState.addEventListener('change', () => { currentOffset = 0; loadJobs(); });
 filterType.addEventListener('change',  () => { currentOffset = 0; loadJobs(); });
+// ── Service Dependencies pop-up ──────────────────────────────────────────────────────────
+const depsPanelBD    = document.getElementById('deps-panel-backdrop');
+const depsPanelTbody = document.getElementById('deps-panel-tbody');
+const depsPanelSvcId = document.getElementById('deps-panel-svc-id');
+function closeDepsPanel() { depsPanelBD.classList.remove('open'); }
+document.getElementById('deps-panel-close').addEventListener('click', closeDepsPanel);
+document.getElementById('deps-panel-ok').addEventListener('click',    closeDepsPanel);
+depsPanelBD.addEventListener('click', e=>{ if(e.target===depsPanelBD) closeDepsPanel(); });
 
+async function showJobDeps(serviceId) {
+    depsPanelSvcId.textContent = `Service ID: ${serviceId}`;
+    depsPanelTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:var(--space-md)"><div class="loader"></div></td></tr>';
+    depsPanelBD.classList.add('open');
+    try {
+        const {data} = await ServiceRelationshipClient.listByService(serviceId);
+        if (!data.length) {
+            depsPanelTbody.innerHTML = '<tr><td colspan="3" class="text-muted" style="text-align:center;padding:var(--space-md)">No dependencies recorded for this service.</td></tr>';
+            return;
+        }
+        depsPanelTbody.innerHTML = data.map(r=>`<tr>
+            <td><span class="badge badge--info">${escHtml(r.relationship_type)}</span></td>
+            <td class="name-cell">${escHtml(r.related_service_name || '&mdash;')}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(r.related_service_id)}">${escHtml(r.related_service_id)}</td>
+        </tr>`).join('');
+    } catch(err) { depsPanelTbody.innerHTML=`<tr><td colspan="3" style="color:var(--colour-danger)">${escHtml(err.message)}</td></tr>`; }
+}
 // ── Init ───────────────────────────────────────────────────────────────────────
 loadJobs();
 </script>

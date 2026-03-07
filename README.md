@@ -19,6 +19,7 @@ This application implements the following functional domains:
 | Inventory | Active service instances and relationships | TMF638 | ✅ Implemented |
 | Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | ✅ Implemented |
 | Testing | Automated service test and validation | TMF653 | ✅ Implemented |
+| **Service Dependencies** | **Spec, order-item, and service relationships (CFS↔RFS topology)** | **TMF633, TMF638, TMF641** | **✅ Implemented** |
 | Problem Management | Incidents, trouble tickets, root cause | TMF621, TMF656 | 📋 Planned |
 | Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | 📋 Planned |
 
@@ -62,9 +63,10 @@ The **Service Inventory** module tracks all active (and historical) service inst
 | Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | ✅ Done |
 | Phase 7 | TMF653 Service Test Management | ✅ Done |
 | Phase 8 (TMFC006) | TMF633/TMF638 Characteristic Management — `CharacteristicValueSpecification` + `CharacteristicValue` standalone CRUD | ✅ Done |
-| Phase 9 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
-| Phase 10 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
-| Phase 11 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
+| **Phase 9** | **SID GB922 / TMF633 / TMF641 / TMF638 Service Dependency Modeling — `ServiceSpecRelationship`, `ServiceOrderItemRelationship`, `ServiceRelationship` with CFS→RFS auto-propagation** | **✅ Done** |
+| Phase 10 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
+| Phase 11 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
+| Phase 12 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
 
 ---
 
@@ -172,7 +174,7 @@ The **Service Catalog** module is the foundation of the Service Layer. It enable
 | `ServiceSpecCharacteristic` | Configurable parameter of a service specification |
 | `CharacteristicValueSpecification` | Allowed (or enumerated) values for a characteristic parameter |
 | `ServiceLevelSpecification` | SLA constraints associated with a service |
-| `ServiceSpecRelationship` | Relationship between specifications (e.g., CFS → RFS) |
+| `ServiceSpecRelationship` | Relationship between specifications (e.g., CFS → RFS dependency, containment, substitution) |
 
 #### API Endpoints (TMF633)
 
@@ -191,6 +193,9 @@ The **Service Catalog** module is the foundation of the Service Layer. It enable
 | `GET` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}/characteristicValueSpecification` | List value specs |
 | `POST` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}/characteristicValueSpecification` | Add a value spec |
 | `DELETE` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}/characteristicValueSpecification/{vid}` | Remove a value spec |
+| `GET` | `/serviceSpecification/{id}/serviceSpecRelationship` | List spec-to-spec relationships |
+| `POST` | `/serviceSpecification/{id}/serviceSpecRelationship` | Add a spec relationship |
+| `DELETE` | `/serviceSpecification/{id}/serviceSpecRelationship/{rid}` | Remove a spec relationship |
 
 #### Module Location
 
@@ -249,16 +254,20 @@ The **Service Order** module is the second implemented component. It manages the
 |---|---|
 | `ServiceOrder` | Customer or system request to add, modify, or delete a service |
 | `ServiceOrderItem` | Individual line item specifying the action and target service spec |
+| `ServiceOrderItemRelationship` | Precedence / containment relationship between order items (TMF641 / SID GB922) |
 
 #### API Endpoints (TMF641)
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/tmf-api/serviceOrder/v4/serviceOrder` | List all service orders |
-| `GET` | `/tmf-api/serviceOrder/v4/serviceOrder/{id}` | Retrieve a specific service order |
-| `POST` | `/tmf-api/serviceOrder/v4/serviceOrder` | Create a new service order |
-| `PATCH` | `/tmf-api/serviceOrder/v4/serviceOrder/{id}` | Update (advance state of) a service order |
-| `DELETE` | `/tmf-api/serviceOrder/v4/serviceOrder/{id}` | Cancel a service order |
+| `GET` | `/tmf-api/serviceOrdering/v4/serviceOrder` | List all service orders |
+| `GET` | `/tmf-api/serviceOrdering/v4/serviceOrder/{id}` | Retrieve a specific service order |
+| `POST` | `/tmf-api/serviceOrdering/v4/serviceOrder` | Create a new service order |
+| `PATCH` | `/tmf-api/serviceOrdering/v4/serviceOrder/{id}` | Update (advance state of) a service order |
+| `DELETE` | `/tmf-api/serviceOrdering/v4/serviceOrder/{id}` | Cancel a service order |
+| `GET` | `/tmf-api/serviceOrdering/v4/serviceOrder/{id}/serviceOrderItem/{iid}/serviceOrderItemRelationship` | List item relationships |
+| `POST` | `/tmf-api/serviceOrdering/v4/serviceOrder/{id}/serviceOrderItem/{iid}/serviceOrderItemRelationship` | Add an item relationship |
+| `DELETE` | `/tmf-api/serviceOrdering/v4/serviceOrder/{id}/serviceOrderItem/{iid}/serviceOrderItemRelationship/{rid}` | Remove an item relationship |
 
 #### Module Location
 
@@ -293,6 +302,7 @@ The **Service Inventory** module tracks all provisioned service instances. Insta
 | `Service` | An active (or historical) service instance delivered to a customer |
 | `ServiceCharacteristic` | Instantiated characteristic parameter for a specific service instance |
 | `CharacteristicValue` | Specific value assigned to a characteristic on a service instance |
+| `ServiceRelationship` | Runtime relationship between service instances (CFS→RFS, auto-propagated from spec topology at order completion — SID GB922) |
 
 #### API Endpoints (TMF638)
 
@@ -311,6 +321,9 @@ The **Service Inventory** module tracks all provisioned service instances. Insta
 | `GET` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}/characteristicValue` | List values of a characteristic |
 | `POST` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}/characteristicValue` | Add a value |
 | `DELETE` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}/characteristicValue/{vid}` | Remove a value |
+| `GET` | `/tmf-api/serviceInventory/v4/service/{id}/serviceRelationship` | List service-to-service relationships |
+| `POST` | `/tmf-api/serviceInventory/v4/service/{id}/serviceRelationship` | Add a service relationship |
+| `DELETE` | `/tmf-api/serviceInventory/v4/service/{id}/serviceRelationship/{rid}` | Remove a service relationship |
 
 #### Module Location
 

@@ -159,6 +159,10 @@ class ServiceResponse(BaseEntity):
         default_factory=list,
         description="Runtime characteristic values",
     )
+    service_relationships: list[ServiceRelationshipResponse] = Field(
+        default_factory=list,
+        description="TMF638 ServiceRelationship entries for this service instance",
+    )
 
     created_at: datetime | None = None
     updated_at: datetime | None = None

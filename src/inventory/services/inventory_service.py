@@ -17,9 +17,12 @@ from src.inventory.models.schemas import (
     VALID_SERVICE_STATES,
     ServiceCreate,
     ServicePatch,
+    ServiceRelationshipCreate,
+    ServiceRelationshipResponse,
     ServiceResponse,
 )
 from src.inventory.repositories.service_repo import ServiceRepository
+from src.inventory.repositories.service_relationship_repo import ServiceRelationshipRepository
 from src.shared.events.bus import EventBus
 from src.shared.events.schemas import EventPayload, TMFEvent
 
@@ -84,6 +87,7 @@ class InventoryService:
 
     def __init__(self, repo: ServiceRepository) -> None:
         self._repo = repo
+        self._rel_repo: ServiceRelationshipRepository | None = None
 
     # ── Query ─────────────────────────────────────────────────────────────────
 
@@ -268,3 +272,175 @@ class InventoryService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Service is referenced by another entity and cannot be deleted.",
             )
+
+    # ── Service Relationships (TMF638 ServiceRelationship / SID GB922) ───────
+
+    def _rel_repo_instance(self) -> ServiceRelationshipRepository:
+        """Return the injected service relationship repository."""
+        if self._rel_repo is None:
+            raise RuntimeError("ServiceRelationshipRepository not injected.")
+        return self._rel_repo
+
+    async def list_service_relationships(
+        self,
+        service_id: str,
+    ) -> list[ServiceRelationshipResponse]:
+        """List all ServiceRelationship entries for a service instance.
+
+        Args:
+            service_id: The parent Service UUID.
+
+        Raises:
+            :class:`fastapi.HTTPException` (404) if the service does not exist.
+
+        Returns:
+            List of relationship responses.
+        """
+        existing = await self._repo.get_by_id(service_id)
+        if existing is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Service '{service_id}' not found.",
+            )
+        items = await self._rel_repo_instance().get_all_by_service_id(service_id)
+        return [ServiceRelationshipResponse.model_validate(i) for i in items]
+
+    async def add_service_relationship(
+        self,
+        service_id: str,
+        data: ServiceRelationshipCreate,
+    ) -> ServiceRelationshipResponse:
+        """Create a ServiceRelationship between two Service instances.
+
+        Validates:
+        - The owning service exists.
+        - The related service exists.
+        - No self-reference.
+        - The relationship type is valid.
+        - The triple is not a duplicate.
+
+        Args:
+            service_id: UUID of the owning Service instance.
+            data: Validated create payload.
+
+        Returns:
+            The created relationship response.
+        """
+        from src.catalog.models.schemas import VALID_RELATIONSHIP_TYPES  # noqa: PLC0415
+
+        existing = await self._repo.get_by_id(service_id)
+        if existing is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Service '{service_id}' not found.",
+            )
+
+        if data.related_service_id == service_id:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="A Service cannot be related to itself.",
+            )
+
+        if data.relationship_type not in VALID_RELATIONSHIP_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    f"Invalid relationship_type '{data.relationship_type}'. "
+                    f"Allowed: {sorted(VALID_RELATIONSHIP_TYPES)}"
+                ),
+            )
+
+        related = await self._repo.get_by_id(data.related_service_id)
+        if related is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Related Service '{data.related_service_id}' not found.",
+            )
+        if data.related_service_name is None:
+            data = data.model_copy(update={"related_service_name": related.name})
+        if data.related_service_href is None:
+            data = data.model_copy(update={"related_service_href": related.href})
+
+        rel_repo = self._rel_repo_instance()
+        if await rel_repo.exists(service_id, data.related_service_id, data.relationship_type):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"A '{data.relationship_type}' relationship from '{service_id}' "
+                    f"to '{data.related_service_id}' already exists."
+                ),
+            )
+
+        orm = await rel_repo.create(service_id, data)
+        return ServiceRelationshipResponse.model_validate(orm)
+
+    async def delete_service_relationship(self, service_id: str, rel_id: str) -> None:
+        """Delete a ServiceRelationship.
+
+        Args:
+            service_id: UUID of the owning Service instance.
+            rel_id: UUID of the relationship record.
+
+        Raises:
+            :class:`fastapi.HTTPException` (404) if not found or wrong parent.
+            :class:`fastapi.HTTPException` (409) if FK RESTRICT prevents deletion.
+        """
+        rel_repo = self._rel_repo_instance()
+        orm = await rel_repo.get_by_id(rel_id)
+        if orm is None or orm.service_id != service_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"ServiceRelationship '{rel_id}' not found for service '{service_id}'.",
+            )
+        try:
+            await rel_repo.delete(orm)
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "Cannot delete this relationship because another service depends on it. "
+                    "Remove the referencing relationship first."
+                ),
+            )
+
+    async def propagate_spec_relationships(
+        self,
+        spec_id_to_service_id: dict[str, str],
+    ) -> None:
+        """Auto-populate ServiceRelationship entries from ServiceSpecRelationship data.
+
+        Called at order completion.  For each (spec_id → service_id) mapping
+        produced by the order items, reads the spec's outgoing relationships and
+        creates matching ServiceRelationship entries when the related spec also
+        has a newly created service in the same batch.
+
+        Args:
+            spec_id_to_service_id: Mapping of spec UUID → newly created service UUID.
+        """
+        from src.catalog.repositories.spec_relationship_repo import SpecRelationshipRepository  # noqa: PLC0415
+
+        rel_repo = self._rel_repo_instance()
+        # We need a spec relationship repo — share the same DB session
+        spec_rel_repo = SpecRelationshipRepository(self._repo._db)
+
+        for spec_id, service_id in spec_id_to_service_id.items():
+            spec_rels = await spec_rel_repo.get_all_by_spec_id(spec_id)
+            for spec_rel in spec_rels:
+                related_service_id = spec_id_to_service_id.get(spec_rel.related_spec_id)
+                if related_service_id is None:
+                    continue  # Related spec not in this batch — skip
+
+                # Skip if already present (idempotent)
+                if await rel_repo.exists(service_id, related_service_id, spec_rel.relationship_type):
+                    continue
+
+                related_service = await self._repo.get_by_id(related_service_id)
+                await rel_repo.create(
+                    service_id,
+                    ServiceRelationshipCreate(
+                        relationship_type=spec_rel.relationship_type,
+                        related_service_id=related_service_id,
+                        related_service_name=related_service.name if related_service else None,
+                        related_service_href=related_service.href if related_service else None,
+                    ),
+                )

@@ -6,6 +6,34 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.shared.models.base_entity import BaseEntity
 
+# ── ServiceOrderItemRelationship ─────────────────────────────────────────────
+
+class ServiceOrderItemRelationshipCreate(BaseModel):
+    """Request body for creating a ServiceOrderItemRelationship (TMF641)."""
+
+    relationship_type: str = Field(
+        ...,
+        description="Relationship type (e.g. 'dependency')",
+    )
+    related_item_label: str = Field(
+        ...,
+        min_length=1,
+        max_length=64,
+        description="Client-assigned order_item_id label of the predecessor item (e.g. '1')",
+    )
+
+
+class ServiceOrderItemRelationshipResponse(BaseModel):
+    """Response body for a ServiceOrderItemRelationship."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    order_item_orm_id: str
+    relationship_type: str
+    related_item_label: str
+    created_at: datetime
+    updated_at: datetime
 
 # ── ServiceOrderItem ──────────────────────────────────────────────────────────
 
@@ -45,6 +73,10 @@ class ServiceOrderItemResponse(ServiceOrderItemBase):
 
     id: str
     service_order_id: str
+    item_relationships: list[ServiceOrderItemRelationshipResponse] = Field(
+        default_factory=list,
+        description="TMF641 ServiceOrderItemRelationship entries for this item",
+    )
     created_at: datetime
     updated_at: datetime
 

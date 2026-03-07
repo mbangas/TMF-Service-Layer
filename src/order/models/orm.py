@@ -9,6 +9,36 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.shared.db.base import Base, TimestampMixin
 
 
+class ServiceOrderItemRelationshipOrm(Base, TimestampMixin):
+    """Represents a dependency between two ServiceOrderItems within the same order.
+
+    Maps to the TMF641 ``ServiceOrderItemRelationship`` entity.
+    The ``related_item_label`` stores the client-assigned ``order_item_id`` string
+    of the predecessor item (e.g. ``"1"``, ``"2"``), per TMF641 specification.
+    """
+
+    __tablename__ = "service_order_item_relationship"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    relationship_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    related_item_label: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    # FK → parent order item (CASCADE — deleting an item removes its relationships)
+    order_item_orm_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service_order_item.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    order_item: Mapped["ServiceOrderItemOrm"] = relationship(
+        back_populates="item_relationships"
+    )
+
+
 class ServiceOrderItemOrm(Base, TimestampMixin):
     """Represents a single item within a ServiceOrder.
 
@@ -59,6 +89,13 @@ class ServiceOrderItemOrm(Base, TimestampMixin):
     service_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     service_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Intra-order item relationships (TMF641 ServiceOrderItemRelationship)
+    item_relationships: Mapped[list["ServiceOrderItemRelationshipOrm"]] = relationship(
+        back_populates="order_item",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
 
 class ServiceOrderOrm(Base, TimestampMixin):

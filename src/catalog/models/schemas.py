@@ -206,6 +206,42 @@ class ServiceSpecificationResponse(BaseEntity):
     service_level_specification: list[ServiceLevelSpecResponse] = Field(
         default_factory=list
     )
+    spec_relationships: list[ServiceSpecRelationshipResponse] = Field(
+        default_factory=list,
+        description="TMF633 ServiceSpecRelationship entries for this specification",
+    )
+
+
+# ── ServiceSpecRelationship ──────────────────────────────────────────────────
+
+VALID_RELATIONSHIP_TYPES = {"dependency", "isContainedIn", "isReplacedBy", "hasPart"}
+
+
+class ServiceSpecRelationshipCreate(BaseModel):
+    """Request body for creating a ServiceSpecRelationship (TMF633)."""
+
+    relationship_type: str = Field(
+        ...,
+        description="Relationship type: dependency | isContainedIn | isReplacedBy | hasPart",
+    )
+    related_spec_id: str = Field(..., description="UUID of the related ServiceSpecification")
+    related_spec_name: str | None = Field(default=None, description="Name of the related spec")
+    related_spec_href: str | None = Field(default=None, description="Href of the related spec")
+
+
+class ServiceSpecRelationshipResponse(BaseModel):
+    """Response body for a ServiceSpecRelationship."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    spec_id: str
+    relationship_type: str
+    related_spec_id: str
+    related_spec_name: str | None = None
+    related_spec_href: str | None = None
+    created_at: datetime
+    updated_at: datetime
 
 
 # ── Reference types (embedded in responses) ───────────────────────────────────

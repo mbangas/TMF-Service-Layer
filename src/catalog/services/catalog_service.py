@@ -20,8 +20,12 @@ from src.catalog.models.schemas import (
     ServiceSpecificationPatch,
     ServiceSpecificationResponse,
     ServiceSpecificationUpdate,
+    ServiceSpecRelationshipCreate,
+    ServiceSpecRelationshipResponse,
+    VALID_RELATIONSHIP_TYPES,
 )
 from src.catalog.repositories.service_spec_repo import ServiceSpecificationRepository
+from src.catalog.repositories.spec_relationship_repo import SpecRelationshipRepository
 from src.shared.events.bus import EventBus
 from src.shared.events.schemas import EventPayload, TMFEvent
 
@@ -76,6 +80,8 @@ class CatalogService:
 
     def __init__(self, repo: ServiceSpecificationRepository) -> None:
         self._repo = repo
+        # Relationship repo injected lazily to avoid import cycles
+        self._rel_repo: object | None = None
 
     # ── Query ─────────────────────────────────────────────────────────────────
 
@@ -292,3 +298,136 @@ class CatalogService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Specification is referenced by existing service orders and cannot be deleted.",
             )
+
+    # ── Spec Relationships (TMF633 ServiceSpecRelationship) ────────────────────
+
+    def _rel_repo_instance(self) -> "SpecRelationshipRepository":
+        """Return or lazily initialise the spec relationship repository."""
+        if self._rel_repo is None:
+            raise RuntimeError(
+                "SpecRelationshipRepository not injected. "
+                "Use CatalogService.with_rel_repo() factory."
+            )
+        return self._rel_repo  # type: ignore[return-value]
+
+    async def list_spec_relationships(
+        self,
+        spec_id: str,
+    ) -> list[ServiceSpecRelationshipResponse]:
+        """List all ServiceSpecRelationship entries for a specification.
+
+        Args:
+            spec_id: The parent ServiceSpecification UUID.
+
+        Raises:
+            :class:`fastapi.HTTPException` (404) if the spec does not exist.
+
+        Returns:
+            List of relationship responses.
+        """
+        existing = await self._repo.get_by_id(spec_id)
+        if existing is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"ServiceSpecification '{spec_id}' not found.",
+            )
+        items = await self._rel_repo_instance().get_all_by_spec_id(spec_id)
+        return [ServiceSpecRelationshipResponse.model_validate(i) for i in items]
+
+    async def add_spec_relationship(
+        self,
+        spec_id: str,
+        data: ServiceSpecRelationshipCreate,
+    ) -> ServiceSpecRelationshipResponse:
+        """Create a ServiceSpecRelationship between two ServiceSpecifications.
+
+        Validates:
+        - The owning spec exists.
+        - The related spec exists.
+        - No self-reference.
+        - The relationship type is valid.
+        - The triple is not a duplicate.
+
+        Args:
+            spec_id: UUID of the owning ServiceSpecification.
+            data: Validated create payload.
+
+        Returns:
+            The created relationship response.
+        """
+        # Validate owning spec
+        existing = await self._repo.get_by_id(spec_id)
+        if existing is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"ServiceSpecification '{spec_id}' not found.",
+            )
+
+        # Self-reference guard
+        if data.related_spec_id == spec_id:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="A ServiceSpecification cannot be related to itself.",
+            )
+
+        # Validate relationship type
+        if data.relationship_type not in VALID_RELATIONSHIP_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    f"Invalid relationship_type '{data.relationship_type}'. "
+                    f"Allowed: {sorted(VALID_RELATIONSHIP_TYPES)}"
+                ),
+            )
+
+        # Validate related spec exists
+        related = await self._repo.get_by_id(data.related_spec_id)
+        if related is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Related ServiceSpecification '{data.related_spec_id}' not found.",
+            )
+        # Auto-fill name/href from DB if not provided
+        if data.related_spec_name is None:
+            data = data.model_copy(update={"related_spec_name": related.name})
+        if data.related_spec_href is None:
+            data = data.model_copy(update={"related_spec_href": related.href})
+
+        # Duplicate guard
+        rel_repo = self._rel_repo_instance()
+        if await rel_repo.exists(spec_id, data.related_spec_id, data.relationship_type):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"A '{data.relationship_type}' relationship from '{spec_id}' "
+                    f"to '{data.related_spec_id}' already exists."
+                ),
+            )
+
+        orm = await rel_repo.create(spec_id, data)
+        return ServiceSpecRelationshipResponse.model_validate(orm)
+
+    async def delete_spec_relationship(
+        self,
+        spec_id: str,
+        rel_id: str,
+    ) -> None:
+        """Delete a ServiceSpecRelationship.
+
+        Args:
+            spec_id: UUID of the owning ServiceSpecification.
+            rel_id: UUID of the relationship record.
+
+        Raises:
+            :class:`fastapi.HTTPException` (404) if not found.
+            :class:`fastapi.HTTPException` (422) if the relationship belongs to
+                a different specification.
+        """
+        rel_repo = self._rel_repo_instance()
+        orm = await rel_repo.get_by_id(rel_id)
+        if orm is None or orm.spec_id != spec_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"ServiceSpecRelationship '{rel_id}' not found for spec '{spec_id}'.",
+            )
+        await rel_repo.delete(orm)

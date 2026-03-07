@@ -325,7 +325,47 @@
         </div>
     </div>
 </div>
-
+<!-- ── Service Relationships Modal ─────────────────────────────────────────── -->
+<div class="modal-backdrop" id="svc-rels-modal-backdrop">
+    <div class="modal" style="max-width:640px" role="dialog" aria-modal="true" aria-labelledby="svc-rels-title">
+        <div class="modal__header">
+            <span class="modal__title" id="svc-rels-title">Service Relationships</span>
+            <button class="btn btn--ghost btn--icon" id="svc-rels-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="svc-rels-svc-name" style="margin-bottom:var(--space-md)"></p>
+            <div class="table-wrapper" style="margin-bottom:var(--space-md)">
+                <table><thead><tr>
+                    <th>Type</th><th>Related Service</th><th>Related ID</th><th></th>
+                </tr></thead>
+                <tbody id="svc-rels-tbody"></tbody>
+                </table>
+            </div>
+            <hr style="margin:var(--space-md) 0">
+            <p style="font-weight:600;margin-bottom:var(--space-sm)">Add Relationship</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="svc-rel-type">Relationship Type</label>
+                    <select id="svc-rel-type" class="form-control">
+                        <option value="dependency">dependency</option>
+                        <option value="isContainedIn">isContainedIn</option>
+                        <option value="isReplacedBy">isReplacedBy</option>
+                        <option value="hasPart">hasPart</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-rel-related-id">Related Service ID</label>
+                    <input type="text" id="svc-rel-related-id" class="form-control" placeholder="UUID of related service">
+                </div>
+            </div>
+            <div id="svc-rels-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="svc-rels-close-btn">Close</button>
+            <button class="btn btn--primary" id="svc-rels-add">Add Relationship</button>
+        </div>
+    </div>
+</div>
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
@@ -464,7 +504,7 @@ async function loadServices() {
                 </td>
                 <td class="muted">${fmtDate(svc.start_date)}</td>
                 <td class="id-cell truncate" style="max-width:120px" title="${escHtml(svc.id)}">${escHtml(svc.id.slice(0,8))}…</td>
-                <td class="actions-cell"><button class="btn btn--ghost btn--sm" onclick="openSvcCharModal('${escHtml(svc.id)}','${escHtml(svc.name||'')}')" title="Manage Characteristics">&#x1F9E9;</button> ${actionBtns}${deleteBtn}</td>
+                <td class="actions-cell"><button class="btn btn--ghost btn--sm" onclick="openSvcCharModal('${escHtml(svc.id)}','${escHtml(svc.name||'')}')" title="Manage Characteristics">&#x1F9E9;</button> <button class="btn btn--ghost btn--sm" onclick="openSvcRelsModal('${escHtml(svc.id)}','${escHtml(svc.name||'')}')" title="Service Relationships">&#x1F517;</button> ${actionBtns}${deleteBtn}</td>
             </tr>`;
         }).join('');
     } catch (err) {
@@ -728,7 +768,65 @@ document.getElementById('svc-char-val-add').addEventListener('click', async func
     } catch(err) { svcValFormErr.textContent = err.message; svcValFormErr.style.display = 'block'; showToast(err.message, 'error'); }
     finally { this.disabled = false; this.textContent = 'Add Value'; }
 });
+// ── Service Relationships ──────────────────────────────────────────────────────
+const svcRelsModalBD = document.getElementById('svc-rels-modal-backdrop');
+const svcRelsTbody   = document.getElementById('svc-rels-tbody');
+const svcRelsSvcName = document.getElementById('svc-rels-svc-name');
+const svcRelType     = document.getElementById('svc-rel-type');
+const svcRelRelatedId= document.getElementById('svc-rel-related-id');
+const svcRelsFormErr = document.getElementById('svc-rels-form-error');
+const svcRelsAddBtn  = document.getElementById('svc-rels-add');
+let   svcRelsCurrentId = null;
 
+function closeSvcRelsModal() { svcRelsModalBD.classList.remove('open'); svcRelsCurrentId=null; }
+document.getElementById('svc-rels-close').addEventListener('click', closeSvcRelsModal);
+document.getElementById('svc-rels-close-btn').addEventListener('click', closeSvcRelsModal);
+svcRelsModalBD.addEventListener('click', e=>{ if(e.target===svcRelsModalBD) closeSvcRelsModal(); });
+
+async function openSvcRelsModal(svcId, svcName) {
+    svcRelsCurrentId = svcId;
+    svcRelsSvcName.textContent = `Service: ${svcName}`;
+    svcRelType.value='dependency'; svcRelRelatedId.value=''; svcRelsFormErr.style.display='none';
+    svcRelsModalBD.classList.add('open');
+    await loadSvcRelsRows();
+}
+
+async function loadSvcRelsRows() {
+    svcRelsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:var(--space-md)"><div class="loader"></div></td></tr>';
+    try {
+        const {data} = await ServiceRelationshipClient.listByService(svcRelsCurrentId);
+        if (!data.length) {
+            svcRelsTbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:var(--space-md)">No relationships yet.</td></tr>';
+            return;
+        }
+        svcRelsTbody.innerHTML = data.map(r=>`<tr>
+            <td><span class="badge badge--info">${escHtml(r.relationship_type)}</span></td>
+            <td class="name-cell">${escHtml(r.related_service_name||'&mdash;')}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(r.related_service_id)}">${escHtml(r.related_service_id)}</td>
+            <td><button class="btn btn--danger btn--sm" onclick="deleteSvcRel('${escHtml(r.id)}')" title="Remove">&#x1F5D1;</button></td>
+        </tr>`).join('');
+    } catch(err) { svcRelsTbody.innerHTML=`<tr><td colspan="4" style="color:var(--colour-danger)">${escHtml(err.message)}</td></tr>`; }
+}
+
+async function deleteSvcRel(relId) {
+    try {
+        await ServiceRelationshipClient.delete(svcRelsCurrentId, relId);
+        showToast('Relationship removed','success');
+        await loadSvcRelsRows();
+    } catch(err){ showToast(err.message,'error'); }
+}
+
+svcRelsAddBtn.addEventListener('click', async function(){
+    const relatedId = svcRelRelatedId.value.trim();
+    if (!relatedId){svcRelsFormErr.textContent='Related Service ID is required.';svcRelsFormErr.style.display='block';return;}
+    svcRelsFormErr.style.display='none'; this.disabled=true; this.innerHTML='<span class="loader"></span>';
+    try {
+        await ServiceRelationshipClient.create(svcRelsCurrentId, {relationship_type:svcRelType.value, related_service_id:relatedId});
+        showToast('Relationship added','success'); svcRelRelatedId.value='';
+        await loadSvcRelsRows();
+    } catch(err){svcRelsFormErr.textContent=err.message;svcRelsFormErr.style.display='block';showToast(err.message,'error');}
+    finally{this.disabled=false;this.textContent='Add Relationship';}
+});
 // ── Init ───────────────────────────────────────────────────────────────────────
 loadServices();
 </script>

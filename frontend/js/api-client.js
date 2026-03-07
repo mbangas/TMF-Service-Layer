@@ -703,3 +703,103 @@ const CharacteristicValueClient = {
         );
     },
 };
+
+/* ── SpecRelationshipClient (TMF633 — ServiceSpecRelationship) ───────────────── */
+
+const SpecRelationshipClient = {
+    /**
+     * List ServiceSpecRelationship entries for a ServiceSpecification.
+     * @param {string} specId
+     */
+    listBySpec(specId) {
+        return apiGet(`${CATALOG_BASE}/${specId}/serviceSpecRelationship`);
+    },
+
+    /**
+     * Create a new ServiceSpecRelationship.
+     * @param {string} specId
+     * @param {{ relationship_type: string, related_spec_id: string, related_spec_name?: string, related_spec_href?: string }} body
+     */
+    create(specId, body) {
+        return apiPost(`${CATALOG_BASE}/${specId}/serviceSpecRelationship`, body);
+    },
+
+    /**
+     * Delete a ServiceSpecRelationship.
+     * @param {string} specId
+     * @param {string} relId
+     */
+    delete(specId, relId) {
+        return apiDelete(`${CATALOG_BASE}/${specId}/serviceSpecRelationship/${relId}`);
+    },
+};
+
+/* ── OrderItemRelationshipClient (TMF641 — ServiceOrderItemRelationship) ─────── */
+
+const OrderItemRelationshipClient = {
+    /**
+     * List ServiceOrderItemRelationship entries for a ServiceOrderItem.
+     * @param {string} orderId
+     * @param {string} itemId
+     */
+    listByItem(orderId, itemId) {
+        return apiGet(
+            `${ORDER_BASE}/${orderId}/serviceOrderItem/${itemId}/serviceOrderItemRelationship`
+        );
+    },
+
+    /**
+     * Create a new ServiceOrderItemRelationship.
+     * @param {string} orderId
+     * @param {string} itemId
+     * @param {{ relationship_type: string, related_item_label: string }} body
+     */
+    create(orderId, itemId, body) {
+        return apiPost(
+            `${ORDER_BASE}/${orderId}/serviceOrderItem/${itemId}/serviceOrderItemRelationship`,
+            body
+        );
+    },
+
+    /**
+     * Delete a ServiceOrderItemRelationship.
+     * @param {string} orderId
+     * @param {string} itemId
+     * @param {string} relId
+     */
+    delete(orderId, itemId, relId) {
+        return apiDelete(
+            `${ORDER_BASE}/${orderId}/serviceOrderItem/${itemId}/serviceOrderItemRelationship/${relId}`
+        );
+    },
+};
+
+/* ── ServiceRelationshipClient (TMF638 — ServiceRelationship) ────────────────── */
+
+const ServiceRelationshipClient = {
+    /**
+     * List ServiceRelationship entries for a Service instance.
+     * @param {string} serviceId
+     */
+    listByService(serviceId) {
+        return apiGet(`${INVENTORY_BASE}/${serviceId}/serviceRelationship`);
+    },
+
+    /**
+     * Create a new ServiceRelationship.
+     * @param {string} serviceId
+     * @param {{ relationship_type: string, related_service_id: string, related_service_name?: string, related_service_href?: string }} body
+     */
+    create(serviceId, body) {
+        return apiPost(`${INVENTORY_BASE}/${serviceId}/serviceRelationship`, body);
+    },
+
+    /**
+     * Delete a ServiceRelationship.
+     * @param {string} serviceId
+     * @param {string} relId
+     */
+    delete(serviceId, relId) {
+        return apiDelete(`${INVENTORY_BASE}/${serviceId}/serviceRelationship/${relId}`);
+    },
+};

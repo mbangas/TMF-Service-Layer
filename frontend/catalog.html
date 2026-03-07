@@ -130,6 +130,7 @@
             <button class="tab-btn" data-tab="categories">&#x1F5C3; Categories</button>
             <button class="tab-btn" data-tab="candidates">&#x1F517; Candidates</button>
             <button class="tab-btn" data-tab="characteristics">&#x1F9E9; Characteristics</button>
+            <button class="tab-btn" data-tab="dependencies">&#x1F517; Spec Dependencies</button>
         </div>
 
         <!-- Page body -->
@@ -294,6 +295,29 @@
                         <span class="pagination__info" id="char-page-info">—</span>
                         <button class="btn btn--ghost btn--sm" id="char-btn-prev" disabled>&#8249; Prev</button>
                         <button class="btn btn--ghost btn--sm" id="char-btn-next" disabled>Next &#8250;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spec Dependencies tab -->
+            <div id="tab-dependencies" class="tab-panel">
+                <div class="section-header">
+                    <span class="text-muted text-sm" id="dep-total-count"></span>
+                    <div class="section-header__filters">
+                        <select id="dep-spec-select" class="form-control" style="width:260px">
+                            <option value="">— Select a Specification —</option>
+                        </select>
+                        <button class="btn btn--primary" id="btn-new-dep" disabled>+ Add Dependency</button>
+                    </div>
+                </div>
+                <div class="card" id="dep-card">
+                    <div class="card__header"><span class="card__title">Service Spec Relationships (TMF633 / SID GB922)</span></div>
+                    <div class="table-wrapper">
+                        <table><thead><tr>
+                            <th>Type</th><th>Related Spec</th><th>Related Spec ID</th><th>Added</th><th></th>
+                        </tr></thead>
+                        <tbody id="dep-tbody"><tr><td colspan="5"><div class="empty-state"><p>Select a specification above to load its relationships.</p></div></td></tr></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -676,6 +700,55 @@
     </div>
 </div>
 
+<!-- ── Add Dependency Modal ────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="dep-modal-backdrop">
+    <div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="dep-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="dep-modal-title">Add Spec Relationship</span>
+            <button class="btn btn--ghost btn--icon" id="dep-modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="dep-type-select">Relationship Type</label>
+                <select id="dep-type-select" class="form-control">
+                    <option value="dependency">dependency</option>
+                    <option value="isContainedIn">isContainedIn</option>
+                    <option value="isReplacedBy">isReplacedBy</option>
+                    <option value="hasPart">hasPart</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="dep-related-spec-select">Related Specification</label>
+                <select id="dep-related-spec-select" class="form-control">
+                    <option value="">&#x2014; Select Related Specification &#x2014;</option>
+                </select>
+            </div>
+            <div id="dep-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="dep-modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="dep-modal-save">Add</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Dependency Modal ────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="dep-delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Remove Dependency</span>
+            <button class="btn btn--ghost btn--icon" id="dep-delete-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p>Remove the relationship to <strong id="dep-delete-name"></strong>?</p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="dep-delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="dep-delete-confirm">Remove</button>
+        </div>
+    </div>
+</div>
+
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
@@ -712,7 +785,7 @@ function updatePager(totalEl, pageInfoEl, btnPrev, btnNext, offset, data, total)
 // ══ TABS ══════════════════════════════════════════════════════════════════════
 const tabBtns   = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
-const loaded    = { specs:false, catalogs:false, categories:false, candidates:false, characteristics:false };
+const loaded    = { specs:false, catalogs:false, categories:false, candidates:false, characteristics:false, dependencies:false };
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -725,6 +798,7 @@ tabBtns.forEach(btn => {
             if (tab === 'categories')      loadCategories();
             if (tab === 'candidates')      loadCandidates();
             if (tab === 'characteristics') initCharacteristicsTab();
+            if (tab === 'dependencies')    initDependenciesTab();
         }
     });
 });
@@ -1382,6 +1456,106 @@ document.getElementById('vs-modal-add').addEventListener('click', async function
         await loadCharacteristics();
     } catch(err){ vsFormErr.textContent=err.message; vsFormErr.style.display='block'; showToast(err.message,'error'); }
     finally{ this.disabled=false; this.textContent='Add Value'; }
+});
+
+// ══ SPEC RELATIONSHIPS (TMF633 / SID GB922) ══════════════════════════════════
+const depState   = { specId: null, deletingId: null };
+const depTbody   = document.getElementById('dep-tbody');
+const depTotalEl = document.getElementById('dep-total-count');
+const depSpecSel = document.getElementById('dep-spec-select');
+const btnNewDep  = document.getElementById('btn-new-dep');
+
+async function initDependenciesTab() {
+    if (loaded.dependencies) return;
+    loaded.dependencies = true;
+    try {
+        const {data} = await CatalogClient.list({limit:100});
+        depSpecSel.innerHTML = '<option value="">— Select a Specification —</option>' +
+            data.map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name)} (${escHtml(s.version||'1.0')})</option>`).join('');
+    } catch(err) { showToast('Could not load specifications: '+err.message,'error'); }
+}
+
+depSpecSel.addEventListener('change', ()=>{
+    depState.specId = depSpecSel.value || null;
+    btnNewDep.disabled = !depState.specId;
+    if (depState.specId) loadDependencies();
+    else { depTbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><p>Select a specification above to load its relationships.</p></div></td></tr>'; }
+    depTotalEl.textContent='';
+});
+
+async function loadDependencies() {
+    if (!depState.specId) return;
+    depTbody.innerHTML = loadingRow(5);
+    try {
+        const {data} = await SpecRelationshipClient.listBySpec(depState.specId);
+        depTotalEl.textContent = `${data.length} relationship(s)`;
+        if (!data.length){
+            depTbody.innerHTML=emptyRow(5,'&#x1F517;','No relationships found','Add a dependency to model how this spec relates to others.');
+            return;
+        }
+        depTbody.innerHTML = data.map(r=>`<tr>
+            <td><span class="badge badge--info">${escHtml(r.relationship_type)}</span></td>
+            <td class="name-cell">${escHtml(r.related_spec_name || r.related_spec_id)}</td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(r.related_spec_id)}">${escHtml(r.related_spec_id)}</td>
+            <td class="text-muted text-sm">${r.created_at ? new Date(r.created_at).toLocaleDateString() : '&mdash;'}</td>
+            <td class="actions-cell">
+                <button class="btn btn--danger btn--sm" onclick="startDeleteDep('${escHtml(r.id)}','${escHtml(r.related_spec_name||r.related_spec_id)}')">Delete</button>
+            </td></tr>`).join('');
+    } catch(err){depTbody.innerHTML=errorRow(5,err.message);showToast(err.message,'error');}
+}
+
+// ── Add Dependency modal (inline) ─────────────────────────────────────────────
+const depModalBD    = document.getElementById('dep-modal-backdrop');
+const depRelatedSel = document.getElementById('dep-related-spec-select');
+const depTypeSel    = document.getElementById('dep-type-select');
+const depFormErr    = document.getElementById('dep-form-error');
+const depModalSave  = document.getElementById('dep-modal-save');
+
+function openDepModal()  { depModalBD.classList.add('open'); }
+function closeDepModal() { depModalBD.classList.remove('open'); depFormErr.style.display='none'; }
+
+btnNewDep.addEventListener('click', async ()=>{
+    depFormErr.style.display='none';
+    // Populate related spec dropdown excluding current spec
+    try {
+        const {data} = await CatalogClient.list({limit:100});
+        depRelatedSel.innerHTML = '<option value="">— Select Related Specification —</option>' +
+            data.filter(s=>s.id!==depState.specId)
+                .map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name)} (${escHtml(s.version||'1.0')})</option>`).join('');
+    } catch(err){ showToast(err.message,'error'); return; }
+    openDepModal();
+});
+document.getElementById('dep-modal-close').addEventListener('click', closeDepModal);
+document.getElementById('dep-modal-cancel').addEventListener('click', closeDepModal);
+depModalBD.addEventListener('click', e=>{if(e.target===depModalBD)closeDepModal();});
+
+depModalSave.addEventListener('click', async ()=>{
+    const relatedId = depRelatedSel.value;
+    const relType   = depTypeSel.value;
+    if (!relatedId){depFormErr.textContent='Please select a related specification.';depFormErr.style.display='block';return;}
+    depFormErr.style.display='none'; depModalSave.disabled=true; depModalSave.innerHTML='<span class="loader"></span>';
+    try {
+        await SpecRelationshipClient.create(depState.specId, {relationship_type: relType, related_spec_id: relatedId});
+        showToast('Dependency added','success');
+        closeDepModal(); await loadDependencies();
+    } catch(err){depFormErr.textContent=err.message;depFormErr.style.display='block';showToast(err.message,'error');}
+    finally{depModalSave.disabled=false;depModalSave.textContent='Add';}
+});
+
+// ── Delete confirmation ───────────────────────────────────────────────────────
+const depDelBD   = document.getElementById('dep-delete-backdrop');
+const depDelName = document.getElementById('dep-delete-name');
+function closeDepDelete(){ depDelBD.classList.remove('open'); depState.deletingId=null; }
+function startDeleteDep(id,name){ depState.deletingId=id; depDelName.textContent=name; depDelBD.classList.add('open'); }
+document.getElementById('dep-delete-close').addEventListener('click', closeDepDelete);
+document.getElementById('dep-delete-cancel').addEventListener('click', closeDepDelete);
+depDelBD.addEventListener('click', e=>{if(e.target===depDelBD)closeDepDelete();});
+document.getElementById('dep-delete-confirm').addEventListener('click', async function(){
+    if (!depState.deletingId||!depState.specId) return; this.disabled=true;
+    try {
+        await SpecRelationshipClient.delete(depState.specId, depState.deletingId); showToast('Dependency removed','success');
+        closeDepDelete(); await loadDependencies();
+    } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
 });
 
 // ══ INIT ══════════════════════════════════════════════════════════════════════

@@ -19,6 +19,7 @@ from src.order.models.schemas import (
     ServiceOrderResponse,
 )
 from src.inventory.repositories.service_repo import ServiceRepository as InventoryRepository
+from src.inventory.repositories.service_relationship_repo import ServiceRelationshipRepository
 from src.inventory.services.inventory_service import InventoryService
 from src.order.repositories.service_order_repo import ServiceOrderRepository
 from src.order.services.order_service import OrderService
@@ -42,6 +43,7 @@ def _get_service(db: AsyncSession = Depends(get_db)) -> OrderService:
     order_repo = ServiceOrderRepository(db)
     inventory_repo = InventoryRepository(db)
     inventory_service = InventoryService(inventory_repo)
+    inventory_service._rel_repo = ServiceRelationshipRepository(db)
     return OrderService(order_repo, inventory_service=inventory_service)
 
 

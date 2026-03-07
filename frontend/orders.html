@@ -240,6 +240,55 @@
     </div>
 </div>
 
+<!-- ── Item Dependencies Modal ───────────────────────────────────────────── -->
+<div class="modal-backdrop" id="item-deps-backdrop">
+    <div class="modal" style="max-width:640px" role="dialog" aria-modal="true" aria-labelledby="item-deps-title">
+        <div class="modal__header">
+            <span class="modal__title" id="item-deps-title">Order Item Dependencies</span>
+            <button class="btn btn--ghost btn--icon" id="item-deps-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="item-deps-order-name" style="margin-bottom:var(--space-md)"></p>
+            <div id="item-deps-list"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="item-deps-close-btn">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Add Item Relationship Modal ────────────────────────────────────────── -->
+<div class="modal-backdrop" id="add-item-rel-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Add Item Dependency</span>
+            <button class="btn btn--ghost btn--icon" id="add-item-rel-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="add-item-rel-item-label" style="margin-bottom:var(--space-md)"></p>
+            <div class="form-group">
+                <label class="form-label" for="add-item-rel-type">Relationship Type</label>
+                <select id="add-item-rel-type" class="form-control">
+                    <option value="dependency">dependency</option>
+                    <option value="isContainedIn">isContainedIn</option>
+                    <option value="isReplacedBy">isReplacedBy</option>
+                    <option value="hasPart">hasPart</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="add-item-rel-label">Related Item Label</label>
+                <input type="text" id="add-item-rel-label" class="form-control" placeholder="e.g. 2">
+                <small class="text-muted">Enter the order_item_id of another item in the same order</small>
+            </div>
+            <div id="add-item-rel-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="add-item-rel-cancel">Cancel</button>
+            <button class="btn btn--primary" id="add-item-rel-save">Add</button>
+        </div>
+    </div>
+</div>
+
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
@@ -391,7 +440,8 @@ async function loadOrders() {
                 <td class="muted">${fmtDate(order.order_date)}</td>
                 <td class="items-count">${(order.order_item || []).length}</td>
                 <td class="id-cell truncate" style="max-width:120px" title="${escHtml(order.id)}">${escHtml(order.id.slice(0,8))}…</td>
-                <td class="actions-cell">${actionBtns}${deleteBtn}</td>
+                <td class="actions-cell">${actionBtns}${deleteBtn}
+                <button class="btn btn--ghost btn--sm" onclick="openItemDeps('${escHtml(order.id)}','${escHtml(order.name||order.id)}')">&#x1F4CB; Deps</button></td>
             </tr>`;
         }).join('');
     } catch (err) {
@@ -587,7 +637,95 @@ function showToast(message, type = 'info') {
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }
+// ── Item Dependencies ─────────────────────────────────────────────────────────
+const itemDepsBD       = document.getElementById('item-deps-backdrop');
+const itemDepsList     = document.getElementById('item-deps-list');
+const itemDepsOrderLbl = document.getElementById('item-deps-order-name');
+const addItemRelBD     = document.getElementById('add-item-rel-backdrop');
+const addItemRelType   = document.getElementById('add-item-rel-type');
+const addItemRelLabel  = document.getElementById('add-item-rel-label');
+const addItemRelErr    = document.getElementById('add-item-rel-error');
+const addItemRelSave   = document.getElementById('add-item-rel-save');
+let   depsOrderId      = null;
+let   depsItemIds      = [];   // [{db_id, label}]
+let   depsCurrentItem  = null; // {db_id, label}
 
+document.getElementById('item-deps-close').addEventListener('click', ()=>itemDepsBD.classList.remove('open'));
+document.getElementById('item-deps-close-btn').addEventListener('click', ()=>itemDepsBD.classList.remove('open'));
+itemDepsBD.addEventListener('click', e=>{ if(e.target===itemDepsBD) itemDepsBD.classList.remove('open'); });
+document.getElementById('add-item-rel-close').addEventListener('click', ()=>addItemRelBD.classList.remove('open'));
+document.getElementById('add-item-rel-cancel').addEventListener('click', ()=>addItemRelBD.classList.remove('open'));
+addItemRelBD.addEventListener('click', e=>{ if(e.target===addItemRelBD) addItemRelBD.classList.remove('open'); });
+
+async function openItemDeps(orderId, orderName) {
+    depsOrderId = orderId;
+    itemDepsOrderLbl.textContent = `Order: ${orderName}`;
+    itemDepsList.innerHTML = '<div class="loader" style="margin:var(--space-md)"></div>';
+    itemDepsBD.classList.add('open');
+    try {
+        const {data: order} = await OrderClient.get(orderId);
+        const items = order.order_item || [];
+        depsItemIds = items.map(i=>({db_id: i.id, label: i.order_item_id}));
+        if (!items.length) {
+            itemDepsList.innerHTML = '<p class="text-muted">This order has no items.</p>';
+            return;
+        }
+        await renderItemDeps(items);
+    } catch(err) { itemDepsList.innerHTML = `<p style="color:var(--colour-danger)">${escHtml(err.message)}</p>`; }
+}
+
+async function renderItemDeps(items) {
+    const sections = await Promise.all(items.map(async item => {
+        let relsHtml = '';
+        try {
+            const {data: rels} = await OrderItemRelationshipClient.listByItem(depsOrderId, item.id);
+            relsHtml = rels.length
+                ? rels.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--colour-border)">
+                    <span><span class="badge badge--info">${escHtml(r.relationship_type)}</span> item <strong>${escHtml(r.related_item_label)}</strong></span>
+                    <button class="btn btn--danger btn--sm" onclick="deleteItemRel('${escHtml(item.id)}','${escHtml(r.id)}')" title="Remove">&#x1F5D1;</button>
+                  </div>`).join('')
+                : '<p class="text-muted text-sm">No relationships.</p>';
+        } catch{ relsHtml = '<p class="text-muted text-sm">Could not load.</p>'; }
+        return `<div style="border:1px solid var(--colour-border);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-md)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
+                <strong>Item ${escHtml(item.order_item_id)} — ${escHtml(item.service_spec_name||'(no spec)')}</strong>
+                <button class="btn btn--primary btn--sm" onclick="openAddItemRel('${escHtml(item.id)}','${escHtml(item.order_item_id)}')">+ Add Dep</button>
+            </div>
+            ${relsHtml}
+        </div>`;
+    }));
+    itemDepsList.innerHTML = sections.join('');
+}
+
+function openAddItemRel(dbId, label) {
+    depsCurrentItem = {db_id: dbId, label};
+    document.getElementById('add-item-rel-item-label').textContent = `Adding dependency for item ${label}`;
+    addItemRelLabel.value = ''; addItemRelType.value = 'dependency'; addItemRelErr.style.display='none';
+    addItemRelBD.classList.add('open');
+}
+
+addItemRelSave.addEventListener('click', async ()=>{
+    const relLabel = addItemRelLabel.value.trim();
+    if (!relLabel){addItemRelErr.textContent='Related item label is required.';addItemRelErr.style.display='block';return;}
+    addItemRelErr.style.display='none'; addItemRelSave.disabled=true; addItemRelSave.innerHTML='<span class="loader"></span>';
+    try {
+        await OrderItemRelationshipClient.create(depsOrderId, depsCurrentItem.db_id, {relationship_type:addItemRelType.value, related_item_label:relLabel});
+        showToast('Dependency added','success'); addItemRelBD.classList.remove('open');
+        // Refresh the detail panel
+        const {data: order} = await OrderClient.get(depsOrderId);
+        await renderItemDeps(order.order_item||[]);
+    } catch(err){addItemRelErr.textContent=err.message;addItemRelErr.style.display='block';showToast(err.message,'error');}
+    finally{addItemRelSave.disabled=false;addItemRelSave.textContent='Add';}
+});
+
+async function deleteItemRel(itemDbId, relId) {
+    try {
+        await OrderItemRelationshipClient.delete(depsOrderId, itemDbId, relId);
+        showToast('Dependency removed','success');
+        const {data: order} = await OrderClient.get(depsOrderId);
+        await renderItemDeps(order.order_item||[]);
+    } catch(err){ showToast(err.message,'error'); }
+}
 // ── Init ───────────────────────────────────────────────────────────────────────
 loadOrders();
 </script>

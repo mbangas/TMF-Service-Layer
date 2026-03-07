@@ -9,6 +9,50 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.shared.db.base import Base, TimestampMixin
 
 
+class ServiceRelationshipOrm(Base, TimestampMixin):
+    """Represents a typed link between two active Service instances.
+
+    Maps to the TMF638 ``ServiceRelationship`` / SID GB922 entity.
+    Entries are auto-populated at order completion from the catalog
+    ``ServiceSpecRelationship`` topology, and may also be managed manually.
+
+    Cascade policy:
+      - service_id       → CASCADE  (deleting a service removes its outgoing relationships)
+      - related_service_id → RESTRICT (cannot delete a service that others depend on)
+    """
+
+    __tablename__ = "service_relationship"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    relationship_type: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    # FK to the owning service (CASCADE)
+    service_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    service: Mapped["ServiceOrm"] = relationship(
+        back_populates="service_relationships",
+        foreign_keys="ServiceRelationshipOrm.service_id",
+    )
+
+    # FK to the related service (RESTRICT)
+    related_service_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    related_service_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    related_service_href: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
 class ServiceCharacteristicOrm(Base, TimestampMixin):
     """Represents a runtime characteristic value of an active Service instance.
 
@@ -136,4 +180,11 @@ class ServiceOrm(Base, TimestampMixin):
         back_populates="service",
         lazy="selectin",
         cascade="all, delete-orphan",
+    )
+    # Outgoing service-to-service relationships (TMF638 ServiceRelationship)
+    service_relationships: Mapped[list["ServiceRelationshipOrm"]] = relationship(
+        back_populates="service",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        foreign_keys="ServiceRelationshipOrm.service_id",
     )
