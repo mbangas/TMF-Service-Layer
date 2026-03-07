@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda — Configuração E2E de Serviço | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Help page specific ── */
+        .help-content {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p {
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+            line-height: 1.8;
+        }
+
+        .step-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .step-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--colour-surface-alt);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--colour-primary);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            flex-shrink: 0;
+        }
+        .step-card__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .step-card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-top: 2px;
+        }
+        .step-card__body {
+            padding: var(--space-xl);
+        }
+        .step-card__body p,
+        .step-card__body li {
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+        }
+        .step-card__body ul,
+        .step-card__body ol {
+            padding-left: var(--space-xl);
+            margin-top: var(--space-sm);
+        }
+        .step-card__body li {
+            margin-bottom: var(--space-xs);
+        }
+        .step-card__body h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--colour-text);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ── API call blocks ── */
+        .api-block {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-left: 3px solid var(--colour-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #a5d6a7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .api-block .method { color: #82b1ff; font-weight: 700; }
+        .api-block .url    { color: #80cbc4; }
+        .api-block .key    { color: #ce93d8; }
+        .api-block .val    { color: #a5d6a7; }
+        .api-block .comment{ color: #546e7a; }
+
+        /* ── Info / Warning callouts ── */
+        .callout {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin: var(--space-md) 0;
+        }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Summary checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--colour-primary-dim);
+            color: var(--colour-primary);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Service badges in diagrams ── */
+        .service-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+        .service-badge--elementary { background: rgba(96,165,250,0.15); color: var(--colour-info); border: 1px solid rgba(96,165,250,0.3); }
+        .service-badge--bundle     { background: rgba(52,211,153,0.15); color: var(--colour-success); border: 1px solid rgba(52,211,153,0.3); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-lg);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--colour-border);
+            margin: var(--space-xl) 0;
+        }
+
+        /* TMF reference pills */
+        .tmf-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: rgba(79,126,248,0.15);
+            color: var(--colour-primary);
+            border: 1px solid rgba(79,126,248,0.3);
+            margin-left: var(--space-xs);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link active" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">&#x2753; Guia de Configuração E2E</div>
+                <div class="topbar__subtitle">Como configurar um serviço do catálogo até à criação de uma ordem</div>
+            </div>
+            <div class="topbar__actions">
+                <a href="catalog.html" class="btn btn--ghost btn--sm">&#8592; Voltar ao Catálogo</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica, passo a passo, como configurar um serviço de ponta a ponta (E2E) na
+                    TMF Service Layer — desde a criação das especificações no catálogo, passando pelas
+                    dependências entre serviços, até ao momento em que é possível lançar uma Ordem de Serviço.
+                    O exemplo utilizado é uma <strong style="color:var(--colour-text)">VM Completa</strong>:
+                    um serviço do tipo <em>bundle</em> composto por três serviços elementares.
+                </p>
+                <p style="margin-top:var(--space-sm);">
+                    Cada serviço elementar pode também ser encomendado individualmente, de forma independente.
+                </p>
+            </div>
+
+            <!-- ══ VISÃO GERAL ═══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x1F5FA;</div>
+                    <div>
+                        <div class="step-card__title">Visão Geral — Serviço VM Completa</div>
+                        <div class="step-card__subtitle">Arquitetura do bundle e serviços elementares</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O serviço <strong>VM Completa</strong> é um <em>bundle</em> que agrega três serviços
+                        elementares. Cada elementar pode ser encomendado de forma autónoma, e o bundle
+                        orquestra os três em conjunto.
+                    </p>
+
+                    <!-- DIAGRAM 1 — Bundle composition -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 340" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Bundle outer box -->
+                            <rect x="20" y="20" width="740" height="300" rx="12"
+                                  fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="2" stroke-dasharray="8,4"/>
+                            <text x="50" y="52" font-size="13" font-weight="700" fill="#34d399">Bundle</text>
+                            <text x="105" y="52" font-size="13" font-weight="400" fill="#94a3b8"> — VM Completa (serviceSpecification, isBundle: true)</text>
+
+                            <!-- Elementary 1 — VM vCenter -->
+                            <rect x="50" y="80" width="200" height="220" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="150" y="112" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">VM Elementar</text>
+                            <text x="150" y="130" text-anchor="middle" font-size="11" fill="#94a3b8">(vCenter)</text>
+                            <line x1="50" y1="145" x2="250" y2="145" stroke="#2d3249" stroke-width="1"/>
+                            <text x="60" y="165" font-size="10" fill="#94a3b8">● Cria VM em vCenter</text>
+                            <text x="60" y="183" font-size="10" fill="#94a3b8">● Define vCPU / RAM / disco</text>
+                            <text x="60" y="201" font-size="10" fill="#94a3b8">● Gere template de OS</text>
+                            <text x="60" y="219" font-size="10" fill="#94a3b8">● Configura rede (vSwich)</text>
+                            <text x="60" y="237" font-size="10" fill="#94a3b8">● Liga / desliga / apaga VM</text>
+                            <rect x="75" y="262" width="150" height="24" rx="12"
+                                  fill="rgba(96,165,250,0.12)" stroke="rgba(96,165,250,0.3)" stroke-width="1"/>
+                            <text x="150" y="279" text-anchor="middle" font-size="10" font-weight="600" fill="#60a5fa">Elementar — Orderable</text>
+
+                            <!-- Elementary 2 — Users/Passwords -->
+                            <rect x="290" y="80" width="200" height="220" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="390" y="112" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Gestão de</text>
+                            <text x="390" y="130" text-anchor="middle" font-size="11" fill="#94a3b8">Utilizadores e Passwords</text>
+                            <line x1="290" y1="145" x2="490" y2="145" stroke="#2d3249" stroke-width="1"/>
+                            <text x="300" y="165" font-size="10" fill="#94a3b8">● Cria utilizadores locais</text>
+                            <text x="300" y="183" font-size="10" fill="#94a3b8">● Define passwords iniciais</text>
+                            <text x="300" y="201" font-size="10" fill="#94a3b8">● Configura sudoers / grupos</text>
+                            <text x="300" y="219" font-size="10" fill="#94a3b8">● Integra com LDAP/AD</text>
+                            <text x="300" y="237" font-size="10" fill="#94a3b8">● Política de expiração</text>
+                            <rect x="315" y="262" width="150" height="24" rx="12"
+                                  fill="rgba(96,165,250,0.12)" stroke="rgba(96,165,250,0.3)" stroke-width="1"/>
+                            <text x="390" y="279" text-anchor="middle" font-size="10" font-weight="600" fill="#60a5fa">Elementar — Orderable</text>
+
+                            <!-- Elementary 3 — Storage -->
+                            <rect x="530" y="80" width="200" height="220" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="630" y="112" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Associação de</text>
+                            <text x="630" y="130" text-anchor="middle" font-size="11" fill="#94a3b8">Storage à VM</text>
+                            <line x1="530" y1="145" x2="730" y2="145" stroke="#2d3249" stroke-width="1"/>
+                            <text x="540" y="165" font-size="10" fill="#94a3b8">● Cria datastore / LUN</text>
+                            <text x="540" y="183" font-size="10" fill="#94a3b8">● Associa disco à VM</text>
+                            <text x="540" y="201" font-size="10" fill="#94a3b8">● Define IOPS / throughput</text>
+                            <text x="540" y="219" font-size="10" fill="#94a3b8">● Gere snapshots</text>
+                            <text x="540" y="237" font-size="10" fill="#94a3b8">● Configura backup policy</text>
+                            <rect x="555" y="262" width="150" height="24" rx="12"
+                                  fill="rgba(96,165,250,0.12)" stroke="rgba(96,165,250,0.3)" stroke-width="1"/>
+                            <text x="630" y="279" text-anchor="middle" font-size="10" font-weight="600" fill="#60a5fa">Elementar — Orderable</text>
+                        </svg>
+                        <figcaption>Diagrama 1 — Estrutura do bundle "VM Completa" e os três serviços elementares</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            <strong>TMF633 — ServiceSpecification:</strong> Cada caixa acima corresponde a uma
+                            <code>ServiceSpecification</code>. O bundle está marcado com <code>isBundle: true</code>
+                            e referencia os outros três através de <code>serviceSpecRelationship</code> com tipo
+                            <code>bundled</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ DEPENDÊNCIAS ══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x1F500;</div>
+                    <div>
+                        <div class="step-card__title">Dependências de Execução</div>
+                        <div class="step-card__subtitle">Ordem de aprovisionamento entre os serviços elementares</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Os serviços elementares têm dependências de execução: alguns só podem ser
+                        activados <strong>depois</strong> de outro estar aprovisionado. No caso da VM Completa:
+                    </p>
+                    <ul>
+                        <li>A <strong>Gestão de Utilizadores e Passwords</strong> só pode ser configurada
+                            <em>após a VM estar activa</em> no vCenter — não existe SO onde criar os utilizadores antes disso.</li>
+                        <li>A <strong>Associação de Storage à VM</strong> só pode ser executada
+                            <em>após a VM estar activa</em> no vCenter — é necessário o identificador da VM para associar o datastore.</li>
+                        <li>Não existe dependência directa entre "Gestão de Utilizadores" e "Associação de Storage": podem correr em paralelo após a VM estar pronta.</li>
+                    </ul>
+
+                    <!-- DIAGRAM 2 — Execution dependency graph -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 280" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Title -->
+                            <text x="390" y="24" text-anchor="middle" font-size="12" font-weight="600" fill="#94a3b8">Grafo de Dependências de Execução</text>
+
+                            <!-- VM Elementar node (left) -->
+                            <rect x="40" y="100" width="190" height="80" rx="10"
+                                  fill="rgba(96,165,250,0.12)" stroke="#60a5fa" stroke-width="2"/>
+                            <text x="135" y="133" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">VM Elementar</text>
+                            <text x="135" y="151" text-anchor="middle" font-size="11" fill="#94a3b8">(vCenter)</text>
+                            <text x="135" y="168" text-anchor="middle" font-size="10" fill="#34d399">● Ponto de partida</text>
+
+                            <!-- Arrow to Users -->
+                            <defs>
+                                <marker id="arrowhead-dep" markerWidth="10" markerHeight="7"
+                                        refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+                                </marker>
+                            </defs>
+                            <line x1="230" y1="128" x2="358" y2="108" stroke="#fbbf24" stroke-width="1.5"
+                                  marker-end="url(#arrowhead-dep)" stroke-dasharray="6,3"/>
+                            <text x="290" y="108" text-anchor="middle" font-size="10" fill="#fbbf24">depende de</text>
+
+                            <!-- Arrow to Storage -->
+                            <line x1="230" y1="152" x2="358" y2="182" stroke="#fbbf24" stroke-width="1.5"
+                                  marker-end="url(#arrowhead-dep)" stroke-dasharray="6,3"/>
+                            <text x="290" y="177" text-anchor="middle" font-size="10" fill="#fbbf24">depende de</text>
+
+                            <!-- Users node (top right) -->
+                            <rect x="360" y="46" width="200" height="80" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="460" y="79" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Gestão de</text>
+                            <text x="460" y="97" text-anchor="middle" font-size="11" fill="#94a3b8">Utilizadores e Passwords</text>
+                            <text x="460" y="115" text-anchor="middle" font-size="10" fill="#94a3b8">executa após VM activa</text>
+
+                            <!-- Storage node (bottom right) -->
+                            <rect x="360" y="166" width="200" height="80" rx="10"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="460" y="199" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Associação de</text>
+                            <text x="460" y="217" text-anchor="middle" font-size="11" fill="#94a3b8">Storage à VM</text>
+                            <text x="460" y="235" text-anchor="middle" font-size="10" fill="#94a3b8">executa após VM activa</text>
+
+                            <!-- Parallel bracket -->
+                            <line x1="560" y1="86" x2="620" y2="86" stroke="#2d3249" stroke-width="1.5"/>
+                            <line x1="620" y1="86" x2="620" y2="206" stroke="#2d3249" stroke-width="1.5"/>
+                            <line x1="620" y1="206" x2="560" y2="206" stroke="#2d3249" stroke-width="1.5"/>
+                            <text x="680" y="146" text-anchor="middle" font-size="10" fill="#94a3b8" transform="rotate(-90,680,146)">paralelo</text>
+                            <rect x="650" y="130" width="60" height="28" rx="6"
+                                  fill="rgba(52,211,153,0.10)" stroke="rgba(52,211,153,0.3)" stroke-width="1"/>
+                            <text x="680" y="149" text-anchor="middle" font-size="10" font-weight="600" fill="#34d399">paralelo</text>
+                        </svg>
+                        <figcaption>Diagrama 2 — Dependências de execução: Gestão de Utilizadores e Associação de Storage dependem da VM estar activa. Ambas podem correr em paralelo entre si.</figcaption>
+                    </figure>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>serviceSpecRelationship com tipo "dependency":</strong>
+                            As dependências são registadas na API TMF633 como relações do tipo
+                            <code>dependency</code> na <code>ServiceSpecification</code> dependente
+                            (ex: "Gestão de Utilizadores" declara dependência de "VM Elementar").
+                            O motor de orquestração respeita esta ordem ao executar o bundle.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                Guia Passo a Passo
+            </h2>
+
+            <!-- ══ PASSO 1 ═══ Criar Especificações Elementares ══════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Criar as Especificações de Serviço Elementares</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF633 POST /serviceSpecification</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Comece por criar individualmente cada um dos três serviços elementares.
+                        Cada um é uma <code>ServiceSpecification</code> com <code>isBundle: false</code>.
+                        Guarde o <code>id</code> retornado — vai precisar dele nos passos seguintes.
+                    </p>
+
+                    <h4>1.1 — VM Elementar (vCenter)</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceSpecification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"VM Elementar vCenter"</span>,
+  <span class="key">"description"</span>: <span class="val">"Cria e gere o ciclo de vida de uma VM no VMware vCenter"</span>,
+  <span class="key">"version"</span>:     <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>,
+  <span class="key">"isBundle"</span>:     <span class="val">false</span>
+<span class="key">}</span>
+<span class="comment">→ Guardar:  spec_vm_id  = "uuid-retornado"</span></div>
+
+                    <h4>1.2 — Gestão de Utilizadores e Passwords</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceSpecification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Gestão de Utilizadores e Passwords"</span>,
+  <span class="key">"description"</span>: <span class="val">"Cria e configura utilizadores, passwords e grupos no SO da VM"</span>,
+  <span class="key">"version"</span>:     <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>,
+  <span class="key">"isBundle"</span>:     <span class="val">false</span>
+<span class="key">}</span>
+<span class="comment">→ Guardar:  spec_users_id = "uuid-retornado"</span></div>
+
+                    <h4>1.3 — Associação de Storage à VM</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceSpecification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Associação de Storage à VM"</span>,
+  <span class="key">"description"</span>: <span class="val">"Associa e configura volumes de storage (datastore/LUN) à VM"</span>,
+  <span class="key">"version"</span>:     <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>,
+  <span class="key">"isBundle"</span>:     <span class="val">false</span>
+<span class="key">}</span>
+<span class="comment">→ Guardar:  spec_storage_id = "uuid-retornado"</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: <strong>Catalog → tab "Specifications" → botão "+ New Specification"</strong>.
+                            Preencha o nome, descrição, versão <code>1.0</code>, status <code>active</code>
+                            e deixe "Is Bundle" desmarcado. Repita para cada um dos três serviços.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 2 ═══ Criar Bundle ═══════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Criar a Especificação Bundle — VM Completa</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF633 POST /serviceSpecification</span>
+                            <span class="tmf-pill">isBundle: true</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Crie agora a especificação bundle. Esta referencia os três elementares através do
+                        campo <code>serviceSpecRelationship</code> com tipo <code>bundled</code>.
+                    </p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceSpecification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"VM Completa"</span>,
+  <span class="key">"description"</span>: <span class="val">"Bundle: VM vCenter + Gestão de Utilizadores + Associação de Storage"</span>,
+  <span class="key">"version"</span>:     <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>,
+  <span class="key">"isBundle"</span>:     <span class="val">true</span>,
+  <span class="key">"serviceSpecRelationship"</span>: [
+    <span class="key">{</span>
+      <span class="key">"relationshipType"</span>: <span class="val">"bundled"</span>,
+      <span class="key">"id"</span>:              <span class="val">"&lt;spec_vm_id&gt;"</span>,
+      <span class="key">"name"</span>:            <span class="val">"VM Elementar vCenter"</span>
+    <span class="key">}</span>,
+    <span class="key">{</span>
+      <span class="key">"relationshipType"</span>: <span class="val">"bundled"</span>,
+      <span class="key">"id"</span>:              <span class="val">"&lt;spec_users_id&gt;"</span>,
+      <span class="key">"name"</span>:            <span class="val">"Gestão de Utilizadores e Passwords"</span>
+    <span class="key">}</span>,
+    <span class="key">{</span>
+      <span class="key">"relationshipType"</span>: <span class="val">"bundled"</span>,
+      <span class="key">"id"</span>:              <span class="val">"&lt;spec_storage_id&gt;"</span>,
+      <span class="key">"name"</span>:            <span class="val">"Associação de Storage à VM"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span>
+<span class="comment">→ Guardar:  spec_bundle_id = "uuid-retornado"</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Na interface: marque a caixa <strong>"Is Bundle"</strong> ao criar a especificação.
+                            As relações <code>bundled</code> podem ser adicionadas posteriormente no tab
+                            <strong>"Spec Dependencies"</strong>, seleccionando a especificação bundle
+                            e adicionando cada elementar com tipo <code>bundled</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 3 ═══ Características ════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Definir Características de cada Especificação</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF633 POST /serviceSpecification/{id}/serviceSpecCharacteristic</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        As características (<code>ServiceSpecCharacteristic</code>) definem os
+                        <strong>parâmetros configuráveis</strong> de cada serviço — são os campos que o
+                        operador preenche ao criar uma ordem.
+                    </p>
+
+                    <h4>Características sugeridas — VM Elementar vCenter</h4>
+                    <div style="overflow-x:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm)">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Nome</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Tipo</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Obrigatório</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Exemplo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">vm_name</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">vm-prod-001</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">vcpu_count</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">integer</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">4</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">ram_gb</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">integer</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">8</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">os_template</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string (enum)</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">ubuntu-22.04 / rhel-9</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">vcenter_datacenter</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">DC-Lisboa</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">vcenter_cluster</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">não</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">Cluster-Prod</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Características sugeridas — Gestão de Utilizadores e Passwords</h4>
+                    <div style="overflow-x:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm)">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Nome</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Tipo</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Obrigatório</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Exemplo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">admin_username</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">svc-admin</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">password_policy</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string (enum)</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">standard / strict</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">ldap_integration</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">boolean</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">não</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">true</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">sudo_groups</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">não</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">wheel,sysadmin</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Características sugeridas — Associação de Storage à VM</h4>
+                    <div style="overflow-x:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm)">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Nome</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Tipo</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Obrigatório</th>
+                                <th style="padding:8px 12px;text-align:left;color:var(--colour-text-muted)">Exemplo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">storage_size_gb</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">integer</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">100</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">storage_type</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string (enum)</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">SSD / HDD / NVMe</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--colour-border)">
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">datastore_name</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string</td>
+                                <td style="padding:8px 12px;color:var(--colour-success)">sim</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">DS-SSD-Prod</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:8px 12px;color:var(--colour-text);font-family:var(--font-mono);font-size:11px">backup_policy</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">string (enum)</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">não</td>
+                                <td style="padding:8px 12px;color:var(--colour-text-muted)">daily / weekly / none</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: <strong>Catalog → tab "Characteristics"</strong>, seleccione a
+                            especificação no dropdown e clique <strong>"+ Add Characteristic"</strong>
+                            para cada parâmetro acima.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 4 ═══ Configurar Dependências ════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-card__title">Configurar Dependências entre Especificações</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF633 serviceSpecRelationship type: dependency</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Declare que "Gestão de Utilizadores" e "Associação de Storage" dependem de
+                        "VM Elementar" estar aprovisionada. Faça um <code>PATCH</code> em cada
+                        especificação dependente, adicionando a relação do tipo <code>dependency</code>.
+                    </p>
+
+                    <h4>4.1 — Gestão de Utilizadores depende de VM Elementar</h4>
+                    <div class="api-block"><span class="method">PATCH</span> <span class="url">/api/v1/serviceSpecification/&lt;spec_users_id&gt;</span>
+<span class="key">{</span>
+  <span class="key">"serviceSpecRelationship"</span>: [
+    <span class="key">{</span>
+      <span class="key">"relationshipType"</span>: <span class="val">"dependency"</span>,
+      <span class="key">"id"</span>:              <span class="val">"&lt;spec_vm_id&gt;"</span>,
+      <span class="key">"name"</span>:            <span class="val">"VM Elementar vCenter"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <h4>4.2 — Associação de Storage depende de VM Elementar</h4>
+                    <div class="api-block"><span class="method">PATCH</span> <span class="url">/api/v1/serviceSpecification/&lt;spec_storage_id&gt;</span>
+<span class="key">{</span>
+  <span class="key">"serviceSpecRelationship"</span>: [
+    <span class="key">{</span>
+      <span class="key">"relationshipType"</span>: <span class="val">"dependency"</span>,
+      <span class="key">"id"</span>:              <span class="val">"&lt;spec_vm_id&gt;"</span>,
+      <span class="key">"name"</span>:            <span class="val">"VM Elementar vCenter"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: <strong>Catalog → tab "Spec Dependencies"</strong>, seleccione
+                            "Gestão de Utilizadores e Passwords", clique <strong>"+ Add Dependency"</strong>
+                            e escolha tipo <code>dependency</code> apontando para "VM Elementar vCenter".
+                            Repita para "Associação de Storage".
+                        </div>
+                    </div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Sem dependência circular:</strong> Nunca declare que "VM Elementar"
+                            depende de si mesma ou crie ciclos. O motor de orquestração detecta ciclos e
+                            rejeita a ordem.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 5 ═══ Catálogo e Categorias ════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">5</div>
+                    <div>
+                        <div class="step-card__title">Criar Catálogo, Categorias e Candidatos</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF633 /catalog</span>
+                            <span class="tmf-pill">/category</span>
+                            <span class="tmf-pill">/serviceCandidate</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Para que uma especificação seja <strong>pesquisável e ordenável</strong>, precisa de
+                        ser publicada num catálogo através de um <em>candidato a serviço</em>
+                        (<code>ServiceCandidate</code>). O fluxo é:
+                        <strong>Catalog → Category → Candidate → Specification</strong>.
+                    </p>
+
+                    <!-- DIAGRAM 3 — Catalog hierarchy -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arrowhead-cat" markerWidth="10" markerHeight="7"
+                                        refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#4f7ef8"/>
+                                </marker>
+                            </defs>
+
+                            <!-- Catalog -->
+                            <rect x="20" y="70" width="140" height="60" rx="8"
+                                  fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="90" y="97" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">Catalog</text>
+                            <text x="90" y="115" text-anchor="middle" font-size="10" fill="#94a3b8">Infra Privada</text>
+
+                            <line x1="160" y1="100" x2="210" y2="100" stroke="#4f7ef8" stroke-width="1.5"
+                                  marker-end="url(#arrowhead-cat)"/>
+                            <text x="185" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">contém</text>
+
+                            <!-- Category -->
+                            <rect x="212" y="70" width="140" height="60" rx="8"
+                                  fill="rgba(79,126,248,0.08)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="282" y="97" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">Category</text>
+                            <text x="282" y="115" text-anchor="middle" font-size="10" fill="#94a3b8">Virtualização</text>
+
+                            <line x1="352" y1="100" x2="402" y2="100" stroke="#4f7ef8" stroke-width="1.5"
+                                  marker-end="url(#arrowhead-cat)"/>
+                            <text x="377" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">publica</text>
+
+                            <!-- Candidate -->
+                            <rect x="404" y="70" width="160" height="60" rx="8"
+                                  fill="rgba(79,126,248,0.08)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="484" y="97" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">Candidate</text>
+                            <text x="484" y="115" text-anchor="middle" font-size="10" fill="#94a3b8">VM Completa (cand.)</text>
+
+                            <line x1="564" y1="100" x2="614" y2="100" stroke="#4f7ef8" stroke-width="1.5"
+                                  marker-end="url(#arrowhead-cat)"/>
+                            <text x="589" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">aponta para</text>
+
+                            <!-- Spec -->
+                            <rect x="616" y="70" width="140" height="60" rx="8"
+                                  fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="686" y="97" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">Specification</text>
+                            <text x="686" y="115" text-anchor="middle" font-size="10" fill="#94a3b8">VM Completa (spec)</text>
+
+                            <!-- Step labels below -->
+                            <text x="90"  y="160" text-anchor="middle" font-size="10" fill="#94a3b8">Passo 5.1</text>
+                            <text x="282" y="160" text-anchor="middle" font-size="10" fill="#94a3b8">Passo 5.2</text>
+                            <text x="484" y="160" text-anchor="middle" font-size="10" fill="#94a3b8">Passo 5.3</text>
+                            <text x="686" y="160" text-anchor="middle" font-size="10" fill="#34d399">✓ já criado</text>
+                        </svg>
+                        <figcaption>Diagrama 3 — Hierarquia de publicação: do Catálogo até à Especificação de Serviço</figcaption>
+                    </figure>
+
+                    <h4>5.1 — Criar o Catálogo</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/catalog</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:            <span class="val">"Catálogo Infra Privada"</span>,
+  <span class="key">"description"</span>:   <span class="val">"Serviços de infraestrutura virtualizada on-premises"</span>,
+  <span class="key">"version"</span>:        <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>
+<span class="key">}</span>
+<span class="comment">→ Guardar:  catalog_id = "uuid-retornado"</span></div>
+
+                    <h4>5.2 — Criar a Categoria</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceCategory</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:            <span class="val">"Virtualização"</span>,
+  <span class="key">"description"</span>:   <span class="val">"Serviços de computação virtualizada (VMs, contentores)"</span>,
+  <span class="key">"version"</span>:        <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>,
+  <span class="key">"isRoot"</span>:         <span class="val">true</span>
+<span class="key">}</span>
+<span class="comment">→ Guardar:  category_id = "uuid-retornado"</span></div>
+
+                    <h4>5.3 — Criar Candidatos (um por especificação)</h4>
+                    <p>Crie um <code>ServiceCandidate</code> para cada especificação que deve aparecer no catálogo. <strong>Faça isto para os 4 serviços</strong> (3 elementares + bundle).</p>
+                    <div class="api-block"><span class="comment">-- Candidato para o bundle VM Completa --</span>
+<span class="method">POST</span> <span class="url">/api/v1/serviceCandidate</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:            <span class="val">"VM Completa"</span>,
+  <span class="key">"version"</span>:        <span class="val">"1.0"</span>,
+  <span class="key">"lifecycleStatus"</span>: <span class="val">"active"</span>,
+  <span class="key">"serviceSpecification"</span>: <span class="key">{</span>
+    <span class="key">"id"</span>: <span class="val">"&lt;spec_bundle_id&gt;"</span>, <span class="key">"name"</span>: <span class="val">"VM Completa"</span>
+  <span class="key">}</span>,
+  <span class="key">"category"</span>: [<span class="key">{</span> <span class="key">"id"</span>: <span class="val">"&lt;category_id&gt;"</span> <span class="key">}</span>]
+<span class="key">}</span>
+
+<span class="comment">-- Repita para cada elementar, substituindo spec_*_id --</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: tab <strong>"Catalogs"</strong> → create, tab
+                            <strong>"Categories"</strong> → create, tab <strong>"Candidates"</strong>
+                            → create (associe a especificação e a categoria em cada candidato).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 6 ═══ Criar Ordens ══════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">6</div>
+                    <div>
+                        <div class="step-card__title">Criar uma Ordem de Serviço</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF641 POST /serviceOrder</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Com as especificações, características, dependências e candidatos criados,
+                        já é possível lançar uma <strong>Ordem de Serviço</strong>.
+                        Pode ordenar o bundle completo (VM Completa) ou qualquer elementar individualmente.
+                    </p>
+
+                    <!-- DIAGRAM 4 — Order lifecycle -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 120" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arrowhead-ord" markerWidth="10" markerHeight="7"
+                                        refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+                                </marker>
+                            </defs>
+                            <!-- States -->
+                            <rect x="10"  y="30" width="100" height="36" rx="18" fill="rgba(148,163,184,0.1)" stroke="#94a3b8" stroke-width="1.5"/>
+                            <text x="60"  y="53" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">draft</text>
+
+                            <line x1="110" y1="48" x2="148" y2="48" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead-ord)"/>
+
+                            <rect x="150" y="30" width="110" height="36" rx="18" fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="205"  y="53" text-anchor="middle" font-size="11" font-weight="600" fill="#4f7ef8">submitted</text>
+
+                            <line x1="260" y1="48" x2="298" y2="48" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead-ord)"/>
+
+                            <rect x="300" y="30" width="130" height="36" rx="18" fill="rgba(96,165,250,0.1)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="365"  y="53" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">acknowledged</text>
+
+                            <line x1="430" y1="48" x2="468" y2="48" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead-ord)"/>
+
+                            <rect x="470" y="30" width="120" height="36" rx="18" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="530"  y="53" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">inProgress</text>
+
+                            <line x1="590" y1="48" x2="628" y2="48" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead-ord)"/>
+
+                            <rect x="630" y="30" width="120" height="36" rx="18" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="690"  y="53" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">completed</text>
+
+                            <!-- Labels -->
+                            <text x="60"  y="90" text-anchor="middle" font-size="9" fill="#94a3b8">criação</text>
+                            <text x="205" y="90" text-anchor="middle" font-size="9" fill="#94a3b8">POST API</text>
+                            <text x="365" y="90" text-anchor="middle" font-size="9" fill="#94a3b8">motor aceita</text>
+                            <text x="530" y="90" text-anchor="middle" font-size="9" fill="#94a3b8">aprovisionamento</text>
+                            <text x="690" y="90" text-anchor="middle" font-size="9" fill="#34d399">serviço activo</text>
+                        </svg>
+                        <figcaption>Diagrama 4 — Ciclo de vida de uma Ordem de Serviço (TMF641)</figcaption>
+                    </figure>
+
+                    <h4>6a — Ordenar o bundle VM Completa (recomendado)</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceOrder</span>
+<span class="key">{</span>
+  <span class="key">"description"</span>: <span class="val">"Provisionar VM Completa para projecto Alpha"</span>,
+  <span class="key">"priority"</span>:    <span class="val">"normal"</span>,
+  <span class="key">"orderItem"</span>: [
+    <span class="key">{</span>
+      <span class="key">"id"</span>:     <span class="val">"1"</span>,
+      <span class="key">"action"</span>: <span class="val">"add"</span>,
+      <span class="key">"service"</span>: <span class="key">{</span>
+        <span class="key">"serviceSpecification"</span>: <span class="key">{</span> <span class="key">"id"</span>: <span class="val">"&lt;spec_bundle_id&gt;"</span> <span class="key">}</span>,
+        <span class="key">"serviceCharacteristic"</span>: [
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"vm_name"</span>,            <span class="key">"value"</span>: <span class="val">"vm-alpha-001"</span> <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"vcpu_count"</span>,         <span class="key">"value"</span>: <span class="val">"4"</span>          <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"ram_gb"</span>,            <span class="key">"value"</span>: <span class="val">"8"</span>          <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"os_template"</span>,       <span class="key">"value"</span>: <span class="val">"ubuntu-22.04"</span><span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"vcenter_datacenter"</span>, <span class="key">"value"</span>: <span class="val">"DC-Lisboa"</span>  <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"admin_username"</span>,    <span class="key">"value"</span>: <span class="val">"svc-admin"</span>  <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"password_policy"</span>,   <span class="key">"value"</span>: <span class="val">"strict"</span>     <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"storage_size_gb"</span>,   <span class="key">"value"</span>: <span class="val">"100"</span>        <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"storage_type"</span>,     <span class="key">"value"</span>: <span class="val">"SSD"</span>        <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"datastore_name"</span>,   <span class="key">"value"</span>: <span class="val">"DS-SSD-Prod"</span><span class="key">}</span>
+        ]
+      <span class="key">}</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span>
+<span class="comment">→ O motor de orquestração respeita as dependências:
+   1º  VM Elementar vCenter
+   2º  Gestão de Utilizadores  ┐ em paralelo
+   2º  Associação de Storage   ┘</span></div>
+
+                    <h4>6b — Ordenar apenas um elementar (ex: adicionar storage a VM existente)</h4>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/api/v1/serviceOrder</span>
+<span class="key">{</span>
+  <span class="key">"description"</span>: <span class="val">"Adicionar storage extra à vm-alpha-001"</span>,
+  <span class="key">"orderItem"</span>: [
+    <span class="key">{</span>
+      <span class="key">"id"</span>:     <span class="val">"1"</span>,
+      <span class="key">"action"</span>: <span class="val">"add"</span>,
+      <span class="key">"service"</span>: <span class="key">{</span>
+        <span class="key">"serviceSpecification"</span>: <span class="key">{</span> <span class="key">"id"</span>: <span class="val">"&lt;spec_storage_id&gt;"</span> <span class="key">}</span>,
+        <span class="key">"serviceCharacteristic"</span>: [
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"storage_size_gb"</span>, <span class="key">"value"</span>: <span class="val">"200"</span>        <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"storage_type"</span>,   <span class="key">"value"</span>: <span class="val">"SSD"</span>        <span class="key">}</span>,
+          <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"datastore_name"</span>, <span class="key">"value"</span>: <span class="val">"DS-SSD-Prod"</span><span class="key">}</span>
+        ]
+      <span class="key">}</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Na interface: navegue até <strong>Orders → + New Order</strong>,
+                            seleccione a especificação desejada e preencha as características.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ RESUMO FINAL ═══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-success);color:white;">&#x2714;</div>
+                    <div>
+                        <div class="step-card__title">Resumo — Checklist de Configuração E2E</div>
+                        <div class="step-card__subtitle">Todos os passos necessários, por ordem</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+
+                    <!-- DIAGRAM 5 — End-to-end workflow -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 460" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <defs>
+                                <marker id="arrowhead-wf" markerWidth="10" markerHeight="7"
+                                        refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#4f7ef8"/>
+                                </marker>
+                            </defs>
+
+                            <text x="390" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#e2e8f0">Fluxo Completo de Configuração E2E — VM Completa</text>
+
+                            <!-- Phase 1: Specs -->
+                            <rect x="20" y="40" width="740" height="80" rx="8"
+                                  fill="rgba(96,165,250,0.06)" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="60" font-size="10" font-weight="600" fill="#60a5fa">FASE 1 — Especificações de Serviço (TMF633)</text>
+
+                            <rect x="40"  y="70" width="160" height="36" rx="6" fill="rgba(96,165,250,0.15)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="120" y="93" text-anchor="middle" font-size="10" font-weight="600" fill="#60a5fa">VM Elementar vCenter</text>
+
+                            <rect x="220" y="70" width="175" height="36" rx="6" fill="rgba(96,165,250,0.15)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="307" y="93" text-anchor="middle" font-size="10" font-weight="600" fill="#60a5fa">Gestão de Utilizadores</text>
+
+                            <rect x="415" y="70" width="160" height="36" rx="6" fill="rgba(96,165,250,0.15)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="495" y="93" text-anchor="middle" font-size="10" font-weight="600" fill="#60a5fa">Associação de Storage</text>
+
+                            <rect x="595" y="70" width="150" height="36" rx="6" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1"/>
+                            <text x="670" y="84" text-anchor="middle" font-size="10" font-weight="600" fill="#34d399">VM Completa</text>
+                            <text x="670" y="99" text-anchor="middle" font-size="9" fill="#34d399">(Bundle)</text>
+
+                            <!-- Arrow Phase 1 → 2 -->
+                            <line x1="390" y1="122" x2="390" y2="148" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arrowhead-wf)"/>
+
+                            <!-- Phase 2: Characteristics -->
+                            <rect x="20" y="150" width="740" height="60" rx="8"
+                                  fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="170" font-size="10" font-weight="600" fill="#fbbf24">FASE 2 — Características (params. configuráveis por serviço)</text>
+                            <text x="390" y="192" text-anchor="middle" font-size="10" fill="#94a3b8">Adicionar vm_name, vcpu_count, ram_gb, os_template, admin_username, storage_size_gb, …</text>
+
+                            <!-- Arrow Phase 2 → 3 -->
+                            <line x1="390" y1="212" x2="390" y2="238" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arrowhead-wf)"/>
+
+                            <!-- Phase 3: Dependencies -->
+                            <rect x="20" y="240" width="740" height="70" rx="8"
+                                  fill="rgba(248,113,113,0.05)" stroke="#f87171" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="260" font-size="10" font-weight="600" fill="#f87171">FASE 3 — Dependências de Execução</text>
+                            <text x="390" y="280" text-anchor="middle" font-size="10" fill="#94a3b8">Gestão de Utilizadores → depende → VM Elementar</text>
+                            <text x="390" y="296" text-anchor="middle" font-size="10" fill="#94a3b8">Associação de Storage → depende → VM Elementar</text>
+
+                            <!-- Arrow Phase 3 → 4 -->
+                            <line x1="390" y1="312" x2="390" y2="338" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arrowhead-wf)"/>
+
+                            <!-- Phase 4: Catalog/Category/Candidate -->
+                            <rect x="20" y="340" width="740" height="60" rx="8"
+                                  fill="rgba(52,211,153,0.05)" stroke="#34d399" stroke-width="1.2" stroke-dasharray="5,3"/>
+                            <text x="30" y="360" font-size="10" font-weight="600" fill="#34d399">FASE 4 — Publicação no Catálogo (Catalog → Category → Candidate)</text>
+                            <text x="390" y="382" text-anchor="middle" font-size="10" fill="#94a3b8">Criar Catálogo "Infra Privada" → Categoria "Virtualização" → 4 Candidatos (3 elementares + bundle)</text>
+
+                            <!-- Arrow Phase 4 → 5 -->
+                            <line x1="390" y1="402" x2="390" y2="428" stroke="#34d399" stroke-width="2" marker-end="url(#arrowhead-wf)"/>
+
+                            <!-- Phase 5: Order -->
+                            <rect x="180" y="430" width="420" height="26" rx="13"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2"/>
+                            <text x="390" y="448" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">✓  Ordem de Serviço pode ser criada  (TMF641)</text>
+                        </svg>
+                        <figcaption>Diagrama 5 — Fluxo E2E completo: das especificações até à criação de uma ordem</figcaption>
+                    </figure>
+
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> Criar especificação <strong>VM Elementar vCenter</strong> (<code>isBundle: false</code>, status <code>active</code>)</li>
+                        <li><span class="checklist__num">2</span> Criar especificação <strong>Gestão de Utilizadores e Passwords</strong> (<code>isBundle: false</code>)</li>
+                        <li><span class="checklist__num">3</span> Criar especificação <strong>Associação de Storage à VM</strong> (<code>isBundle: false</code>)</li>
+                        <li><span class="checklist__num">4</span> Criar especificação <strong>VM Completa</strong> (<code>isBundle: true</code>) com relações <code>bundled</code> para os 3 elementares</li>
+                        <li><span class="checklist__num">5</span> Adicionar <strong>características</strong> a cada uma das 4 especificações (tab "Characteristics")</li>
+                        <li><span class="checklist__num">6</span> Declarar <strong>dependência</strong> de "Gestão de Utilizadores" → "VM Elementar" (tipo <code>dependency</code>)</li>
+                        <li><span class="checklist__num">7</span> Declarar <strong>dependência</strong> de "Associação de Storage" → "VM Elementar" (tipo <code>dependency</code>)</li>
+                        <li><span class="checklist__num">8</span> Criar <strong>Catálogo</strong> "Infra Privada"</li>
+                        <li><span class="checklist__num">9</span> Criar <strong>Categoria</strong> "Virtualização" (root) e associar ao catálogo</li>
+                        <li><span class="checklist__num">10</span> Criar <strong>Candidatos</strong> para cada uma das 4 especificações, apontando para a categoria</li>
+                        <li><span class="checklist__num">11</span> Navegar a <strong>Orders → + New Order</strong> e seleccionar "VM Completa" ou qualquer elementar</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="catalog.html" class="back-link">&#8592; Voltar ao Catálogo</a>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+</body>
+</html>
