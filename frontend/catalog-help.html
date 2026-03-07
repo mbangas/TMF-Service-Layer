@@ -1364,7 +1364,8 @@
         btn.disabled       = true;
         btn.textContent    = 'A gerar…';
 
-        const TOTAL = 12;
+        // 4 specs + 3 bundled rels + 2 dependency rels + 3 char batches + 1 category + 1 catalog + 4 candidates
+        const TOTAL = 18;
         let step = 0;
 
         function progress(msg) {
@@ -1410,7 +1411,7 @@
             const specVm = await apiPost(BASE + '/serviceSpecification', {
                 name: 'VM Elementar vCenter' + sfx,
                 description: 'Cria e gere o ciclo de vida de uma VM no VMware vCenter',
-                version: '1.0', lifecycleStatus: 'active', isBundle: false
+                version: '1.0', lifecycle_status: 'active', is_bundle: false
             });
             log('✓ VM Elementar vCenter' + sfx + '  id:' + specVm.id, 'gen-log-ok');
 
@@ -1420,7 +1421,7 @@
             const specUsers = await apiPost(BASE + '/serviceSpecification', {
                 name: 'Gestão de Utilizadores e Passwords' + sfx,
                 description: 'Cria e configura utilizadores, passwords e grupos no SO da VM',
-                version: '1.0', lifecycleStatus: 'active', isBundle: false
+                version: '1.0', lifecycle_status: 'active', is_bundle: false
             });
             log('✓ Gestão de Utilizadores e Passwords' + sfx + '  id:' + specUsers.id, 'gen-log-ok');
 
@@ -1430,66 +1431,135 @@
             const specStorage = await apiPost(BASE + '/serviceSpecification', {
                 name: 'Associação de Storage à VM' + sfx,
                 description: 'Associa e configura volumes de storage (datastore/LUN) à VM',
-                version: '1.0', lifecycleStatus: 'active', isBundle: false
+                version: '1.0', lifecycle_status: 'active', is_bundle: false
             });
             log('✓ Associação de Storage à VM' + sfx + '  id:' + specStorage.id, 'gen-log-ok');
 
             // ── 4. Bundle VM Completa ──────────────────────────────────────
+            // NOTE: serviceSpecRelationship is NOT accepted in POST body — bundled
+            // relationships are added via the dedicated sub-resource endpoint below.
             progress('A criar bundle VM Completa…');
-            log('→ POST ' + BASE + '/serviceSpecification  [VM Completa' + sfx + '  isBundle:true]');
+            log('→ POST ' + BASE + '/serviceSpecification  [VM Completa' + sfx + '  is_bundle:true]');
             const specBundle = await apiPost(BASE + '/serviceSpecification', {
                 name: 'VM Completa' + sfx,
                 description: 'Bundle: VM vCenter + Gestão de Utilizadores + Associação de Storage',
-                version: '1.0', lifecycleStatus: 'active', isBundle: true,
-                serviceSpecRelationship: [
-                    { relationshipType: 'bundled', id: specVm.id,      name: specVm.name      },
-                    { relationshipType: 'bundled', id: specUsers.id,   name: specUsers.name   },
-                    { relationshipType: 'bundled', id: specStorage.id, name: specStorage.name }
-                ]
+                version: '1.0', lifecycle_status: 'active', is_bundle: true
             });
             log('✓ VM Completa' + sfx + ' (bundle)  id:' + specBundle.id, 'gen-log-ok');
 
-            // ── 5. Dependência: Utilizadores → VM ─────────────────────────
+            // ── 5. Relações "bundled": Bundle → cada elementar ─────────────
+            // ServiceSpecRelationship uses the dedicated sub-resource endpoint.
+            // Body fields: relationship_type, related_spec_id, related_spec_name.
+            progress('A criar relações bundled no bundle VM Completa…');
+            log('→ POST …/' + specBundle.id + '/serviceSpecRelationship  [bundled × 3]');
+            const SPEC_REL = BASE + '/serviceSpecification/' + specBundle.id + '/serviceSpecRelationship';
+            await apiPost(SPEC_REL, { relationship_type: 'bundled', related_spec_id: specVm.id,      related_spec_name: specVm.name      });
+            await apiPost(SPEC_REL, { relationship_type: 'bundled', related_spec_id: specUsers.id,   related_spec_name: specUsers.name   });
+            await apiPost(SPEC_REL, { relationship_type: 'bundled', related_spec_id: specStorage.id, related_spec_name: specStorage.name });
+            log('✓ Relações bundled criadas (VM Elementar, Gestão de Utilizadores, Associação de Storage)', 'gen-log-ok');
+
+            // ── 6. Dependência: Utilizadores → VM ─────────────────────────
+            // PATCH does not accept serviceSpecRelationship — must use sub-resource.
             progress('A configurar dependência: Utilizadores → VM Elementar…');
-            log('→ PATCH ' + BASE + '/serviceSpecification/' + specUsers.id + '  [dependency]');
-            await apiPatch(BASE + '/serviceSpecification/' + specUsers.id, {
-                serviceSpecRelationship: [
-                    { relationshipType: 'dependency', id: specVm.id, name: specVm.name }
-                ]
+            log('→ POST …/' + specUsers.id + '/serviceSpecRelationship  [dependency]');
+            await apiPost(BASE + '/serviceSpecification/' + specUsers.id + '/serviceSpecRelationship', {
+                relationship_type: 'dependency',
+                related_spec_id:   specVm.id,
+                related_spec_name: specVm.name
             });
             log('✓ Dependência: Gestão de Utilizadores → VM Elementar vCenter', 'gen-log-ok');
 
-            // ── 6. Dependência: Storage → VM ───────────────────────────────
+            // ── 7. Dependência: Storage → VM ───────────────────────────────
             progress('A configurar dependência: Storage → VM Elementar…');
-            log('→ PATCH ' + BASE + '/serviceSpecification/' + specStorage.id + '  [dependency]');
-            await apiPatch(BASE + '/serviceSpecification/' + specStorage.id, {
-                serviceSpecRelationship: [
-                    { relationshipType: 'dependency', id: specVm.id, name: specVm.name }
-                ]
+            log('→ POST …/' + specStorage.id + '/serviceSpecRelationship  [dependency]');
+            await apiPost(BASE + '/serviceSpecification/' + specStorage.id + '/serviceSpecRelationship', {
+                relationship_type: 'dependency',
+                related_spec_id:   specVm.id,
+                related_spec_name: specVm.name
             });
             log('✓ Dependência: Associação de Storage → VM Elementar vCenter', 'gen-log-ok');
 
-            // ── 7. Catálogo ────────────────────────────────────────────────
-            progress('A criar Catálogo Infra Privada…');
-            log('→ POST ' + BASE + '/serviceCatalog  [Catálogo Infra Privada' + sfx + ']');
-            const catalog = await apiPost(BASE + '/serviceCatalog', {
-                name: 'Catálogo Infra Privada' + sfx,
-                description: 'Serviços de infraestrutura virtualizada on-premises',
-                version: '1.0', lifecycleStatus: 'active'
+            // ── 8. Características — VM Elementar vCenter ─────────────────
+            // ServiceSpecCharacteristic body: name, description, value_type,
+            // is_unique, min_cardinality, max_cardinality, extensible,
+            // characteristic_value_specification (list of {value, value_type, is_default}).
+            progress('A adicionar características à VM Elementar vCenter…');
+            log('→ POST …/' + specVm.id + '/serviceSpecCharacteristic  [6 características]');
+            const VM_CHAR = BASE + '/serviceSpecification/' + specVm.id + '/serviceSpecCharacteristic';
+            await apiPost(VM_CHAR, { name: 'vm_name',            description: 'Nome da VM',                         value_type: 'string',  min_cardinality: 1 });
+            await apiPost(VM_CHAR, { name: 'vcpu_count',         description: 'Número de vCPUs',                    value_type: 'integer', min_cardinality: 1 });
+            await apiPost(VM_CHAR, { name: 'ram_gb',             description: 'RAM em GB',                          value_type: 'integer', min_cardinality: 1 });
+            await apiPost(VM_CHAR, { name: 'os_template',        description: 'Template de sistema operativo',      value_type: 'string',  min_cardinality: 1, extensible: false,
+                characteristic_value_specification: [
+                    { value: 'ubuntu-22.04', value_type: 'string', is_default: true  },
+                    { value: 'rhel-9',       value_type: 'string', is_default: false }
+                ]
             });
-            log('✓ Catálogo Infra Privada' + sfx + '  id:' + catalog.id, 'gen-log-ok');
+            await apiPost(VM_CHAR, { name: 'vcenter_datacenter', description: 'Datacenter vCenter de destino',      value_type: 'string',  min_cardinality: 1 });
+            await apiPost(VM_CHAR, { name: 'vcenter_cluster',    description: 'Cluster vCenter (opcional)',         value_type: 'string',  min_cardinality: 0 });
+            log('✓ 6 características adicionadas à VM Elementar vCenter', 'gen-log-ok');
 
-            // ── 8. Categoria ───────────────────────────────────────────────
+            // ── 9. Características — Gestão de Utilizadores ───────────────
+            progress('A adicionar características à Gestão de Utilizadores…');
+            log('→ POST …/' + specUsers.id + '/serviceSpecCharacteristic  [4 características]');
+            const USERS_CHAR = BASE + '/serviceSpecification/' + specUsers.id + '/serviceSpecCharacteristic';
+            await apiPost(USERS_CHAR, { name: 'admin_username',   description: 'Nome do utilizador administrador',  value_type: 'string',  min_cardinality: 1 });
+            await apiPost(USERS_CHAR, { name: 'password_policy',  description: 'Política de password',              value_type: 'string',  min_cardinality: 1, extensible: false,
+                characteristic_value_specification: [
+                    { value: 'standard', value_type: 'string', is_default: true  },
+                    { value: 'strict',   value_type: 'string', is_default: false }
+                ]
+            });
+            await apiPost(USERS_CHAR, { name: 'ldap_integration', description: 'Integração com LDAP/AD',           value_type: 'boolean', min_cardinality: 0 });
+            await apiPost(USERS_CHAR, { name: 'sudo_groups',      description: 'Grupos com acesso sudo',           value_type: 'string',  min_cardinality: 0 });
+            log('✓ 4 características adicionadas à Gestão de Utilizadores', 'gen-log-ok');
+
+            // ── 10. Características — Associação de Storage ───────────────
+            progress('A adicionar características à Associação de Storage…');
+            log('→ POST …/' + specStorage.id + '/serviceSpecCharacteristic  [4 características]');
+            const STOR_CHAR = BASE + '/serviceSpecification/' + specStorage.id + '/serviceSpecCharacteristic';
+            await apiPost(STOR_CHAR, { name: 'storage_size_gb', description: 'Tamanho do volume em GB',            value_type: 'integer', min_cardinality: 1 });
+            await apiPost(STOR_CHAR, { name: 'storage_type',    description: 'Tipo de storage',                   value_type: 'string',  min_cardinality: 1, extensible: false,
+                characteristic_value_specification: [
+                    { value: 'SSD',  value_type: 'string', is_default: true  },
+                    { value: 'HDD',  value_type: 'string', is_default: false },
+                    { value: 'NVMe', value_type: 'string', is_default: false }
+                ]
+            });
+            await apiPost(STOR_CHAR, { name: 'datastore_name',  description: 'Nome do datastore de destino',      value_type: 'string',  min_cardinality: 1 });
+            await apiPost(STOR_CHAR, { name: 'backup_policy',   description: 'Política de backup',               value_type: 'string',  min_cardinality: 0, extensible: false,
+                characteristic_value_specification: [
+                    { value: 'daily',  value_type: 'string', is_default: true  },
+                    { value: 'weekly', value_type: 'string', is_default: false },
+                    { value: 'none',   value_type: 'string', is_default: false }
+                ]
+            });
+            log('✓ 4 características adicionadas à Associação de Storage', 'gen-log-ok');
+
+            // ── 11. Categoria Virtualização ────────────────────────────────
             progress('A criar Categoria Virtualização…');
             log('→ POST ' + BASE + '/serviceCategory  [Virtualização' + sfx + ']');
             const category = await apiPost(BASE + '/serviceCategory', {
                 name: 'Virtualização' + sfx,
                 description: 'Serviços de computação virtualizada (VMs, contentores)',
-                version: '1.0', lifecycleStatus: 'active', isRoot: true
+                version: '1.0', lifecycle_status: 'active', is_root: true
             });
             log('✓ Categoria Virtualização' + sfx + '  id:' + category.id, 'gen-log-ok');
 
-            // ── 9-12. Candidatos (um por especificação) ────────────────────
+            // ── 12. Catálogo Infra Privada (com categoria associada) ───────
+            // ServiceCatalogCreate accepts category_ids to link root categories.
+            progress('A criar Catálogo Infra Privada…');
+            log('→ POST ' + BASE + '/serviceCatalog  [Catálogo Infra Privada' + sfx + ']');
+            const catalog = await apiPost(BASE + '/serviceCatalog', {
+                name: 'Catálogo Infra Privada' + sfx,
+                description: 'Serviços de infraestrutura virtualizada on-premises',
+                version: '1.0', lifecycle_status: 'active',
+                category_ids: [category.id]
+            });
+            log('✓ Catálogo Infra Privada' + sfx + '  id:' + catalog.id + '  (categoria ligada)', 'gen-log-ok');
+
+            // ── 13-16. Candidatos (um por especificação) ───────────────────
+            // ServiceCandidateCreate uses service_spec_id (string) and category_ids (list of strings).
             const allSpecs = [specVm, specUsers, specStorage, specBundle];
             for (let i = 0; i < allSpecs.length; i++) {
                 const sp = allSpecs[i];
@@ -1498,9 +1568,9 @@
                 const cand = await apiPost(BASE + '/serviceCandidate', {
                     name: sp.name,
                     version: '1.0',
-                    lifecycleStatus: 'active',
-                    serviceSpecification: { id: sp.id, name: sp.name },
-                    category: [{ id: category.id }]
+                    lifecycle_status: 'active',
+                    service_spec_id: sp.id,
+                    category_ids: [category.id]
                 });
                 log('✓ Candidato: ' + sp.name + '  id:' + cand.id, 'gen-log-ok');
             }
