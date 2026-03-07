@@ -129,6 +129,7 @@
             <button class="tab-btn" data-tab="catalogs">&#x1F5C2; Catalogs</button>
             <button class="tab-btn" data-tab="categories">&#x1F5C3; Categories</button>
             <button class="tab-btn" data-tab="candidates">&#x1F517; Candidates</button>
+            <button class="tab-btn" data-tab="characteristics">&#x1F9E9; Characteristics</button>
         </div>
 
         <!-- Page body -->
@@ -268,9 +269,39 @@
                 </div>
             </div>
 
+            <!-- Characteristics tab -->
+            <div id="tab-characteristics" class="tab-panel">
+                <div class="section-header">
+                    <span class="text-muted text-sm" id="char-total-count"></span>
+                    <div class="section-header__filters">
+                        <select id="char-spec-select" class="form-control" style="width:260px">
+                            <option value="">— Select a Specification —</option>
+                        </select>
+                        <button class="btn btn--primary" id="btn-new-char" disabled>+ Add Characteristic</button>
+                    </div>
+                </div>
+                <div class="card" id="char-card">
+                    <div class="card__header"><span class="card__title">Service Spec Characteristics</span></div>
+                    <div class="table-wrapper">
+                        <table><thead><tr>
+                            <th>Name</th><th>Type</th><th>Unique</th>
+                            <th>Cardinality</th><th>Extensible</th><th>Values</th><th>ID</th><th></th>
+                        </tr></thead>
+                        <tbody id="char-tbody"><tr><td colspan="8"><div class="empty-state"><p>Select a specification above to load its characteristics.</p></div></td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination__info" id="char-page-info">—</span>
+                        <button class="btn btn--ghost btn--sm" id="char-btn-prev" disabled>&#8249; Prev</button>
+                        <button class="btn btn--ghost btn--sm" id="char-btn-next" disabled>Next &#8250;</button>
+                    </div>
+                </div>
+            </div>
+
         </div><!-- /page-body -->
     </main>
 </div><!-- /app-shell -->
+
 
 <!-- ══ Spec Modal ══════════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop" id="spec-modal-backdrop">
@@ -515,6 +546,136 @@
     </div>
 </div>
 
+<!-- ══ Characteristic Modal ═══════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="char-modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="char-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="char-modal-title">New Characteristic</span>
+            <button class="btn btn--ghost btn--icon" id="char-modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label" for="char-field-name">Name <span class="required">*</span></label>
+                <input type="text" id="char-field-name" class="form-control" placeholder="e.g. Bandwidth">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="char-field-description">Description</label>
+                <textarea id="char-field-description" class="form-control" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="char-field-value-type">Value Type</label>
+                <select id="char-field-value-type" class="form-control">
+                    <option value="string">string</option>
+                    <option value="integer">integer</option>
+                    <option value="float">float</option>
+                    <option value="boolean">boolean</option>
+                    <option value="object">object</option>
+                    <option value="array">array</option>
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="char-field-min-card">Min Cardinality</label>
+                    <input type="number" id="char-field-min-card" class="form-control" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="char-field-max-card">Max Cardinality</label>
+                    <input type="number" id="char-field-max-card" class="form-control" value="1" min="0">
+                </div>
+            </div>
+            <div style="display:flex;gap:var(--space-lg)">
+                <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-sm)">
+                    <input type="checkbox" id="char-field-unique" style="width:16px;height:16px;accent-color:var(--colour-primary)">
+                    <label class="form-label" for="char-field-unique" style="margin:0">Unique</label>
+                </div>
+                <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-sm)">
+                    <input type="checkbox" id="char-field-extensible" style="width:16px;height:16px;accent-color:var(--colour-primary)">
+                    <label class="form-label" for="char-field-extensible" style="margin:0">Extensible</label>
+                </div>
+            </div>
+            <div id="char-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="char-modal-cancel">Cancel</button>
+            <button class="btn btn--primary" id="char-modal-save">Save</button>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop" id="char-delete-backdrop">
+    <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+        <div class="modal__header">
+            <span class="modal__title">Delete Characteristic</span>
+            <button class="btn btn--ghost btn--icon" id="char-delete-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p>Are you sure you want to delete <strong id="char-delete-name"></strong>?</p>
+            <p class="text-muted text-sm" style="margin-top:var(--space-sm)">This action cannot be undone.</p>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="char-delete-cancel">Cancel</button>
+            <button class="btn btn--danger" id="char-delete-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Value Spec Modal ════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="vs-modal-backdrop">
+    <div class="modal" style="max-width:640px" role="dialog" aria-modal="true" aria-labelledby="vs-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="vs-modal-title">Value Specifications</span>
+            <button class="btn btn--ghost btn--icon" id="vs-modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="vs-modal-char-name" style="margin-bottom:var(--space-md)"></p>
+            <div class="table-wrapper" style="margin-bottom:var(--space-md)">
+                <table><thead><tr>
+                    <th>Value</th><th>Type</th><th>From</th><th>To</th><th>Unit</th><th>Default</th><th></th>
+                </tr></thead>
+                <tbody id="vs-tbody"></tbody>
+                </table>
+            </div>
+            <hr style="margin:var(--space-md) 0">
+            <p style="font-weight:600;margin-bottom:var(--space-sm)">Add Value Specification</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="vs-field-value">Value</label>
+                    <input type="text" id="vs-field-value" class="form-control" placeholder="e.g. 100Mbps">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vs-field-value-type">Value Type</label>
+                    <select id="vs-field-value-type" class="form-control">
+                        <option value="string">string</option>
+                        <option value="integer">integer</option>
+                        <option value="float">float</option>
+                        <option value="boolean">boolean</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vs-field-from">Value From</label>
+                    <input type="text" id="vs-field-from" class="form-control" placeholder="Range start">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vs-field-to">Value To</label>
+                    <input type="text" id="vs-field-to" class="form-control" placeholder="Range end">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vs-field-unit">Unit of Measure</label>
+                    <input type="text" id="vs-field-unit" class="form-control" placeholder="e.g. Mbps">
+                </div>
+                <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-sm);padding-top:var(--space-lg)">
+                    <input type="checkbox" id="vs-field-default" style="width:16px;height:16px;accent-color:var(--colour-primary)">
+                    <label class="form-label" for="vs-field-default" style="margin:0">Is Default</label>
+                </div>
+            </div>
+            <div id="vs-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="vs-modal-close-btn">Close</button>
+            <button class="btn btn--primary" id="vs-modal-add">Add Value</button>
+        </div>
+    </div>
+</div>
+
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
@@ -551,7 +712,7 @@ function updatePager(totalEl, pageInfoEl, btnPrev, btnNext, offset, data, total)
 // ══ TABS ══════════════════════════════════════════════════════════════════════
 const tabBtns   = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
-const loaded    = { specs:false, catalogs:false, categories:false, candidates:false };
+const loaded    = { specs:false, catalogs:false, categories:false, candidates:false, characteristics:false };
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -559,10 +720,11 @@ tabBtns.forEach(btn => {
         tabBtns.forEach(b  => b.classList.toggle('active', b.dataset.tab === tab));
         tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
         if (!loaded[tab]) {
-            if (tab === 'specs')      loadSpecs();
-            if (tab === 'catalogs')   loadCatalogs();
-            if (tab === 'categories') loadCategories();
-            if (tab === 'candidates') loadCandidates();
+            if (tab === 'specs')           loadSpecs();
+            if (tab === 'catalogs')        loadCatalogs();
+            if (tab === 'categories')      loadCategories();
+            if (tab === 'candidates')      loadCandidates();
+            if (tab === 'characteristics') initCharacteristicsTab();
         }
     });
 });
@@ -1026,6 +1188,201 @@ document.getElementById('candidate-delete-confirm').addEventListener('click', as
 candBtnPrev.addEventListener('click',()=>{candState.offset=Math.max(0,candState.offset-PAGE_SIZE);loadCandidates();});
 candBtnNext.addEventListener('click',()=>{candState.offset+=PAGE_SIZE;loadCandidates();});
 candFilter.addEventListener('change',()=>{candState.offset=0;loadCandidates();});
+
+// ══ SERVICE SPEC CHARACTERISTICS ══════════════════════════════════════════════
+const charState = { offset:0, total:0, editingId:null, deletingId:null, specId:null, vsCharId:null };
+
+const charTbody    = document.getElementById('char-tbody');
+const charTotalEl  = document.getElementById('char-total-count');
+const charPageInfo = document.getElementById('char-page-info');
+const charBtnPrev  = document.getElementById('char-btn-prev');
+const charBtnNext  = document.getElementById('char-btn-next');
+const charSpecSel  = document.getElementById('char-spec-select');
+const btnNewChar   = document.getElementById('btn-new-char');
+
+async function initCharacteristicsTab() {
+    if (loaded.characteristics) return;
+    loaded.characteristics = true;
+    try {
+        const {data} = await CatalogClient.list({limit:200});
+        charSpecSel.innerHTML = '<option value="">— Select a Specification —</option>' +
+            data.map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name)} (${escHtml(s.version||'1.0')})</option>`).join('');
+    } catch(err) { showToast('Could not load specifications: '+err.message,'error'); }
+}
+
+charSpecSel.addEventListener('change', ()=>{
+    charState.specId = charSpecSel.value || null;
+    charState.offset = 0;
+    btnNewChar.disabled = !charState.specId;
+    if (charState.specId) loadCharacteristics();
+    else { charTbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>Select a specification above to load its characteristics.</p></div></td></tr>'; }
+    charTotalEl.textContent=''; charPageInfo.textContent='—';
+});
+
+async function loadCharacteristics() {
+    if (!charState.specId) return;
+    charTbody.innerHTML = loadingRow(8);
+    try {
+        const params={offset:charState.offset,limit:PAGE_SIZE};
+        const {data,headers} = await CharacteristicSpecClient.listBySpec(charState.specId, params);
+        charState.total = parseInt(headers.get('X-Total-Count')||data.length,10);
+        updatePager(charTotalEl,charPageInfo,charBtnPrev,charBtnNext,charState.offset,data,charState.total);
+        if (!data.length){charTbody.innerHTML=emptyRow(8,'&#x1F9E9;','No characteristics found','Add characteristics to define the properties of this specification.');return;}
+        charTbody.innerHTML = data.map(c=>`<tr>
+            <td class="name-cell">${escHtml(c.name)}</td>
+            <td><code>${escHtml(c.value_type||'&mdash;')}</code></td>
+            <td>${c.is_unique?'<span class="badge badge--success">Yes</span>':'<span class="badge">No</span>'}</td>
+            <td>${escHtml((c.min_cardinality??0)+'..'+( c.max_cardinality??1))}</td>
+            <td>${c.extensible?'<span class="badge badge--info">Yes</span>':'&mdash;'}</td>
+            <td><button class="btn btn--ghost btn--sm" onclick="openVsModal('${escHtml(c.id)}','${escHtml(c.name)}')">${(c.characteristic_value_specification||[]).length} value(s)</button></td>
+            <td class="id-cell truncate" style="max-width:120px" title="${escHtml(c.id)}">${escHtml(c.id)}</td>
+            <td class="actions-cell">
+                <button class="btn btn--ghost btn--sm" onclick="startEditChar('${escHtml(c.id)}')">Edit</button>
+                <button class="btn btn--danger btn--sm" onclick="startDeleteChar('${escHtml(c.id)}','${escHtml(c.name)}')">Delete</button>
+            </td></tr>`).join('');
+    } catch(err){charTbody.innerHTML=errorRow(8,err.message);showToast(err.message,'error');}
+}
+
+const charModalBD    = document.getElementById('char-modal-backdrop');
+const charModalTitle = document.getElementById('char-modal-title');
+const charModalSave  = document.getElementById('char-modal-save');
+const charFormErr    = document.getElementById('char-form-error');
+const charFldName    = document.getElementById('char-field-name');
+const charFldDesc    = document.getElementById('char-field-description');
+const charFldType    = document.getElementById('char-field-value-type');
+const charFldMinCard = document.getElementById('char-field-min-card');
+const charFldMaxCard = document.getElementById('char-field-max-card');
+const charFldUnique  = document.getElementById('char-field-unique');
+const charFldExt     = document.getElementById('char-field-extensible');
+
+function openCharModal()  { charModalBD.classList.add('open'); charFldName.focus(); }
+function closeCharModal() { charModalBD.classList.remove('open'); resetCharForm(); }
+function resetCharForm() {
+    charState.editingId=null; charFldName.value=''; charFldDesc.value=''; charFldType.value='string';
+    charFldMinCard.value='0'; charFldMaxCard.value='1'; charFldUnique.checked=false; charFldExt.checked=false;
+    charFormErr.style.display='none';
+    charModalTitle.textContent='New Characteristic'; charModalSave.textContent='Save';
+}
+
+btnNewChar.addEventListener('click', ()=>{ resetCharForm(); openCharModal(); });
+document.getElementById('char-modal-close').addEventListener('click', closeCharModal);
+document.getElementById('char-modal-cancel').addEventListener('click', closeCharModal);
+charModalBD.addEventListener('click', e=>{if(e.target===charModalBD)closeCharModal();});
+
+async function startEditChar(id) {
+    charState.editingId=id;
+    try {
+        const {data}=await CharacteristicSpecClient.get(charState.specId, id);
+        charFldName.value=data.name||''; charFldDesc.value=data.description||'';
+        charFldType.value=data.value_type||'string'; charFldMinCard.value=data.min_cardinality??0;
+        charFldMaxCard.value=data.max_cardinality??1; charFldUnique.checked=!!data.is_unique;
+        charFldExt.checked=!!data.extensible;
+        charModalTitle.textContent='Edit Characteristic'; charModalSave.textContent='Update';
+        openCharModal();
+    } catch(err){showToast(err.message,'error');}
+}
+
+charModalSave.addEventListener('click', async ()=>{
+    const name=charFldName.value.trim();
+    if (!name){charFormErr.textContent='Name is required.';charFormErr.style.display='block';charFldName.focus();return;}
+    charFormErr.style.display='none'; charModalSave.disabled=true; charModalSave.innerHTML='<span class="loader"></span>';
+    try {
+        const payload={name,description:charFldDesc.value.trim()||null,value_type:charFldType.value,
+            min_cardinality:parseInt(charFldMinCard.value)||0,max_cardinality:parseInt(charFldMaxCard.value)||1,
+            is_unique:charFldUnique.checked,extensible:charFldExt.checked};
+        if (charState.editingId){await CharacteristicSpecClient.patch(charState.specId,charState.editingId,payload);showToast('Characteristic updated','success');}
+        else{await CharacteristicSpecClient.create(charState.specId,payload);showToast('Characteristic created','success');}
+        closeCharModal(); await loadCharacteristics();
+    } catch(err){charFormErr.textContent=err.message;charFormErr.style.display='block';showToast(err.message,'error');}
+    finally{charModalSave.disabled=false;charModalSave.textContent=charState.editingId?'Update':'Save';}
+});
+
+const charDelBD   = document.getElementById('char-delete-backdrop');
+const charDelName = document.getElementById('char-delete-name');
+function closeCharDelete(){ charDelBD.classList.remove('open'); charState.deletingId=null; }
+function startDeleteChar(id,name){ charState.deletingId=id; charDelName.textContent=name; charDelBD.classList.add('open'); }
+document.getElementById('char-delete-close').addEventListener('click', closeCharDelete);
+document.getElementById('char-delete-cancel').addEventListener('click', closeCharDelete);
+charDelBD.addEventListener('click', e=>{if(e.target===charDelBD)closeCharDelete();});
+document.getElementById('char-delete-confirm').addEventListener('click', async function(){
+    if (!charState.deletingId||!charState.specId) return; this.disabled=true;
+    try {
+        await CharacteristicSpecClient.delete(charState.specId,charState.deletingId); showToast('Characteristic deleted','success');
+        closeCharDelete();
+        if (charState.offset>0&&charState.offset>=charState.total-1) charState.offset=Math.max(0,charState.offset-PAGE_SIZE);
+        await loadCharacteristics();
+    } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
+});
+
+charBtnPrev.addEventListener('click',()=>{charState.offset=Math.max(0,charState.offset-PAGE_SIZE);loadCharacteristics();});
+charBtnNext.addEventListener('click',()=>{charState.offset+=PAGE_SIZE;loadCharacteristics();});
+
+// ── Value Specifications sub-modal ─────────────────────────────────────────
+const vsModalBD       = document.getElementById('vs-modal-backdrop');
+const vsModalCharName = document.getElementById('vs-modal-char-name');
+const vsTbody         = document.getElementById('vs-tbody');
+const vsFldValue      = document.getElementById('vs-field-value');
+const vsFldType       = document.getElementById('vs-field-value-type');
+const vsFldFrom       = document.getElementById('vs-field-from');
+const vsFldTo         = document.getElementById('vs-field-to');
+const vsFldUnit       = document.getElementById('vs-field-unit');
+const vsFldDefault    = document.getElementById('vs-field-default');
+const vsFormErr       = document.getElementById('vs-form-error');
+
+function closeVsModal(){ vsModalBD.classList.remove('open'); charState.vsCharId=null; }
+
+async function openVsModal(charId, charName) {
+    charState.vsCharId = charId;
+    vsModalCharName.textContent = 'Characteristic: ' + charName;
+    vsFldValue.value=''; vsFldType.value='string'; vsFldFrom.value=''; vsFldTo.value=''; vsFldUnit.value=''; vsFldDefault.checked=false;
+    vsFormErr.style.display='none';
+    vsModalBD.classList.add('open');
+    await loadVsRows();
+}
+
+async function loadVsRows() {
+    vsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:var(--space-md)"><div class="loader"></div></td></tr>';
+    try {
+        const {data} = await CharacteristicValueSpecClient.listByChar(charState.specId, charState.vsCharId, {limit:100});
+        if (!data.length){ vsTbody.innerHTML='<tr><td colspan="7" class="text-muted" style="text-align:center;padding:var(--space-md)">No value specifications yet.</td></tr>'; return; }
+        vsTbody.innerHTML = data.map(v=>`<tr>
+            <td>${escHtml(v.value||'&mdash;')}</td>
+            <td><code>${escHtml(v.value_type||'&mdash;')}</code></td>
+            <td>${escHtml(v.value_from||'&mdash;')}</td>
+            <td>${escHtml(v.value_to||'&mdash;')}</td>
+            <td>${escHtml(v.unit_of_measure||'&mdash;')}</td>
+            <td>${v.is_default?'<span class="badge badge--success">Yes</span>':'&mdash;'}</td>
+            <td><button class="btn btn--danger btn--sm" onclick="deleteVsEntry('${escHtml(v.id)}')">&#x1F5D1;</button></td>
+        </tr>`).join('');
+    } catch(err){ vsTbody.innerHTML=`<tr><td colspan="7" style="color:var(--colour-danger)">${escHtml(err.message)}</td></tr>`; }
+}
+
+async function deleteVsEntry(vsId) {
+    try {
+        await CharacteristicValueSpecClient.delete(charState.specId, charState.vsCharId, vsId);
+        showToast('Value spec deleted','success');
+        await loadVsRows();
+        await loadCharacteristics();
+    } catch(err){ showToast(err.message,'error'); }
+}
+
+document.getElementById('vs-modal-close').addEventListener('click', closeVsModal);
+document.getElementById('vs-modal-close-btn').addEventListener('click', closeVsModal);
+vsModalBD.addEventListener('click', e=>{if(e.target===vsModalBD)closeVsModal();});
+document.getElementById('vs-modal-add').addEventListener('click', async function(){
+    vsFormErr.style.display='none'; this.disabled=true; this.innerHTML='<span class="loader"></span>';
+    try {
+        const payload={value:vsFldValue.value.trim()||null,value_type:vsFldType.value,
+            value_from:vsFldFrom.value.trim()||null,value_to:vsFldTo.value.trim()||null,
+            unit_of_measure:vsFldUnit.value.trim()||null,is_default:vsFldDefault.checked};
+        await CharacteristicValueSpecClient.create(charState.specId, charState.vsCharId, payload);
+        showToast('Value specification added','success');
+        vsFldValue.value=''; vsFldFrom.value=''; vsFldTo.value=''; vsFldUnit.value=''; vsFldDefault.checked=false;
+        await loadVsRows();
+        await loadCharacteristics();
+    } catch(err){ vsFormErr.textContent=err.message; vsFormErr.style.display='block'; showToast(err.message,'error'); }
+    finally{ this.disabled=false; this.textContent='Add Value'; }
+});
 
 // ══ INIT ══════════════════════════════════════════════════════════════════════
 loadSpecs();

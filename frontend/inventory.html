@@ -226,10 +226,110 @@
     </div>
 </div>
 
+<!-- ── Service Characteristics Modal ──────────────────────────────────────── -->
+<div class="modal-backdrop" id="svc-char-modal-backdrop">
+    <div class="modal" style="max-width:700px" role="dialog" aria-modal="true" aria-labelledby="svc-char-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="svc-char-modal-title">Service Characteristics</span>
+            <button class="btn btn--ghost btn--icon" id="svc-char-modal-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="svc-char-service-name" style="margin-bottom:var(--space-md)"></p>
+            <div class="table-wrapper" style="margin-bottom:var(--space-md)">
+                <table><thead><tr>
+                    <th>Name</th><th>Type</th><th>Alias</th><th>Unit</th><th>Values</th><th></th>
+                </tr></thead>
+                <tbody id="svc-char-tbody"></tbody>
+                </table>
+            </div>
+            <hr style="margin:var(--space-md) 0">
+            <p style="font-weight:600;margin-bottom:var(--space-sm)">Add Characteristic</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="svc-char-field-name">Name <span class="required">*</span></label>
+                    <input type="text" id="svc-char-field-name" class="form-control" placeholder="e.g. Speed">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-char-field-value-type">Value Type</label>
+                    <select id="svc-char-field-value-type" class="form-control">
+                        <option value="string">string</option>
+                        <option value="integer">integer</option>
+                        <option value="float">float</option>
+                        <option value="boolean">boolean</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-char-field-alias">Alias</label>
+                    <input type="text" id="svc-char-field-alias" class="form-control" placeholder="Optional alias">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-char-field-unit">Unit of Measure</label>
+                    <input type="text" id="svc-char-field-unit" class="form-control" placeholder="e.g. Mbps">
+                </div>
+            </div>
+            <div id="svc-char-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="svc-char-modal-close-btn">Close</button>
+            <button class="btn btn--primary" id="svc-char-modal-add">Add Characteristic</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Service Characteristic Values Modal ────────────────────────────────── -->
+<div class="modal-backdrop" id="svc-char-val-modal-backdrop">
+    <div class="modal" style="max-width:580px" role="dialog" aria-modal="true" aria-labelledby="svc-char-val-modal-title">
+        <div class="modal__header">
+            <span class="modal__title" id="svc-char-val-modal-title">Characteristic Values</span>
+            <button class="btn btn--ghost btn--icon" id="svc-char-val-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted text-sm" id="svc-char-val-char-name" style="margin-bottom:var(--space-md)"></p>
+            <div class="table-wrapper" style="margin-bottom:var(--space-md)">
+                <table><thead><tr>
+                    <th>Value</th><th>Type</th><th>Alias</th><th>Unit</th><th></th>
+                </tr></thead>
+                <tbody id="svc-char-val-tbody"></tbody>
+                </table>
+            </div>
+            <hr style="margin:var(--space-md) 0">
+            <p style="font-weight:600;margin-bottom:var(--space-sm)">Add Value</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+                <div class="form-group">
+                    <label class="form-label" for="svc-val-field-value">Value</label>
+                    <input type="text" id="svc-val-field-value" class="form-control" placeholder="e.g. 100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-val-field-type">Value Type</label>
+                    <select id="svc-val-field-type" class="form-control">
+                        <option value="string">string</option>
+                        <option value="integer">integer</option>
+                        <option value="float">float</option>
+                        <option value="boolean">boolean</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-val-field-alias">Alias</label>
+                    <input type="text" id="svc-val-field-alias" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="svc-val-field-unit">Unit of Measure</label>
+                    <input type="text" id="svc-val-field-unit" class="form-control" placeholder="e.g. Mbps">
+                </div>
+            </div>
+            <div id="svc-val-form-error" class="form-error" style="display:none"></div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="svc-char-val-close-btn">Close</button>
+            <button class="btn btn--primary" id="svc-char-val-add">Add Value</button>
+        </div>
+    </div>
+</div>
+
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
-<script src="js/api-client.js?v=6"></script>
+<script src="js/api-client.js?v=7"></script>
 <script>
 // ── Config ─────────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
@@ -364,7 +464,7 @@ async function loadServices() {
                 </td>
                 <td class="muted">${fmtDate(svc.start_date)}</td>
                 <td class="id-cell truncate" style="max-width:120px" title="${escHtml(svc.id)}">${escHtml(svc.id.slice(0,8))}…</td>
-                <td class="actions-cell">${actionBtns}${deleteBtn}</td>
+                <td class="actions-cell"><button class="btn btn--ghost btn--sm" onclick="openSvcCharModal('${escHtml(svc.id)}','${escHtml(svc.name||'')}')" title="Manage Characteristics">&#x1F9E9;</button> ${actionBtns}${deleteBtn}</td>
             </tr>`;
         }).join('');
     } catch (err) {
@@ -500,6 +600,133 @@ btnNext.addEventListener('click', () => {
 filterState.addEventListener('change', () => {
     currentOffset = 0;
     loadServices();
+});
+
+// ── Service Characteristics ───────────────────────────────────────────────────
+const svcCharState = { serviceId: null, serviceName: null, charId: null, charName: null };
+
+const svcCharModalBD  = document.getElementById('svc-char-modal-backdrop');
+const svcCharTbody    = document.getElementById('svc-char-tbody');
+const svcCharSvcName  = document.getElementById('svc-char-service-name');
+const svcCharFldName  = document.getElementById('svc-char-field-name');
+const svcCharFldType  = document.getElementById('svc-char-field-value-type');
+const svcCharFldAlias = document.getElementById('svc-char-field-alias');
+const svcCharFldUnit  = document.getElementById('svc-char-field-unit');
+const svcCharFormErr  = document.getElementById('svc-char-form-error');
+
+function closeSvcCharModal() { svcCharModalBD.classList.remove('open'); svcCharState.serviceId = null; }
+
+async function openSvcCharModal(svcId, svcName) {
+    svcCharState.serviceId = svcId;
+    svcCharState.serviceName = svcName;
+    svcCharSvcName.textContent = 'Service: ' + svcName;
+    svcCharFldName.value = ''; svcCharFldType.value = 'string'; svcCharFldAlias.value = ''; svcCharFldUnit.value = '';
+    svcCharFormErr.style.display = 'none';
+    svcCharModalBD.classList.add('open');
+    await loadSvcCharRows();
+}
+
+async function loadSvcCharRows() {
+    svcCharTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:var(--space-md)"><div class="loader"></div></td></tr>';
+    try {
+        const { data } = await ServiceCharacteristicClient.listByService(svcCharState.serviceId, { limit: 100 });
+        if (!data.length) { svcCharTbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:var(--space-md)">No characteristics yet.</td></tr>'; return; }
+        svcCharTbody.innerHTML = data.map(c => `<tr>
+            <td>${escHtml(c.name || '—')}</td>
+            <td><code>${escHtml(c.value_type || '—')}</code></td>
+            <td>${escHtml(c.alias || '—')}</td>
+            <td>${escHtml(c.unit_of_measure || '—')}</td>
+            <td><button class="btn btn--ghost btn--sm" onclick="openSvcCharValModal('${escHtml(c.id)}','${escHtml(c.name)}')">${(c.characteristic_value || []).length} value(s)</button></td>
+            <td><button class="btn btn--danger btn--sm" onclick="deleteSvcChar('${escHtml(c.id)}')">&#x1F5D1;</button></td>
+        </tr>`).join('');
+    } catch(err) { svcCharTbody.innerHTML = `<tr><td colspan="6" style="color:var(--colour-danger)">${escHtml(err.message)}</td></tr>`; }
+}
+
+async function deleteSvcChar(charId) {
+    try {
+        await ServiceCharacteristicClient.delete(svcCharState.serviceId, charId);
+        showToast('Characteristic deleted', 'success');
+        await loadSvcCharRows();
+    } catch(err) { showToast(err.message, 'error'); }
+}
+
+document.getElementById('svc-char-modal-close').addEventListener('click', closeSvcCharModal);
+document.getElementById('svc-char-modal-close-btn').addEventListener('click', closeSvcCharModal);
+svcCharModalBD.addEventListener('click', e => { if (e.target === svcCharModalBD) closeSvcCharModal(); });
+document.getElementById('svc-char-modal-add').addEventListener('click', async function() {
+    const name = svcCharFldName.value.trim();
+    if (!name) { svcCharFormErr.textContent = 'Name is required.'; svcCharFormErr.style.display = 'block'; svcCharFldName.focus(); return; }
+    svcCharFormErr.style.display = 'none'; this.disabled = true; this.innerHTML = '<span class="loader"></span>';
+    try {
+        const payload = { name, value_type: svcCharFldType.value, alias: svcCharFldAlias.value.trim() || null, unit_of_measure: svcCharFldUnit.value.trim() || null };
+        await ServiceCharacteristicClient.create(svcCharState.serviceId, payload);
+        showToast('Characteristic added', 'success');
+        svcCharFldName.value = ''; svcCharFldAlias.value = ''; svcCharFldUnit.value = '';
+        await loadSvcCharRows();
+    } catch(err) { svcCharFormErr.textContent = err.message; svcCharFormErr.style.display = 'block'; showToast(err.message, 'error'); }
+    finally { this.disabled = false; this.textContent = 'Add Characteristic'; }
+});
+
+// ── Service Characteristic Values ─────────────────────────────────────────────
+const svcCharValModalBD  = document.getElementById('svc-char-val-modal-backdrop');
+const svcCharValTbody    = document.getElementById('svc-char-val-tbody');
+const svcCharValCharName = document.getElementById('svc-char-val-char-name');
+const svcValFldValue     = document.getElementById('svc-val-field-value');
+const svcValFldType      = document.getElementById('svc-val-field-type');
+const svcValFldAlias     = document.getElementById('svc-val-field-alias');
+const svcValFldUnit      = document.getElementById('svc-val-field-unit');
+const svcValFormErr      = document.getElementById('svc-val-form-error');
+
+function closeSvcCharValModal() { svcCharValModalBD.classList.remove('open'); svcCharState.charId = null; }
+
+async function openSvcCharValModal(charId, charName) {
+    svcCharState.charId = charId;
+    svcCharState.charName = charName;
+    svcCharValCharName.textContent = 'Characteristic: ' + charName;
+    svcValFldValue.value = ''; svcValFldType.value = 'string'; svcValFldAlias.value = ''; svcValFldUnit.value = '';
+    svcValFormErr.style.display = 'none';
+    svcCharValModalBD.classList.add('open');
+    await loadSvcCharValRows();
+}
+
+async function loadSvcCharValRows() {
+    svcCharValTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:var(--space-md)"><div class="loader"></div></td></tr>';
+    try {
+        const { data } = await CharacteristicValueClient.listByChar(svcCharState.serviceId, svcCharState.charId, { limit: 100 });
+        if (!data.length) { svcCharValTbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:var(--space-md)">No values yet.</td></tr>'; return; }
+        svcCharValTbody.innerHTML = data.map(v => `<tr>
+            <td>${escHtml(v.value || '—')}</td>
+            <td><code>${escHtml(v.value_type || '—')}</code></td>
+            <td>${escHtml(v.alias || '—')}</td>
+            <td>${escHtml(v.unit_of_measure || '—')}</td>
+            <td><button class="btn btn--danger btn--sm" onclick="deleteSvcCharVal('${escHtml(v.id)}')">&#x1F5D1;</button></td>
+        </tr>`).join('');
+    } catch(err) { svcCharValTbody.innerHTML = `<tr><td colspan="5" style="color:var(--colour-danger)">${escHtml(err.message)}</td></tr>`; }
+}
+
+async function deleteSvcCharVal(valId) {
+    try {
+        await CharacteristicValueClient.delete(svcCharState.serviceId, svcCharState.charId, valId);
+        showToast('Value deleted', 'success');
+        await loadSvcCharValRows();
+        await loadSvcCharRows();
+    } catch(err) { showToast(err.message, 'error'); }
+}
+
+document.getElementById('svc-char-val-close').addEventListener('click', closeSvcCharValModal);
+document.getElementById('svc-char-val-close-btn').addEventListener('click', closeSvcCharValModal);
+svcCharValModalBD.addEventListener('click', e => { if (e.target === svcCharValModalBD) closeSvcCharValModal(); });
+document.getElementById('svc-char-val-add').addEventListener('click', async function() {
+    svcValFormErr.style.display = 'none'; this.disabled = true; this.innerHTML = '<span class="loader"></span>';
+    try {
+        const payload = { value: svcValFldValue.value.trim() || null, value_type: svcValFldType.value, alias: svcValFldAlias.value.trim() || null, unit_of_measure: svcValFldUnit.value.trim() || null };
+        await CharacteristicValueClient.create(svcCharState.serviceId, svcCharState.charId, payload);
+        showToast('Value added', 'success');
+        svcValFldValue.value = ''; svcValFldAlias.value = ''; svcValFldUnit.value = '';
+        await loadSvcCharValRows();
+        await loadSvcCharRows();
+    } catch(err) { svcValFormErr.textContent = err.message; svcValFormErr.style.display = 'block'; showToast(err.message, 'error'); }
+    finally { this.disabled = false; this.textContent = 'Add Value'; }
 });
 
 // ── Init ───────────────────────────────────────────────────────────────────────

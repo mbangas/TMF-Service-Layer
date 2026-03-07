@@ -486,3 +486,211 @@ const ServiceCatalogClient = {
      */
     delete(id) { return apiDelete(`${SERVICE_CATALOG_BASE}/${id}`); },
 };
+
+/* ── CharacteristicSpecClient (TMF633 — ServiceSpecCharacteristic) ────────────── */
+
+const CharacteristicSpecClient = {
+    /**
+     * List ServiceSpecCharacteristics for a specification.
+     * @param {string} specId
+     * @param {{ offset?: number, limit?: number }} params
+     */
+    listBySpec(specId, params = {}) {
+        return apiGet(`${CATALOG_BASE}/${specId}/serviceSpecCharacteristic`, params);
+    },
+
+    /**
+     * Get a single ServiceSpecCharacteristic.
+     * @param {string} specId
+     * @param {string} charId
+     */
+    get(specId, charId) {
+        return apiGet(`${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}`);
+    },
+
+    /**
+     * Create a new ServiceSpecCharacteristic.
+     * @param {string} specId
+     * @param {object} body
+     */
+    create(specId, body) {
+        return apiPost(`${CATALOG_BASE}/${specId}/serviceSpecCharacteristic`, body);
+    },
+
+    /**
+     * Partially update a ServiceSpecCharacteristic (PATCH).
+     * @param {string} specId
+     * @param {string} charId
+     * @param {object} body
+     */
+    patch(specId, charId, body) {
+        return apiPatch(`${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}`, body);
+    },
+
+    /**
+     * Delete a ServiceSpecCharacteristic.
+     * @param {string} specId
+     * @param {string} charId
+     */
+    delete(specId, charId) {
+        return apiDelete(`${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}`);
+    },
+};
+
+/* ── CharacteristicValueSpecClient (TMF633 — CharacteristicValueSpecification) ── */
+
+const CharacteristicValueSpecClient = {
+    /**
+     * List CharacteristicValueSpecifications for a characteristic.
+     * @param {string} specId
+     * @param {string} charId
+     * @param {{ offset?: number, limit?: number }} params
+     */
+    listByChar(specId, charId, params = {}) {
+        return apiGet(
+            `${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}/characteristicValueSpecification`,
+            params
+        );
+    },
+
+    /**
+     * Get a single CharacteristicValueSpecification.
+     * @param {string} specId
+     * @param {string} charId
+     * @param {string} vsId
+     */
+    get(specId, charId, vsId) {
+        return apiGet(
+            `${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}/characteristicValueSpecification/${vsId}`
+        );
+    },
+
+    /**
+     * Create a new CharacteristicValueSpecification.
+     * @param {string} specId
+     * @param {string} charId
+     * @param {object} body
+     */
+    create(specId, charId, body) {
+        return apiPost(
+            `${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}/characteristicValueSpecification`,
+            body
+        );
+    },
+
+    /**
+     * Delete a CharacteristicValueSpecification.
+     * @param {string} specId
+     * @param {string} charId
+     * @param {string} vsId
+     */
+    delete(specId, charId, vsId) {
+        return apiDelete(
+            `${CATALOG_BASE}/${specId}/serviceSpecCharacteristic/${charId}/characteristicValueSpecification/${vsId}`
+        );
+    },
+};
+
+/* ── ServiceCharacteristicClient (TMF638 — ServiceCharacteristic) ────────────── */
+
+const ServiceCharacteristicClient = {
+    /**
+     * List ServiceCharacteristics for a service instance.
+     * @param {string} serviceId
+     * @param {{ offset?: number, limit?: number }} params
+     */
+    listByService(serviceId, params = {}) {
+        return apiGet(`${INVENTORY_BASE}/${serviceId}/serviceCharacteristic`, params);
+    },
+
+    /**
+     * Get a single ServiceCharacteristic.
+     * @param {string} serviceId
+     * @param {string} charId
+     */
+    get(serviceId, charId) {
+        return apiGet(`${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}`);
+    },
+
+    /**
+     * Create a new ServiceCharacteristic.
+     * @param {string} serviceId
+     * @param {object} body
+     */
+    create(serviceId, body) {
+        return apiPost(`${INVENTORY_BASE}/${serviceId}/serviceCharacteristic`, body);
+    },
+
+    /**
+     * Partially update a ServiceCharacteristic (PATCH).
+     * @param {string} serviceId
+     * @param {string} charId
+     * @param {object} body
+     */
+    patch(serviceId, charId, body) {
+        return apiPatch(`${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}`, body);
+    },
+
+    /**
+     * Delete a ServiceCharacteristic.
+     * @param {string} serviceId
+     * @param {string} charId
+     */
+    delete(serviceId, charId) {
+        return apiDelete(`${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}`);
+    },
+};
+
+/* ── CharacteristicValueClient (TMF638 — CharacteristicValue) ────────────────── */
+
+const CharacteristicValueClient = {
+    /**
+     * List CharacteristicValues for a service characteristic.
+     * @param {string} serviceId
+     * @param {string} charId
+     * @param {{ offset?: number, limit?: number }} params
+     */
+    listByChar(serviceId, charId, params = {}) {
+        return apiGet(
+            `${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}/characteristicValue`,
+            params
+        );
+    },
+
+    /**
+     * Get a single CharacteristicValue.
+     * @param {string} serviceId
+     * @param {string} charId
+     * @param {string} valId
+     */
+    get(serviceId, charId, valId) {
+        return apiGet(
+            `${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}/characteristicValue/${valId}`
+        );
+    },
+
+    /**
+     * Create a new CharacteristicValue.
+     * @param {string} serviceId
+     * @param {string} charId
+     * @param {object} body
+     */
+    create(serviceId, charId, body) {
+        return apiPost(
+            `${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}/characteristicValue`,
+            body
+        );
+    },
+
+    /**
+     * Delete a CharacteristicValue.
+     * @param {string} serviceId
+     * @param {string} charId
+     * @param {string} valId
+     */
+    delete(serviceId, charId, valId) {
+        return apiDelete(
+            `${INVENTORY_BASE}/${serviceId}/serviceCharacteristic/${charId}/characteristicValue/${valId}`
+        );
+    },
+};

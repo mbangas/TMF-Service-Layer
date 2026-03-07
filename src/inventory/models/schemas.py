@@ -16,6 +16,32 @@ VALID_SERVICE_STATES = {
     "terminated",
 }
 
+# ── CharacteristicValue ─────────────────────────────────────────────────────
+
+class CharacteristicValueBase(BaseModel):
+    """Shared fields for CharacteristicValue create / response."""
+
+    value: str | None = Field(default=None, description="The actual runtime value")
+    value_type: str | None = Field(default=None, description="Data type of the value")
+    alias: str | None = Field(default=None, description="Human-readable alias for the value")
+    unit_of_measure: str | None = Field(default=None, description="Unit of measure")
+
+
+class CharacteristicValueCreate(CharacteristicValueBase):
+    """Request body for creating a CharacteristicValue."""
+
+    pass
+
+
+class CharacteristicValueResponse(CharacteristicValueBase):
+    """Response body for a CharacteristicValue."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    char_id: str
+    created_at: datetime
+    updated_at: datetime
 
 # ── ServiceCharacteristic ─────────────────────────────────────────────────────
 
@@ -30,7 +56,18 @@ class ServiceCharacteristicBase(BaseModel):
 class ServiceCharacteristicCreate(ServiceCharacteristicBase):
     """Request body for creating a service characteristic."""
 
-    pass
+    characteristic_value: list[CharacteristicValueCreate] = Field(
+        default_factory=list,
+        description="Runtime values for this characteristic",
+    )
+
+
+class ServiceCharacteristicPatch(BaseModel):
+    """Request body for partial update (PATCH) of a ServiceCharacteristic."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    value: str | None = None
+    value_type: str | None = None
 
 
 class ServiceCharacteristicResponse(ServiceCharacteristicBase):
@@ -40,6 +77,9 @@ class ServiceCharacteristicResponse(ServiceCharacteristicBase):
 
     id: str
     service_id: str
+    characteristic_value: list[CharacteristicValueResponse] = Field(
+        default_factory=list
+    )
     created_at: datetime
     updated_at: datetime
 

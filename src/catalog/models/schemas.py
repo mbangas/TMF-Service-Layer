@@ -7,6 +7,38 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.shared.models.base_entity import BaseEntity
 
 
+# ── CharacteristicValueSpecification ─────────────────────────────────────────
+
+class CharacteristicValueSpecBase(BaseModel):
+    """Shared fields for CharacteristicValueSpecification create / update."""
+
+    value_type: str | None = Field(default=None, description="Data type of the allowed value")
+    value: str | None = Field(default=None, description="Specific allowed value")
+    value_from: str | None = Field(default=None, description="Start of an allowed value range")
+    value_to: str | None = Field(default=None, description="End of an allowed value range")
+    range_interval: str | None = Field(default=None, description="Range interval type (open, closed, etc.)")
+    regex: str | None = Field(default=None, description="Regular expression describing allowed values")
+    unit_of_measure: str | None = Field(default=None, description="Unit of measure for the value")
+    is_default: bool = Field(default=False, description="True if this is the default value")
+
+
+class CharacteristicValueSpecCreate(CharacteristicValueSpecBase):
+    """Request body for creating a CharacteristicValueSpecification."""
+
+    pass
+
+
+class CharacteristicValueSpecResponse(CharacteristicValueSpecBase):
+    """Response body for a CharacteristicValueSpecification."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    char_spec_id: str
+    created_at: datetime
+    updated_at: datetime
+
+
 # ── ServiceSpecCharacteristic ─────────────────────────────────────────────────
 
 class ServiceSpecCharacteristicBase(BaseModel):
@@ -24,7 +56,22 @@ class ServiceSpecCharacteristicBase(BaseModel):
 class ServiceSpecCharacteristicCreate(ServiceSpecCharacteristicBase):
     """Request body for creating a characteristic."""
 
-    pass
+    characteristic_value_specification: list[CharacteristicValueSpecCreate] = Field(
+        default_factory=list,
+        description="Allowed values for this characteristic",
+    )
+
+
+class ServiceSpecCharacteristicPatch(BaseModel):
+    """Request body for partial update (PATCH) of a ServiceSpecCharacteristic."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = None
+    value_type: str | None = None
+    is_unique: bool | None = None
+    min_cardinality: int | None = Field(default=None, ge=0)
+    max_cardinality: int | None = Field(default=None, ge=1)
+    extensible: bool | None = None
 
 
 class ServiceSpecCharacteristicResponse(ServiceSpecCharacteristicBase):
@@ -34,6 +81,9 @@ class ServiceSpecCharacteristicResponse(ServiceSpecCharacteristicBase):
 
     id: str
     service_spec_id: str
+    characteristic_value_specification: list[CharacteristicValueSpecResponse] = Field(
+        default_factory=list
+    )
     created_at: datetime
     updated_at: datetime
 

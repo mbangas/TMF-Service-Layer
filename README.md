@@ -61,9 +61,10 @@ The **Service Inventory** module tracks all active (and historical) service inst
 | Phase 5 | TMF645 Service Qualification | ✅ Done |
 | Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | ✅ Done |
 | Phase 7 | TMF653 Service Test Management | ✅ Done |
-| Phase 8 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
-| Phase 9 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
-| Phase 10 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
+| Phase 8 (TMFC006) | TMF633/TMF638 Characteristic Management — `CharacteristicValueSpecification` + `CharacteristicValue` standalone CRUD | ✅ Done |
+| Phase 9 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
+| Phase 10 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
+| Phase 11 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
 
 ---
 
@@ -169,7 +170,7 @@ The **Service Catalog** module is the foundation of the Service Layer. It enable
 |---|---|
 | `ServiceSpecification` | Technical and functional definition of a service (template) |
 | `ServiceSpecCharacteristic` | Configurable parameter of a service specification |
-| `ServiceSpecCharacteristicValue` | Allowed values for a given characteristic |
+| `CharacteristicValueSpecification` | Allowed (or enumerated) values for a characteristic parameter |
 | `ServiceLevelSpecification` | SLA constraints associated with a service |
 | `ServiceSpecRelationship` | Relationship between specifications (e.g., CFS → RFS) |
 
@@ -182,6 +183,14 @@ The **Service Catalog** module is the foundation of the Service Layer. It enable
 | `POST` | `/serviceSpecification` | Create a new service specification |
 | `PATCH` | `/serviceSpecification/{id}` | Update a service specification |
 | `DELETE` | `/serviceSpecification/{id}` | Remove a service specification |
+| `GET` | `/serviceSpecification/{id}/serviceSpecCharacteristic` | List characteristics for a specification |
+| `POST` | `/serviceSpecification/{id}/serviceSpecCharacteristic` | Add a characteristic to a specification |
+| `GET` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}` | Retrieve a characteristic |
+| `PATCH` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}` | Update a characteristic |
+| `DELETE` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}` | Remove a characteristic |
+| `GET` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}/characteristicValueSpecification` | List value specs |
+| `POST` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}/characteristicValueSpecification` | Add a value spec |
+| `DELETE` | `/serviceSpecification/{id}/serviceSpecCharacteristic/{cid}/characteristicValueSpecification/{vid}` | Remove a value spec |
 
 #### Module Location
 
@@ -282,7 +291,8 @@ The **Service Inventory** module tracks all provisioned service instances. Insta
 | SID Entity | Description |
 |---|---|
 | `Service` | An active (or historical) service instance delivered to a customer |
-| `ServiceCharacteristic` | Instantiated parameter value for a specific service instance |
+| `ServiceCharacteristic` | Instantiated characteristic parameter for a specific service instance |
+| `CharacteristicValue` | Specific value assigned to a characteristic on a service instance |
 
 #### API Endpoints (TMF638)
 
@@ -293,6 +303,14 @@ The **Service Inventory** module tracks all provisioned service instances. Insta
 | `POST` | `/tmf-api/serviceInventory/v4/service` | Create a new service instance |
 | `PATCH` | `/tmf-api/serviceInventory/v4/service/{id}` | Update / advance state of a service instance |
 | `DELETE` | `/tmf-api/serviceInventory/v4/service/{id}` | Delete a terminated or inactive service instance |
+| `GET` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic` | List characteristics of a service |
+| `POST` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic` | Add a characteristic to a service |
+| `GET` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}` | Retrieve a characteristic |
+| `PATCH` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}` | Update a characteristic |
+| `DELETE` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}` | Remove a characteristic |
+| `GET` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}/characteristicValue` | List values of a characteristic |
+| `POST` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}/characteristicValue` | Add a value |
+| `DELETE` | `/tmf-api/serviceInventory/v4/service/{id}/serviceCharacteristic/{cid}/characteristicValue/{vid}` | Remove a value |
 
 #### Module Location
 

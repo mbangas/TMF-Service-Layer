@@ -77,6 +77,45 @@ class ServiceSpecCharacteristicOrm(Base, TimestampMixin):
     service_specification: Mapped["ServiceSpecificationOrm"] = relationship(
         back_populates="service_spec_characteristic"
     )
+    characteristic_value_specification: Mapped[list["CharacteristicValueSpecificationOrm"]] = relationship(
+        back_populates="service_spec_characteristic",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class CharacteristicValueSpecificationOrm(Base, TimestampMixin):
+    """Represents an allowed value for a ServiceSpecCharacteristic.
+
+    Maps to the TMF633 ``CharacteristicValueSpecification`` entity.
+    """
+
+    __tablename__ = "characteristic_value_specification"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    value_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    value_from: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    value_to: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    range_interval: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    regex: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    unit_of_measure: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_default: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+    # FK to parent characteristic
+    char_spec_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service_spec_characteristic.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    service_spec_characteristic: Mapped["ServiceSpecCharacteristicOrm"] = relationship(
+        back_populates="characteristic_value_specification"
+    )
 
 
 class ServiceLevelSpecificationOrm(Base, TimestampMixin):

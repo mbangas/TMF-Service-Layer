@@ -34,6 +34,41 @@ class ServiceCharacteristicOrm(Base, TimestampMixin):
         index=True,
     )
     service: Mapped["ServiceOrm"] = relationship(back_populates="service_characteristic")
+    characteristic_value: Mapped[list["CharacteristicValueOrm"]] = relationship(
+        back_populates="service_characteristic",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class CharacteristicValueOrm(Base, TimestampMixin):
+    """Represents an actual runtime value for a ServiceCharacteristic instance.
+
+    Maps to the TMF638 ``CharacteristicValue`` entity.
+    """
+
+    __tablename__ = "characteristic_value"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    value_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    alias: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    unit_of_measure: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # FK → parent characteristic (CASCADE)
+    char_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("service_characteristic.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    service_characteristic: Mapped["ServiceCharacteristicOrm"] = relationship(
+        back_populates="characteristic_value"
+    )
 
 
 class ServiceOrm(Base, TimestampMixin):

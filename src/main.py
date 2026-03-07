@@ -12,8 +12,10 @@ from src.catalog.api.router import router as catalog_router
 from src.catalog.api.category_router import router as catalog_category_router
 from src.catalog.api.candidate_router import router as catalog_candidate_router
 from src.catalog.api.service_catalog_router import router as service_catalog_router
+from src.catalog.api.characteristic_router import router as catalog_characteristic_router
 from src.config import settings
 from src.inventory.api.router import router as inventory_router
+from src.inventory.api.characteristic_router import router as inventory_characteristic_router
 from src.order.api.router import router as order_router
 from src.provisioning.api.router import router as provisioning_router
 from src.qualification.api.router import router as qualification_router
@@ -66,8 +68,10 @@ app.include_router(catalog_router)
 app.include_router(catalog_category_router)
 app.include_router(catalog_candidate_router)
 app.include_router(service_catalog_router)
+app.include_router(catalog_characteristic_router)
 app.include_router(order_router)
 app.include_router(inventory_router)
+app.include_router(inventory_characteristic_router)
 app.include_router(provisioning_router)
 app.include_router(qualification_router)
 
