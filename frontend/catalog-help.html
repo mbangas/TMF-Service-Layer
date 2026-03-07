@@ -190,6 +190,108 @@
         }
         .back-link:hover { color: var(--colour-primary); text-decoration: none; }
 
+        /* ── Print / PDF ── */
+        @media print {
+            /* Reset to light background for readability */
+            :root {
+                --colour-bg:           #ffffff;
+                --colour-surface:      #f8f9fc;
+                --colour-surface-alt:  #eef0f6;
+                --colour-border:       #d1d5db;
+                --colour-border-light: #e5e7eb;
+                --colour-text:         #111827;
+                --colour-text-muted:   #4b5563;
+                --colour-primary:      #2563eb;
+                --colour-success:      #059669;
+                --colour-warning:      #d97706;
+                --colour-danger:       #dc2626;
+                --colour-info:         #2563eb;
+            }
+            body { background: #fff; color: #111; }
+
+            /* Hide chrome elements */
+            aside.sidebar,
+            .topbar__actions,
+            .back-link { display: none !important; }
+
+            /* Full-width layout — no sidebar */
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+
+            /* Topbar becomes a simple header */
+            .topbar {
+                border: none;
+                padding: 8px 0 16px;
+                background: transparent;
+            }
+            .topbar__title { font-size: 20px; color: #111; }
+            .topbar__subtitle { color: #4b5563; }
+
+            /* Cards */
+            .step-card {
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                break-inside: avoid;
+                margin-bottom: 20px;
+                background: #fff;
+            }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+
+            /* Intro box */
+            .help-intro {
+                background: #eff6ff;
+                border-color: #93c5fd;
+            }
+
+            /* Callouts */
+            .callout--info    { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .callout--success { background: #ecfdf5; border-color: #10b981; }
+
+            /* API blocks — keep dark for contrast */
+            .api-block {
+                background: #1e293b;
+                border-color: #334155;
+                color: #a5d6a7;
+                font-size: 9px;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+
+            /* Diagrams */
+            .diagram-wrapper {
+                background: #f8fafc;
+                border-color: #d1d5db;
+                break-inside: avoid;
+            }
+
+            /* TMF pills */
+            .tmf-pill {
+                background: #dbeafe;
+                color: #1d4ed8;
+                border-color: #93c5fd;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* SVG diagrams — force colour printing */
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+            /* Tables */
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #e5e7eb !important; }
+
+            /* Checklist */
+            .checklist__num { background: #dbeafe; color: #1d4ed8; }
+
+            /* Page breaks */
+            .step-card { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+        }
+
         .divider {
             border: none;
             border-top: 1px solid var(--colour-border);
@@ -245,6 +347,7 @@
                 <div class="topbar__subtitle">Como configurar um serviço do catálogo até à criação de uma ordem</div>
             </div>
             <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" id="btn-pdf" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
                 <a href="catalog.html" class="btn btn--ghost btn--sm">&#8592; Voltar ao Catálogo</a>
             </div>
         </div>
@@ -1150,5 +1253,18 @@
     </main>
 </div><!-- /app-shell -->
 
+<script>
+    function printToPDF() {
+        const btn = document.getElementById('btn-pdf');
+        btn.disabled = true;
+        btn.textContent = 'A preparar…';
+        // Short tick so the browser can update the button before entering print
+        setTimeout(function () {
+            window.print();
+            btn.disabled = false;
+            btn.innerHTML = '&#x1F4E5; Gerar PDF';
+        }, 120);
+    }
+</script>
 </body>
 </html>
