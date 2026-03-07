@@ -65,10 +65,10 @@ app.include_router(inventory_router)
 app.include_router(provisioning_router)
 app.include_router(qualification_router)
 
+from src.assurance.api.router import router as assurance_router  # noqa: E402
+app.include_router(assurance_router)
+
 # Future routers (placeholder — uncomment as modules are implemented):
-#
-# from src.assurance.api.router import router as assurance_router
-# app.include_router(assurance_router)
 #
 # from src.testing.api.router import router as testing_router
 # app.include_router(testing_router)

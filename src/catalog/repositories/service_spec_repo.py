@@ -79,6 +79,25 @@ class ServiceSpecificationRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_sls_by_id(self, sls_id: str) -> ServiceLevelSpecificationOrm | None:
+        """Fetch a single ServiceLevelSpecification by its ID.
+
+        Used by the assurance module to validate the optional ``sls_id`` FK
+        when creating a ``ServiceLevelObjective``.
+
+        Args:
+            sls_id: The UUID string identifier of the SLS.
+
+        Returns:
+            The ORM instance or ``None`` if not found.
+        """
+        result = await self._db.execute(
+            select(ServiceLevelSpecificationOrm).where(
+                ServiceLevelSpecificationOrm.id == sls_id
+            )
+        )
+        return result.scalar_one_or_none()
+
     # ── Write ─────────────────────────────────────────────────────────────────
 
     async def create(self, data: ServiceSpecificationCreate) -> ServiceSpecificationOrm:

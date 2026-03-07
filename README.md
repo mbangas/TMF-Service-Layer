@@ -13,11 +13,11 @@ This application implements the following functional domains:
 | Domain | Key Capability | TMF API | Status |
 |---|---|---|---|
 | Service Design | Service catalog, specifications, SLA | TMF633 | ✅ Implemented |
-| Pre-Sales | Service qualification and availability checks | TMF645 | � Planned |
+| Pre-Sales | Service qualification and availability checks | TMF645 | ✅ Implemented |
 | Order Management | Full service order lifecycle management | TMF641 | ✅ Implemented |
-| Provisioning | Service activation and configuration | TMF640 | � In Progress |
-| Inventory | Active service instances and relationships | TMF638 | 🔄 In Progress |
-| Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | 📋 Planned |
+| Provisioning | Service activation and configuration | TMF640 | ✅ Implemented |
+| Inventory | Active service instances and relationships | TMF638 | ✅ Implemented |
+| Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | ✅ Implemented |
 | Testing | Automated service test and validation | TMF653 | 📋 Planned |
 | Problem Management | Incidents, trouble tickets, root cause | TMF621, TMF656 | 📋 Planned |
 | Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | 📋 Planned |
@@ -57,9 +57,9 @@ The **Service Inventory** module tracks all active (and historical) service inst
 | Phase 2a | TMF633 Service Catalog — ServiceSpecification CRUD + lifecycle | ✅ Done |
 | Phase 2b | TMF641 Service Order Management — order lifecycle + FK to catalog | ✅ Done |
 | Phase 3 | TMF638 Service Inventory + tech-debt fixes | ✅ Done |
-| Phase 4 | TMF640 Service Activation & Configuration (Provisioning) | 🔄 In Progress |
-| Phase 5 | TMF645 Service Qualification | 📋 Planned |
-| Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | 📋 Planned |
+| Phase 4 | TMF640 Service Activation & Configuration (Provisioning) | ✅ Done |
+| Phase 5 | TMF645 Service Qualification | ✅ Done |
+| Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | ✅ Done |
 | Phase 7 | TMF653 Service Test Management | 📋 Planned |
 | Phase 8 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
 | Phase 9 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
@@ -308,6 +308,22 @@ src/
 
 ---
 
+### Service Qualification — TMF645
+
+The **Service Qualification** module provides pre-sales feasibility checks, sitting between Service Design (TMF633) and Service Order (TMF641) in the TMF lifecycle.
+
+#### API Endpoints (TMF645)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceQualificationManagement/v4/checkServiceQualification` | List qualification requests |
+| `GET` | `/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}` | Retrieve a qualification |
+| `POST` | `/tmf-api/serviceQualificationManagement/v4/checkServiceQualification` | Submit a new qualification request |
+| `PATCH` | `/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}` | Advance qualification state |
+| `DELETE` | `/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}` | Delete a terminal qualification |
+
+---
+
 ### Service Activation & Configuration — TMF640
 
 The **Service Activation & Configuration** module is the provisioning engine of the Service Layer. It drives service lifecycle changes on inventory instances through auditable, job-oriented workflows.
@@ -357,6 +373,92 @@ src/
     ├── api/             # TMF640 REST API routes
     ├── services/        # Business logic (state machine, inventory integration, event publishing)
     ├── repositories/    # Data access layer
+    └── tests/           # Unit and integration tests
+```
+
+---
+
+### Service Assurance — TMF642 / TMF628 / TMF657
+
+The **Service Assurance** module closes the monitoring and SLA enforcement loop for active services. It covers three tightly-integrated domains: reactive fault management (alarms), proactive performance measurement, and threshold-based Service Level Objective evaluation.
+
+#### Responsibilities
+
+- Raise and lifecycle-manage `Alarm` events against active service instances (TMF642)
+- Schedule, execute, and record `PerformanceMeasurement` jobs per service and metric (TMF628)
+- Define `ServiceLevelObjective` thresholds that are automatically evaluated on measurement completion (TMF657)
+- Auto-detect SLO violations: comparing recorded metric values against `above`/`below` thresholds
+- Publish fault and violation events to the TMF event bus
+
+#### Alarm State Machine (TMF642)
+
+```
+raised → acknowledged → cleared
+```
+
+#### Measurement State Machine (TMF628)
+
+```
+scheduled → completed | failed
+```
+
+Completing a measurement with a metric value **automatically triggers SLO violation detection**.
+
+#### SLO State Machine (TMF657)
+
+```
+active ↔ violated  (violated only by automatic check_violations, not via PATCH)
+active | violated → suspended
+suspended → active
+```
+
+#### Key SID Entities
+
+| SID Entity | Description |
+|---|---|
+| `Alarm` | Fault event raised against an active Service instance |
+| `PerformanceMeasurement` | Scheduled or completed metric measurement per service |
+| `ServiceLevelObjective` | Threshold definition with automatic violation detection |
+
+#### API Endpoints (TMF642 — Alarm Management)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/alarmManagement/v4/alarm` | List alarms |
+| `GET` | `/tmf-api/alarmManagement/v4/alarm/{id}` | Retrieve an alarm |
+| `POST` | `/tmf-api/alarmManagement/v4/alarm` | Raise a new alarm |
+| `PATCH` | `/tmf-api/alarmManagement/v4/alarm/{id}` | Acknowledge or clear an alarm |
+| `DELETE` | `/tmf-api/alarmManagement/v4/alarm/{id}` | Delete a cleared alarm |
+
+#### API Endpoints (TMF628 — Performance Management)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/performanceManagement/v4/performanceMeasurement` | List measurements |
+| `GET` | `/tmf-api/performanceManagement/v4/performanceMeasurement/{id}` | Retrieve a measurement |
+| `POST` | `/tmf-api/performanceManagement/v4/performanceMeasurement` | Schedule a measurement |
+| `PATCH` | `/tmf-api/performanceManagement/v4/performanceMeasurement/{id}` | Complete or fail a measurement |
+| `DELETE` | `/tmf-api/performanceManagement/v4/performanceMeasurement/{id}` | Delete a completed/failed measurement |
+
+#### API Endpoints (TMF657 — Service Level Management)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceLevelManagement/v4/serviceLevel` | List SLOs |
+| `GET` | `/tmf-api/serviceLevelManagement/v4/serviceLevel/{id}` | Retrieve an SLO |
+| `POST` | `/tmf-api/serviceLevelManagement/v4/serviceLevel` | Create an SLO |
+| `PATCH` | `/tmf-api/serviceLevelManagement/v4/serviceLevel/{id}` | Suspend or restore an SLO |
+| `DELETE` | `/tmf-api/serviceLevelManagement/v4/serviceLevel/{id}` | Delete a suspended SLO |
+
+#### Module Location
+
+```
+src/
+└── assurance/
+    ├── models/          # ORM + Pydantic schemas (Alarm, PerformanceMeasurement, ServiceLevelObjective)
+    ├── api/             # Aggregate router (alarm_router + measurement_router + slo_router)
+    ├── services/        # Business logic (state machines, violation detection, event publishing)
+    ├── repositories/    # Data access layer (alarm_repo, measurement_repo, slo_repo)
     └── tests/           # Unit and integration tests
 ```
 

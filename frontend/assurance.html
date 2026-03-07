@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Assurance — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Tab navigation ──────────────────────────────────────────────────── */
+        .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
+        .tab-btn            { padding: var(--space-sm) var(--space-md); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); transition: color .15s, border-color .15s; }
+        .tab-btn.active     { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
+        .tab-panel          { display: none; }
+        .tab-panel.active   { display: block; }
+
+        /* ── State badges ────────────────────────────────────────────────────── */
+        .badge--raised      { background: #fee2e2; color: #991b1b; }
+        .badge--acknowledged{ background: #fef3c7; color: #92400e; }
+        .badge--cleared     { background: #dcfce7; color: #166534; }
+        .badge--scheduled   { background: #f1f5f9; color: #475569; }
+        .badge--completed   { background: #dcfce7; color: #166534; }
+        .badge--failed      { background: #fee2e2; color: #991b1b; }
+        .badge--active      { background: #dcfce7; color: #166534; }
+        .badge--violated    { background: #fee2e2; color: #991b1b; }
+        .badge--suspended   { background: #f1f5f9; color: #475569; }
+
+        /* ── Severity badges ─────────────────────────────────────────────────── */
+        .badge--critical    { background: #7f1d1d; color: #fef2f2; }
+        .badge--major       { background: #fee2e2; color: #991b1b; }
+        .badge--minor       { background: #fef3c7; color: #92400e; }
+        .badge--warning     { background: #fefce8; color: #713f12; }
+        .badge--indeterminate { background: #f1f5f9; color: #475569; }
+
+        .id-cell            { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell       { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link active" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ── Main content ─────────────────────────────────────────────────────── -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Service Assurance</h1>
+                <p class="page-subtitle">TMF642 Alarm Management · TMF628 Performance Management · TMF657 Service Level Management</p>
+            </div>
+        </div>
+
+        <!-- ── Tabs ─────────────────────────────────────────────────────────── -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('alarms', this)">🔔 Alarms</button>
+            <button class="tab-btn" onclick="switchTab('measurements', this)">📈 Measurements</button>
+            <button class="tab-btn" onclick="switchTab('slos', this)">🎯 Service Level Objectives</button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════════
+             TAB: ALARMS (TMF642)
+             ════════════════════════════════════════════════════════════════════ -->
+        <div id="tab-alarms" class="tab-panel active">
+            <div class="section-header">
+                <h2 class="section-title">Alarms</h2>
+                <button class="btn btn--primary" onclick="openModal('alarm-create-modal')">+ Raise Alarm</button>
+            </div>
+            <p class="section-description">Fault events raised against active service instances. Only services in <code>active</code> state can have alarms raised against them.</p>
+
+            <div class="card">
+                <div class="card__header">
+                    <h3 class="card__title">Active Alarms</h3>
+                    <button class="btn btn--secondary btn--sm" onclick="loadAlarms()">↻ Refresh</button>
+                </div>
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Severity</th>
+                                <th>State</th>
+                                <th>Service ID</th>
+                                <th>Raised At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alarms-tbody">
+                            <tr><td colspan="7" class="empty-state">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════════
+             TAB: MEASUREMENTS (TMF628)
+             ════════════════════════════════════════════════════════════════════ -->
+        <div id="tab-measurements" class="tab-panel">
+            <div class="section-header">
+                <h2 class="section-title">Performance Measurements</h2>
+                <button class="btn btn--primary" onclick="openModal('measurement-create-modal')">+ Schedule Measurement</button>
+            </div>
+            <p class="section-description">Scheduled and completed performance measurements. Completing a measurement with a value automatically triggers SLO violation checks.</p>
+
+            <div class="card">
+                <div class="card__header">
+                    <h3 class="card__title">Measurements</h3>
+                    <button class="btn btn--secondary btn--sm" onclick="loadMeasurements()">↻ Refresh</button>
+                </div>
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Metric</th>
+                                <th>Value</th>
+                                <th>State</th>
+                                <th>Service ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="measurements-tbody">
+                            <tr><td colspan="7" class="empty-state">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════════
+             TAB: SERVICE LEVEL OBJECTIVES (TMF657)
+             ════════════════════════════════════════════════════════════════════ -->
+        <div id="tab-slos" class="tab-panel">
+            <div class="section-header">
+                <h2 class="section-title">Service Level Objectives</h2>
+                <button class="btn btn--primary" onclick="openModal('slo-create-modal')">+ Create SLO</button>
+            </div>
+            <p class="section-description">SLO threshold definitions for services. A SLO is automatically set to <code>violated</code> when a completed measurement breaches the configured threshold.</p>
+
+            <div class="card">
+                <div class="card__header">
+                    <h3 class="card__title">SLOs</h3>
+                    <button class="btn btn--secondary btn--sm" onclick="loadSLOs()">↻ Refresh</button>
+                </div>
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Metric</th>
+                                <th>Threshold</th>
+                                <th>Direction</th>
+                                <th>State</th>
+                                <th>Service ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slos-tbody">
+                            <tr><td colspan="8" class="empty-state">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     MODALS
+     ════════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Raise Alarm -->
+<div id="alarm-create-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('alarm-create-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Raise Alarm</h2>
+            <button class="modal__close" onclick="closeModal('alarm-create-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="alarm-name" class="form-input" placeholder="e.g. Link Down — Core Router">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service ID <span class="required">*</span></label>
+                <input id="alarm-service-id" class="form-input" placeholder="UUID of an active Service instance">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Severity</label>
+                <select id="alarm-severity" class="form-input">
+                    <option value="">— select —</option>
+                    <option value="critical">critical</option>
+                    <option value="major">major</option>
+                    <option value="minor">minor</option>
+                    <option value="warning">warning</option>
+                    <option value="indeterminate">indeterminate</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Alarm Type</label>
+                <input id="alarm-type" class="form-input" placeholder="e.g. communicationsAlarm">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Probable Cause</label>
+                <input id="alarm-probable-cause" class="form-input" placeholder="e.g. softwareError">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Specific Problem</label>
+                <textarea id="alarm-specific-problem" class="form-input" rows="2" placeholder="Detailed description of the specific problem…"></textarea>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('alarm-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createAlarm()">Raise Alarm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Measurement -->
+<div id="measurement-create-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('measurement-create-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Schedule Measurement</h2>
+            <button class="modal__close" onclick="closeModal('measurement-create-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="m-name" class="form-input" placeholder="e.g. Latency Probe — Edge Router">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service ID <span class="required">*</span></label>
+                <input id="m-service-id" class="form-input" placeholder="UUID of a Service instance">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Metric Name <span class="required">*</span></label>
+                <input id="m-metric-name" class="form-input" placeholder="e.g. latency_ms, availability_pct">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Initial Metric Value</label>
+                <input id="m-metric-value" type="number" step="any" class="form-input" placeholder="Leave blank for deferred measurement">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unit of Measure</label>
+                <input id="m-unit" class="form-input" placeholder="e.g. ms, %, Mbps">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Granularity</label>
+                <select id="m-granularity" class="form-input">
+                    <option value="">— select —</option>
+                    <option value="minutely">minutely</option>
+                    <option value="hourly">hourly</option>
+                    <option value="daily">daily</option>
+                    <option value="weekly">weekly</option>
+                    <option value="monthly">monthly</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('measurement-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createMeasurement()">Schedule</button>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Measurement (inline value entry) -->
+<div id="measurement-complete-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('measurement-complete-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Complete Measurement</h2>
+            <button class="modal__close" onclick="closeModal('measurement-complete-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted">Enter the measured value. On completion, SLO violation checks will run automatically.</p>
+            <div class="form-group">
+                <label class="form-label">Metric Value <span class="required">*</span></label>
+                <input id="m-complete-value" type="number" step="any" class="form-input" placeholder="e.g. 42.5">
+            </div>
+            <input type="hidden" id="m-complete-id">
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('measurement-complete-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="completeMeasurement()">Complete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create SLO -->
+<div id="slo-create-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('slo-create-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Create Service Level Objective</h2>
+            <button class="modal__close" onclick="closeModal('slo-create-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="slo-name" class="form-input" placeholder="e.g. Latency SLO — Edge Router">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service ID <span class="required">*</span></label>
+                <input id="slo-service-id" class="form-input" placeholder="UUID of a Service instance">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Metric Name <span class="required">*</span></label>
+                <input id="slo-metric-name" class="form-input" placeholder="e.g. latency_ms, availability_pct">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Threshold Value</label>
+                <input id="slo-threshold" type="number" step="any" class="form-input" placeholder="e.g. 100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Direction</label>
+                <select id="slo-direction" class="form-input">
+                    <option value="">— select —</option>
+                    <option value="above">above (alert when value exceeds threshold)</option>
+                    <option value="below">below (alert when value drops below threshold)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tolerance</label>
+                <input id="slo-tolerance" type="number" step="any" class="form-input" placeholder="Optional tolerance band">
+            </div>
+            <div class="form-group">
+                <label class="form-label">SLS ID (optional)</label>
+                <input id="slo-sls-id" class="form-input" placeholder="UUID of catalog ServiceLevelSpecification">
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('slo-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createSLO()">Create SLO</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────────
+const API = {
+    alarms:       '/tmf-api/alarmManagement/v4/alarm',
+    measurements: '/tmf-api/performanceManagement/v4/performanceMeasurement',
+    slos:         '/tmf-api/serviceLevelManagement/v4/serviceLevel',
+};
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'alarms')       loadAlarms();
+    if (name === 'measurements') loadMeasurements();
+    if (name === 'slos')         loadSLOs();
+}
+
+// ── Modal helpers ──────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ── Generic REST helpers ───────────────────────────────────────────────────────
+async function apiFetch(url, opts = {}) {
+    const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json', ...opts.headers },
+        ...opts,
+    });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${res.status}`);
+    }
+    return res.status === 204 ? null : res.json();
+}
+
+function badge(state, extra = '') {
+    return `<span class="badge badge--${state} ${extra}">${state}</span>`;
+}
+
+function truncate(str, n = 8) {
+    return str ? `${str.substring(0, n)}…` : '—';
+}
+
+// ── ALARMS ─────────────────────────────────────────────────────────────────────
+async function loadAlarms() {
+    const tbody = document.getElementById('alarms-tbody');
+    try {
+        const data = await apiFetch(API.alarms);
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No alarms found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(a => `
+            <tr>
+                <td class="id-cell" title="${a.id}">${truncate(a.id)}</td>
+                <td>${escHtml(a.name)}</td>
+                <td>${a.severity ? badge(a.severity) : '—'}</td>
+                <td>${badge(a.state)}</td>
+                <td class="id-cell" title="${a.service_id}">${truncate(a.service_id)}</td>
+                <td>${a.raised_at ? new Date(a.raised_at).toLocaleString() : '—'}</td>
+                <td class="actions-cell">${alarmActions(a)}</td>
+            </tr>`).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="error-state">${e.message}</td></tr>`;
+    }
+}
+
+function alarmActions(a) {
+    const btns = [];
+    if (a.state === 'raised')        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionAlarm('${a.id}','acknowledged')">Acknowledge</button>`);
+    if (a.state === 'acknowledged')  btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionAlarm('${a.id}','cleared')">Clear</button>`);
+    if (a.state === 'cleared')       btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteEntity('alarms','${a.id}',loadAlarms)">Delete</button>`);
+    return btns.join('') || '—';
+}
+
+async function transitionAlarm(id, state) {
+    try {
+        await apiFetch(`${API.alarms}/${id}`, { method: 'PATCH', body: JSON.stringify({ state }) });
+        loadAlarms();
+    } catch (e) { alert(e.message); }
+}
+
+async function createAlarm() {
+    const payload = {
+        name:             document.getElementById('alarm-name').value,
+        service_id:       document.getElementById('alarm-service-id').value,
+        severity:         document.getElementById('alarm-severity').value || undefined,
+        alarm_type:       document.getElementById('alarm-type').value || undefined,
+        probable_cause:   document.getElementById('alarm-probable-cause').value || undefined,
+        specific_problem: document.getElementById('alarm-specific-problem').value || undefined,
+    };
+    try {
+        await apiFetch(API.alarms, { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('alarm-create-modal');
+        loadAlarms();
+    } catch (e) { alert(e.message); }
+}
+
+// ── MEASUREMENTS ───────────────────────────────────────────────────────────────
+async function loadMeasurements() {
+    const tbody = document.getElementById('measurements-tbody');
+    try {
+        const data = await apiFetch(API.measurements);
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No measurements found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(m => `
+            <tr>
+                <td class="id-cell" title="${m.id}">${truncate(m.id)}</td>
+                <td>${escHtml(m.name)}</td>
+                <td>${escHtml(m.metric_name)}</td>
+                <td>${m.metric_value != null ? m.metric_value + (m.unit_of_measure ? ' ' + m.unit_of_measure : '') : '—'}</td>
+                <td>${badge(m.state)}</td>
+                <td class="id-cell" title="${m.service_id}">${truncate(m.service_id)}</td>
+                <td class="actions-cell">${measurementActions(m)}</td>
+            </tr>`).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="error-state">${e.message}</td></tr>`;
+    }
+}
+
+function measurementActions(m) {
+    const btns = [];
+    if (m.state === 'scheduled') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="openCompleteModal('${m.id}')">Complete</button>`);
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionMeasurement('${m.id}','failed')">Fail</button>`);
+    }
+    if (m.state === 'completed' || m.state === 'failed') {
+        btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteEntity('measurements','${m.id}',loadMeasurements)">Delete</button>`);
+    }
+    return btns.join('') || '—';
+}
+
+async function transitionMeasurement(id, state) {
+    try {
+        await apiFetch(`${API.measurements}/${id}`, { method: 'PATCH', body: JSON.stringify({ state }) });
+        loadMeasurements();
+    } catch (e) { alert(e.message); }
+}
+
+function openCompleteModal(id) {
+    document.getElementById('m-complete-id').value = id;
+    document.getElementById('m-complete-value').value = '';
+    openModal('measurement-complete-modal');
+}
+
+async function completeMeasurement() {
+    const id    = document.getElementById('m-complete-id').value;
+    const value = parseFloat(document.getElementById('m-complete-value').value);
+    if (isNaN(value)) { alert('Please enter a numeric metric value.'); return; }
+    try {
+        await apiFetch(`${API.measurements}/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ state: 'completed', metric_value: value }),
+        });
+        closeModal('measurement-complete-modal');
+        loadMeasurements();
+        // Refresh SLOs in case a violation was triggered
+        if (document.getElementById('tab-slos').classList.contains('active')) loadSLOs();
+    } catch (e) { alert(e.message); }
+}
+
+async function createMeasurement() {
+    const mv  = parseFloat(document.getElementById('m-metric-value').value);
+    const payload = {
+        name:          document.getElementById('m-name').value,
+        service_id:    document.getElementById('m-service-id').value,
+        metric_name:   document.getElementById('m-metric-name').value,
+        metric_value:  isNaN(mv) ? undefined : mv,
+        unit_of_measure: document.getElementById('m-unit').value || undefined,
+        granularity:   document.getElementById('m-granularity').value || undefined,
+    };
+    try {
+        await apiFetch(API.measurements, { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('measurement-create-modal');
+        loadMeasurements();
+    } catch (e) { alert(e.message); }
+}
+
+// ── SLOs ───────────────────────────────────────────────────────────────────────
+async function loadSLOs() {
+    const tbody = document.getElementById('slos-tbody');
+    try {
+        const data = await apiFetch(API.slos);
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No SLOs found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(s => `
+            <tr>
+                <td class="id-cell" title="${s.id}">${truncate(s.id)}</td>
+                <td>${escHtml(s.name)}</td>
+                <td>${escHtml(s.metric_name)}</td>
+                <td>${s.threshold_value != null ? s.threshold_value : '—'}</td>
+                <td>${s.direction || '—'}</td>
+                <td>${badge(s.state)}</td>
+                <td class="id-cell" title="${s.service_id}">${truncate(s.service_id)}</td>
+                <td class="actions-cell">${sloActions(s)}</td>
+            </tr>`).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" class="error-state">${e.message}</td></tr>`;
+    }
+}
+
+function sloActions(s) {
+    const btns = [];
+    if (s.state === 'active' || s.state === 'violated') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionSLO('${s.id}','suspended')">Suspend</button>`);
+    }
+    if (s.state === 'violated') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionSLO('${s.id}','active')">Restore</button>`);
+    }
+    if (s.state === 'suspended') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionSLO('${s.id}','active')">Activate</button>`);
+        btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteEntity('slos','${s.id}',loadSLOs)">Delete</button>`);
+    }
+    return btns.join('') || '—';
+}
+
+async function transitionSLO(id, state) {
+    try {
+        await apiFetch(`${API.slos}/${id}`, { method: 'PATCH', body: JSON.stringify({ state }) });
+        loadSLOs();
+    } catch (e) { alert(e.message); }
+}
+
+async function createSLO() {
+    const tv  = parseFloat(document.getElementById('slo-threshold').value);
+    const tol = parseFloat(document.getElementById('slo-tolerance').value);
+    const payload = {
+        name:            document.getElementById('slo-name').value,
+        service_id:      document.getElementById('slo-service-id').value,
+        metric_name:     document.getElementById('slo-metric-name').value,
+        threshold_value: isNaN(tv)  ? undefined : tv,
+        direction:       document.getElementById('slo-direction').value || undefined,
+        tolerance:       isNaN(tol) ? undefined : tol,
+        sls_id:          document.getElementById('slo-sls-id').value || undefined,
+    };
+    try {
+        await apiFetch(API.slos, { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('slo-create-modal');
+        loadSLOs();
+    } catch (e) { alert(e.message); }
+}
+
+// ── Shared delete ──────────────────────────────────────────────────────────────
+async function deleteEntity(kind, id, refresh) {
+    if (!confirm('Delete this record permanently?')) return;
+    try {
+        await apiFetch(`${API[kind]}/${id}`, { method: 'DELETE' });
+        refresh();
+    } catch (e) { alert(e.message); }
+}
+
+// ── XSS-safe string escape ─────────────────────────────────────────────────────
+function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str || ''));
+    return d.innerHTML;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadAlarms);
+</script>
+</body>
+</html>

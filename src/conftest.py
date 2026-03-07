@@ -26,6 +26,7 @@ from src.inventory.models import orm as _inventory_orm  # noqa: F401 — registe
 from src.order.models import orm as _order_orm  # noqa: F401 — registers ORM tables
 from src.provisioning.models import orm as _provisioning_orm  # noqa: F401 — registers ORM tables
 from src.qualification.models import orm as _qualification_orm  # noqa: F401 — registers ORM tables
+from src.assurance.models import orm as _assurance_orm  # noqa: F401 — registers ORM tables
 from src.shared.db.base import Base
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
