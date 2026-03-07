@@ -156,7 +156,9 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
                 <div class="form-group">
                     <label class="form-label" for="field-category">Category</label>
-                    <input type="text" id="field-category" class="form-control" placeholder="e.g. broadband">
+                    <select id="field-category" class="form-control">
+                        <option value="">— select category —</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="field-priority">Priority</label>
@@ -403,10 +405,50 @@ async function loadOrders() {
 }
 
 // ── Create Order ───────────────────────────────────────────────────────────────
-btnNew.addEventListener('click', () => {
+// ── Category tree helpers ─────────────────────────────────────────────────────
+function buildCategoryTree(categories) {
+    const map = new Map(categories.map(c => [c.id, { ...c, children: [] }]));
+    const roots = [];
+    for (const cat of map.values()) {
+        if (cat.parent_id && map.has(cat.parent_id)) {
+            map.get(cat.parent_id).children.push(cat);
+        } else {
+            roots.push(cat);
+        }
+    }
+    return roots;
+}
+
+function buildCategoryOptions(nodes, depth = 0) {
+    const prefix = depth === 0 ? '' : '\u00a0'.repeat(depth * 3) + '\u2514\u00a0';
+    let html = '';
+    for (const node of nodes) {
+        html += `<option value="${escHtml(node.name)}">${prefix}${escHtml(node.name)}</option>`;
+        if (node.children.length > 0) {
+            html += buildCategoryOptions(node.children, depth + 1);
+        }
+    }
+    return html;
+}
+
+async function loadCategoriesForOrder() {
+    fieldCategory.innerHTML = '<option value="">Loading\u2026</option>';
+    fieldCategory.disabled = true;
+    try {
+        const { data } = await CategoryClient.list({ limit: 200 });
+        const roots = buildCategoryTree(data);
+        const opts  = buildCategoryOptions(roots);
+        fieldCategory.innerHTML = `<option value="">\u2014 select category \u2014</option>${opts}`;
+    } catch {
+        fieldCategory.innerHTML = '<option value="">\u2014 unavailable \u2014</option>';
+    } finally {
+        fieldCategory.disabled = false;
+    }
+}
+
+btnNew.addEventListener('click', async () => {
     fieldName.value = '';
     fieldDesc.value = '';
-    fieldCategory.value = '';
     fieldPriority.value = '';
     fieldCompDate.value = '';
     itemAction.value = 'add';
@@ -415,6 +457,7 @@ btnNew.addEventListener('click', () => {
     formError.style.display = 'none';
     modalBackdrop.classList.add('open');
     fieldName.focus();
+    await loadCategoriesForOrder();
 });
 
 modalClose.addEventListener('click',   () => modalBackdrop.classList.remove('open'));
@@ -436,7 +479,7 @@ modalSave.addEventListener('click', async () => {
     const payload = {
         name,
         description: fieldDesc.value.trim() || null,
-        category:    fieldCategory.value.trim() || null,
+        category:    fieldCategory.value || null,
         priority:    fieldPriority.value.trim() || null,
         requested_completion_date: fieldCompDate.value ? new Date(fieldCompDate.value).toISOString() : null,
         order_item: [],
