@@ -18,7 +18,7 @@ This application implements the following functional domains:
 | Provisioning | Service activation and configuration | TMF640 | ✅ Implemented |
 | Inventory | Active service instances and relationships | TMF638 | ✅ Implemented |
 | Assurance | Alarms, performance, SLA management | TMF628, TMF642, TMF657 | ✅ Implemented |
-| Testing | Automated service test and validation | TMF653 | 📋 Planned |
+| Testing | Automated service test and validation | TMF653 | ✅ Implemented |
 | Problem Management | Incidents, trouble tickets, root cause | TMF621, TMF656 | 📋 Planned |
 | Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | 📋 Planned |
 
@@ -60,7 +60,7 @@ The **Service Inventory** module tracks all active (and historical) service inst
 | Phase 4 | TMF640 Service Activation & Configuration (Provisioning) | ✅ Done |
 | Phase 5 | TMF645 Service Qualification | ✅ Done |
 | Phase 6 | TMF642 / TMF628 / TMF657 Assurance (Alarms, Performance, SLA) | ✅ Done |
-| Phase 7 | TMF653 Service Test Management | 📋 Planned |
+| Phase 7 | TMF653 Service Test Management | ✅ Done |
 | Phase 8 | TMF621 / TMF656 Trouble Ticket & Problem Management | 📋 Planned |
 | Phase 9 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
 | Phase 10 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
@@ -459,6 +459,80 @@ src/
     ├── api/             # Aggregate router (alarm_router + measurement_router + slo_router)
     ├── services/        # Business logic (state machines, violation detection, event publishing)
     ├── repositories/    # Data access layer (alarm_repo, measurement_repo, slo_repo)
+    └── tests/           # Unit and integration tests
+```
+
+---
+
+### Service Test Management — TMF653
+
+The **Service Testing** module provides end-to-end automated and manual test lifecycle management for active service instances. It implements the TMF653 Service Test Management API.
+
+#### Responsibilities
+
+- Define reusable `ServiceTestSpecification` templates with version and type metadata
+- Execute `ServiceTest` runs against active service instances referencing a spec or ad-hoc
+- Capture `TestMeasure` results (pass/fail/inconclusive) while a test is `inProgress`
+- Enforce test lifecycle state machine with automatic start/end timestamp recording
+- Guard against running tests against `obsolete` specifications
+- Publish TMF events on test create, state change, completion, and failure
+
+#### ServiceTestSpecification State Machine
+
+```
+active → retired → obsolete  (terminal — only obsolete specs may be deleted)
+```
+
+#### ServiceTest State Machine
+
+```
+planned → inProgress → completed
+                    → failed
+                    → cancelled
+planned → cancelled
+```
+
+> Direct transition `planned → completed` is **not permitted**. Tests must pass through `inProgress`.
+
+#### Key SID Entities
+
+| SID Entity | Description |
+|---|---|
+| `ServiceTestSpecification` | Reusable test template with type, version, and optional FK to catalog spec |
+| `ServiceTest` | An individual test run against an active service instance |
+| `TestMeasure` | A single metric measurement captured during an inProgress test run |
+
+#### API Endpoints (TMF653 — Test Specification)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceTest/v4/serviceTestSpecification` | List test specifications |
+| `GET` | `/tmf-api/serviceTest/v4/serviceTestSpecification/{id}` | Retrieve a test specification |
+| `POST` | `/tmf-api/serviceTest/v4/serviceTestSpecification` | Create a test specification |
+| `PATCH` | `/tmf-api/serviceTest/v4/serviceTestSpecification/{id}` | Advance lifecycle state |
+| `DELETE` | `/tmf-api/serviceTest/v4/serviceTestSpecification/{id}` | Delete an obsolete specification |
+
+#### API Endpoints (TMF653 — Service Test)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/tmf-api/serviceTest/v4/serviceTest` | List service tests |
+| `GET` | `/tmf-api/serviceTest/v4/serviceTest/{id}` | Retrieve a service test (with embedded measures) |
+| `POST` | `/tmf-api/serviceTest/v4/serviceTest` | Create a new test run |
+| `PATCH` | `/tmf-api/serviceTest/v4/serviceTest/{id}` | Advance test state |
+| `DELETE` | `/tmf-api/serviceTest/v4/serviceTest/{id}` | Delete a terminal test (cascades measures) |
+| `POST` | `/tmf-api/serviceTest/v4/serviceTest/{id}/testMeasure` | Add a measure to an inProgress test |
+| `GET` | `/tmf-api/serviceTest/v4/serviceTest/{id}/testMeasure` | List measures for a test |
+
+#### Module Location
+
+```
+src/
+└── testing/
+    ├── models/          # ORM + Pydantic schemas (ServiceTestSpecification, ServiceTest, TestMeasure)
+    ├── api/             # TMF653 REST API routes (spec_router + test_router)
+    ├── services/        # Business logic (state machines, FK guards, event publishing)
+    ├── repositories/    # Data access layer (test_spec_repo, test_repo)
     └── tests/           # Unit and integration tests
 ```
 

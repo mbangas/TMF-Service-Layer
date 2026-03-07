@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Testing — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Tab navigation ──────────────────────────────────────────────────── */
+        .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
+        .tab-btn            { padding: var(--space-sm) var(--space-md); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); transition: color .15s, border-color .15s; }
+        .tab-btn.active     { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
+        .tab-panel          { display: none; }
+        .tab-panel.active   { display: block; }
+
+        /* ── State badges — spec lifecycle ───────────────────────────────────── */
+        .badge--active      { background: #dcfce7; color: #166534; }
+        .badge--retired     { background: #fef3c7; color: #92400e; }
+        .badge--obsolete    { background: #f1f5f9; color: #475569; }
+
+        /* ── State badges — test lifecycle ───────────────────────────────────── */
+        .badge--planned     { background: #e0f2fe; color: #075985; }
+        .badge--inProgress  { background: #fef3c7; color: #92400e; }
+        .badge--completed   { background: #dcfce7; color: #166534; }
+        .badge--failed      { background: #fee2e2; color: #991b1b; }
+        .badge--cancelled   { background: #f1f5f9; color: #475569; }
+
+        /* ── Measure result badges ────────────────────────────────────────────── */
+        .badge--pass        { background: #dcfce7; color: #166534; }
+        .badge--fail        { background: #fee2e2; color: #991b1b; }
+        .badge--inconclusive{ background: #fef3c7; color: #92400e; }
+
+        .id-cell            { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell       { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+
+        /* ── Measures sub-panel ───────────────────────────────────────────────── */
+        .measures-panel     { background: var(--colour-surface); border-top: 1px solid var(--colour-border); padding: var(--space-sm) var(--space-md); }
+        .measures-panel table { margin: 0; }
+        .measures-panel th, .measures-panel td { font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); }
+        .measures-header    { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-xs); }
+        .measures-title     { font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link active" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ── Main content ─────────────────────────────────────────────────────── -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Service Testing</h1>
+                <p class="page-subtitle">TMF653 Service Test Management — Test specifications, test runs, and test measures</p>
+            </div>
+        </div>
+
+        <!-- ── Tabs ─────────────────────────────────────────────────────────── -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('specs', this)">📋 Test Specifications</button>
+            <button class="tab-btn" onclick="switchTab('tests', this)">🧪 Service Tests</button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════════
+             TAB: TEST SPECIFICATIONS
+             ════════════════════════════════════════════════════════════════════ -->
+        <div id="tab-specs" class="tab-panel active">
+            <div class="section-header">
+                <h2 class="section-title">Test Specifications</h2>
+                <button class="btn btn--primary" onclick="openModal('spec-create-modal')">+ Create Specification</button>
+            </div>
+            <p class="section-description">Test specification templates that define the parameters and expected outcomes for service tests. Lifecycle: <code>active → retired → obsolete</code>. Only <code>obsolete</code> specifications may be deleted. An <code>obsolete</code> specification cannot be used to create new test runs.</p>
+
+            <div class="card">
+                <div class="card__header">
+                    <h3 class="card__title">Specifications</h3>
+                    <button class="btn btn--secondary btn--sm" onclick="loadSpecs()">↻ Refresh</button>
+                </div>
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Version</th>
+                                <th>State</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="specs-tbody">
+                            <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════════
+             TAB: SERVICE TESTS
+             ════════════════════════════════════════════════════════════════════ -->
+        <div id="tab-tests" class="tab-panel">
+            <div class="section-header">
+                <h2 class="section-title">Service Tests</h2>
+                <button class="btn btn--primary" onclick="openModal('test-create-modal')">+ Create Test</button>
+            </div>
+            <p class="section-description">Active test runs against service instances. Lifecycle: <code>planned → inProgress → completed | failed | cancelled</code>. Test measures can only be added when the test is <code>inProgress</code>. Only terminal-state tests (<code>completed</code>, <code>failed</code>, <code>cancelled</code>) may be deleted.</p>
+
+            <div class="card">
+                <div class="card__header">
+                    <h3 class="card__title">Tests</h3>
+                    <button class="btn btn--secondary btn--sm" onclick="loadTests()">↻ Refresh</button>
+                </div>
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Mode</th>
+                                <th>State</th>
+                                <th>Service ID</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tests-tbody">
+                            <tr><td colspan="8" class="empty-state">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     MODALS
+     ════════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Create Test Specification -->
+<div id="spec-create-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('spec-create-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Create Test Specification</h2>
+            <button class="modal__close" onclick="closeModal('spec-create-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="spec-name" class="form-input" placeholder="e.g. Connectivity Test Spec v1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Test Type</label>
+                <input id="spec-test-type" class="form-input" placeholder="e.g. functional, performance, regression">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Version</label>
+                <input id="spec-version" class="form-input" placeholder="e.g. 1.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="spec-description" class="form-input" rows="2" placeholder="Optional description of this test specification…"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service Spec ID (optional)</label>
+                <input id="spec-service-spec-id" class="form-input" placeholder="UUID of catalog ServiceSpecification">
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('spec-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createSpec()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Service Test -->
+<div id="test-create-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('test-create-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Create Service Test</h2>
+            <button class="modal__close" onclick="closeModal('test-create-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="test-name" class="form-input" placeholder="e.g. Connectivity Test — Edge Router">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service ID <span class="required">*</span></label>
+                <input id="test-service-id" class="form-input" placeholder="UUID of an active Service instance">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Test Mode</label>
+                <select id="test-mode" class="form-input">
+                    <option value="">— select —</option>
+                    <option value="automated">automated</option>
+                    <option value="manual">manual</option>
+                    <option value="hybrid">hybrid</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="test-description" class="form-input" rows="2" placeholder="Optional description of this test run…"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Test Specification ID (optional)</label>
+                <input id="test-spec-id" class="form-input" placeholder="UUID of a non-obsolete TestSpecification">
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('test-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createTest()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Test Measure -->
+<div id="measure-create-modal" class="modal" style="display:none">
+    <div class="modal__overlay" onclick="closeModal('measure-create-modal')"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Add Test Measure</h2>
+            <button class="modal__close" onclick="closeModal('measure-create-modal')">✕</button>
+        </div>
+        <div class="modal__body">
+            <p class="text-muted">Test must be <code>inProgress</code> to add measures.</p>
+            <input type="hidden" id="measure-test-id">
+            <div class="form-group">
+                <label class="form-label">Metric Name <span class="required">*</span></label>
+                <input id="measure-metric-name" class="form-input" placeholder="e.g. latency_ms, packet_loss_pct">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Metric Value</label>
+                <input id="measure-metric-value" type="number" step="any" class="form-input" placeholder="e.g. 42.5">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unit</label>
+                <input id="measure-unit" class="form-input" placeholder="e.g. ms, %, Mbps">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Result <span class="required">*</span></label>
+                <select id="measure-result" class="form-input">
+                    <option value="">— select —</option>
+                    <option value="pass">pass</option>
+                    <option value="fail">fail</option>
+                    <option value="inconclusive">inconclusive</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('measure-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="addMeasure()">Add Measure</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────────
+const SPEC_API = '/tmf-api/serviceTest/v4/serviceTestSpecification';
+const TEST_API = '/tmf-api/serviceTest/v4/serviceTest';
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'specs') loadSpecs();
+    if (name === 'tests') loadTests();
+}
+
+// ── Modal helpers ──────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ── Generic REST helpers ───────────────────────────────────────────────────────
+async function apiFetch(url, opts = {}) {
+    const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json', ...opts.headers },
+        ...opts,
+    });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${res.status}`);
+    }
+    return res.status === 204 ? null : res.json();
+}
+
+function badge(state, extra = '') {
+    return `<span class="badge badge--${state} ${extra}">${state}</span>`;
+}
+
+function truncate(str, n = 8) {
+    return str ? `${str.substring(0, n)}…` : '—';
+}
+
+// ── XSS-safe string escape ─────────────────────────────────────────────────────
+function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str || ''));
+    return d.innerHTML;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEST SPECIFICATIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function loadSpecs() {
+    const tbody = document.getElementById('specs-tbody');
+    try {
+        const data = await apiFetch(SPEC_API);
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No test specifications found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(s => `
+            <tr>
+                <td class="id-cell" title="${s.id}">${truncate(s.id)}</td>
+                <td>${escHtml(s.name)}</td>
+                <td>${s.test_type ? escHtml(s.test_type) : '—'}</td>
+                <td>${s.version ? escHtml(s.version) : '—'}</td>
+                <td>${badge(s.lifecycle_status)}</td>
+                <td class="actions-cell">${specActions(s)}</td>
+            </tr>`).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="error-state">${e.message}</td></tr>`;
+    }
+}
+
+function specActions(s) {
+    const btns = [];
+    if (s.lifecycle_status === 'active') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionSpec('${s.id}','retired')">Retire</button>`);
+    }
+    if (s.lifecycle_status === 'retired') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionSpec('${s.id}','obsolete')">Obsolete</button>`);
+    }
+    if (s.lifecycle_status === 'obsolete') {
+        btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteSpec('${s.id}')">Delete</button>`);
+    }
+    return btns.join('') || '—';
+}
+
+async function transitionSpec(id, state) {
+    try {
+        await apiFetch(`${SPEC_API}/${id}`, { method: 'PATCH', body: JSON.stringify({ lifecycle_status: state }) });
+        loadSpecs();
+    } catch (e) { alert(e.message); }
+}
+
+async function createSpec() {
+    const payload = {
+        name:            document.getElementById('spec-name').value,
+        test_type:       document.getElementById('spec-test-type').value || undefined,
+        version:         document.getElementById('spec-version').value || undefined,
+        description:     document.getElementById('spec-description').value || undefined,
+        service_spec_id: document.getElementById('spec-service-spec-id').value || undefined,
+    };
+    try {
+        await apiFetch(SPEC_API, { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('spec-create-modal');
+        loadSpecs();
+    } catch (e) { alert(e.message); }
+}
+
+async function deleteSpec(id) {
+    if (!confirm('Permanently delete this test specification?')) return;
+    try {
+        await apiFetch(`${SPEC_API}/${id}`, { method: 'DELETE' });
+        loadSpecs();
+    } catch (e) { alert(e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SERVICE TESTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function loadTests() {
+    const tbody = document.getElementById('tests-tbody');
+    try {
+        const data = await apiFetch(TEST_API);
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No service tests found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(t => buildTestRow(t)).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" class="error-state">${e.message}</td></tr>`;
+    }
+}
+
+function buildTestRow(t) {
+    const measuresRowId = `measures-row-${t.id}`;
+    const hasMeasures   = t.measures && t.measures.length > 0;
+    return `
+        <tr>
+            <td class="id-cell" title="${t.id}">${truncate(t.id)}</td>
+            <td>${escHtml(t.name)}</td>
+            <td>${t.mode ? escHtml(t.mode) : '—'}</td>
+            <td>${badge(t.state)}</td>
+            <td class="id-cell" title="${t.service_id}">${truncate(t.service_id)}</td>
+            <td>${t.start_date_time ? new Date(t.start_date_time).toLocaleString() : '—'}</td>
+            <td>${t.end_date_time   ? new Date(t.end_date_time).toLocaleString()   : '—'}</td>
+            <td class="actions-cell">${testActions(t)}</td>
+        </tr>
+        <tr id="${measuresRowId}" style="${hasMeasures ? '' : 'display:none'}">
+            <td colspan="8" style="padding:0">
+                <div class="measures-panel">
+                    <div class="measures-header">
+                        <span class="measures-title">Test Measures</span>
+                        ${t.state === 'inProgress' ? `<button class="btn btn--secondary btn--sm" onclick="openAddMeasure('${t.id}')">+ Add Measure</button>` : ''}
+                    </div>
+                    ${buildMeasuresTable(t.measures || [], t.id)}
+                </div>
+            </td>
+        </tr>`;
+}
+
+function buildMeasuresTable(measures, testId) {
+    if (!measures.length) {
+        return '<p style="margin:0; font-size: var(--font-size-xs); color: var(--colour-text-muted);">No measures recorded yet.</p>';
+    }
+    return `
+        <table class="table">
+            <thead><tr><th>Metric</th><th>Value</th><th>Unit</th><th>Result</th><th>Captured At</th></tr></thead>
+            <tbody>
+                ${measures.map(m => `
+                    <tr>
+                        <td>${escHtml(m.metric_name)}</td>
+                        <td>${m.metric_value != null ? m.metric_value : '—'}</td>
+                        <td>${m.unit ? escHtml(m.unit) : '—'}</td>
+                        <td>${badge(m.result)}</td>
+                        <td>${m.captured_at ? new Date(m.captured_at).toLocaleString() : '—'}</td>
+                    </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function testActions(t) {
+    const btns = [];
+    if (t.state === 'planned') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionTest('${t.id}','inProgress')">Start</button>`);
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionTest('${t.id}','cancelled')">Cancel</button>`);
+    }
+    if (t.state === 'inProgress') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="openAddMeasure('${t.id}')">+ Measure</button>`);
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionTest('${t.id}','completed')">Complete</button>`);
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionTest('${t.id}','failed')">Fail</button>`);
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionTest('${t.id}','cancelled')">Cancel</button>`);
+    }
+    if (['completed', 'failed', 'cancelled'].includes(t.state)) {
+        btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteTest('${t.id}')">Delete</button>`);
+    }
+    // Toggle measures panel
+    const hasMeasures = t.measures && t.measures.length > 0;
+    if (hasMeasures || t.state === 'inProgress') {
+        btns.push(`<button class="btn btn--secondary btn--sm" onclick="toggleMeasures('${t.id}')">📋 Measures</button>`);
+    }
+    return btns.join('') || '—';
+}
+
+function toggleMeasures(testId) {
+    const row = document.getElementById(`measures-row-${testId}`);
+    if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+
+async function transitionTest(id, state) {
+    try {
+        await apiFetch(`${TEST_API}/${id}`, { method: 'PATCH', body: JSON.stringify({ state }) });
+        loadTests();
+    } catch (e) { alert(e.message); }
+}
+
+async function createTest() {
+    const payload = {
+        name:        document.getElementById('test-name').value,
+        service_id:  document.getElementById('test-service-id').value,
+        mode:        document.getElementById('test-mode').value || undefined,
+        description: document.getElementById('test-description').value || undefined,
+        test_specification_id: document.getElementById('test-spec-id').value || undefined,
+    };
+    try {
+        await apiFetch(TEST_API, { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('test-create-modal');
+        loadTests();
+    } catch (e) { alert(e.message); }
+}
+
+async function deleteTest(id) {
+    if (!confirm('Permanently delete this service test and all its measures?')) return;
+    try {
+        await apiFetch(`${TEST_API}/${id}`, { method: 'DELETE' });
+        loadTests();
+    } catch (e) { alert(e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEST MEASURES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function openAddMeasure(testId) {
+    document.getElementById('measure-test-id').value = testId;
+    document.getElementById('measure-metric-name').value  = '';
+    document.getElementById('measure-metric-value').value = '';
+    document.getElementById('measure-unit').value         = '';
+    document.getElementById('measure-result').value       = '';
+    openModal('measure-create-modal');
+}
+
+async function addMeasure() {
+    const testId = document.getElementById('measure-test-id').value;
+    const mv     = parseFloat(document.getElementById('measure-metric-value').value);
+    const payload = {
+        metric_name:  document.getElementById('measure-metric-name').value,
+        metric_value: isNaN(mv) ? undefined : mv,
+        unit:         document.getElementById('measure-unit').value || undefined,
+        result:       document.getElementById('measure-result').value,
+    };
+    try {
+        await apiFetch(`${TEST_API}/${testId}/testMeasure`, { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('measure-create-modal');
+        loadTests();
+    } catch (e) { alert(e.message); }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadSpecs);
+</script>
+</body>
+</html>
