@@ -1,19 +1,19 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Assurance �?" TMF Service Layer</title>
+    <title>Service Assurance – TMF Service Layer</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* �"?�"? Tab navigation �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
+        /* --?--? Tab navigation --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--? */
         .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
         .tab-btn            { padding: var(--space-sm) var(--space-md); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); transition: color .15s, border-color .15s; }
         .tab-btn.active     { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
         .tab-panel          { display: none; }
         .tab-panel.active   { display: block; }
 
-        /* �"?�"? State badges �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
+        /* --?--? State badges --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--? */
         .badge--raised      { background: #fee2e2; color: #991b1b; }
         .badge--acknowledged{ background: #fef3c7; color: #92400e; }
         .badge--cleared     { background: #dcfce7; color: #166534; }
@@ -24,7 +24,7 @@
         .badge--violated    { background: #fee2e2; color: #991b1b; }
         .badge--suspended   { background: #f1f5f9; color: #475569; }
 
-        /* �"?�"? Severity badges �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
+        /* --?--? Severity badges --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--? */
         .badge--critical    { background: #7f1d1d; color: #fef2f2; }
         .badge--major       { background: #fee2e2; color: #991b1b; }
         .badge--minor       { background: #fef3c7; color: #92400e; }
@@ -39,7 +39,7 @@
 
 <div class="app-shell">
 
-    <!-- �"?�"? Sidebar �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? -->
+    <!-- --?--? Sidebar --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--? -->
     <aside class="sidebar">
         <div class="sidebar__logo">
             <div class="sidebar__logo-title">TMF Service Layer</div>
@@ -101,16 +101,16 @@
         <!-- Page body -->
         <div class="page-body">
 
-        <!-- �"?�"? Tabs �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? -->
+        <!-- --?--? Tabs --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--? -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('alarms', this)">�Y"" Alarms</button>
-            <button class="tab-btn" onclick="switchTab('measurements', this)">�Y"^ Measurements</button>
-            <button class="tab-btn" onclick="switchTab('slos', this)">�YZ� Service Level Objectives</button>
+            <button class="tab-btn active" onclick="switchTab('alarms', this)">🔔 Alarms</button>
+            <button class="tab-btn" onclick="switchTab('measurements', this)">📏 Measurements</button>
+            <button class="tab-btn" onclick="switchTab('slos', this)">🎯 Service Level Objectives</button>
         </div>
 
-        <!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
+        <!-- --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
              TAB: ALARMS (TMF642)
-             �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
+             --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- -->
         <div id="tab-alarms" class="tab-panel active">
             <div class="section-header">
                 <h2 class="section-title">Alarms</h2>
@@ -121,7 +121,7 @@
             <div class="card">
                 <div class="card__header">
                     <h3 class="card__title">Active Alarms</h3>
-                    <button class="btn btn--secondary btn--sm" onclick="loadAlarms()">�?� Refresh</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadAlarms()">🔄 Refresh</button>
                 </div>
                 <div class="card__body">
                     <table class="table">
@@ -137,16 +137,16 @@
                             </tr>
                         </thead>
                         <tbody id="alarms-tbody">
-                            <tr><td colspan="7" class="empty-state">Loading�?�</td></tr>
+                            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
+        <!-- --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
              TAB: MEASUREMENTS (TMF628)
-             �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
+             --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- -->
         <div id="tab-measurements" class="tab-panel">
             <div class="section-header">
                 <h2 class="section-title">Performance Measurements</h2>
@@ -157,7 +157,7 @@
             <div class="card">
                 <div class="card__header">
                     <h3 class="card__title">Measurements</h3>
-                    <button class="btn btn--secondary btn--sm" onclick="loadMeasurements()">�?� Refresh</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadMeasurements()">🔄 Refresh</button>
                 </div>
                 <div class="card__body">
                     <table class="table">
@@ -173,16 +173,16 @@
                             </tr>
                         </thead>
                         <tbody id="measurements-tbody">
-                            <tr><td colspan="7" class="empty-state">Loading�?�</td></tr>
+                            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
+        <!-- --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
              TAB: SERVICE LEVEL OBJECTIVES (TMF657)
-             �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
+             --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- -->
         <div id="tab-slos" class="tab-panel">
             <div class="section-header">
                 <h2 class="section-title">Service Level Objectives</h2>
@@ -193,7 +193,7 @@
             <div class="card">
                 <div class="card__header">
                     <h3 class="card__title">SLOs</h3>
-                    <button class="btn btn--secondary btn--sm" onclick="loadSLOs()">�?� Refresh</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadSLOs()">🔄 Refresh</button>
                 </div>
                 <div class="card__body">
                     <table class="table">
@@ -210,7 +210,7 @@
                             </tr>
                         </thead>
                         <tbody id="slos-tbody">
-                            <tr><td colspan="8" class="empty-state">Loading�?�</td></tr>
+                            <tr><td colspan="8" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -221,21 +221,21 @@
     </main>
 </div>
 
-<!-- �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.�
+<!-- --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
      MODALS
-     �.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.��.� -->
+     --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- -->
 
 <!-- Raise Alarm -->
 <div id="alarm-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('alarm-create-modal')">
     <div class="modal">
         <div class="modal__header">
             <h2 class="modal__title">Raise Alarm</h2>
-            <button class="btn btn--ghost btn--icon" onclick="closeModal('alarm-create-modal')" aria-label="Close">�o.</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('alarm-create-modal')" aria-label="Close">--o.</button>
         </div>
         <div class="modal__body">
             <div class="form-group">
                 <label class="form-label">Name <span class="required">*</span></label>
-                <input id="alarm-name" class="form-control" placeholder="e.g. Link Down �?" Core Router">
+                <input id="alarm-name" class="form-control" placeholder="e.g. Link Down --?" Core Router">
             </div>
             <div class="form-group">
                 <label class="form-label">Service ID <span class="required">*</span></label>
@@ -244,7 +244,7 @@
             <div class="form-group">
                 <label class="form-label">Severity</label>
                 <select id="alarm-severity" class="form-control">
-                    <option value="">�?" select �?"</option>
+                    <option value="">--?" select --?"</option>
                     <option value="critical">critical</option>
                     <option value="major">major</option>
                     <option value="minor">minor</option>
@@ -262,7 +262,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Specific Problem</label>
-                <textarea id="alarm-specific-problem" class="form-control" rows="2" placeholder="Detailed description of the specific problem�?�"></textarea>
+                <textarea id="alarm-specific-problem" class="form-control" rows="2" placeholder="Detailed description of the specific problem--?--></textarea>
             </div>
         </div>
         <div class="modal__footer">
@@ -277,12 +277,12 @@
     <div class="modal">
         <div class="modal__header">
             <h2 class="modal__title">Schedule Measurement</h2>
-            <button class="btn btn--ghost btn--icon" onclick="closeModal('measurement-create-modal')" aria-label="Close">�o.</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('measurement-create-modal')" aria-label="Close">--o.</button>
         </div>
         <div class="modal__body">
             <div class="form-group">
                 <label class="form-label">Name <span class="required">*</span></label>
-                <input id="m-name" class="form-control" placeholder="e.g. Latency Probe �?" Edge Router">
+                <input id="m-name" class="form-control" placeholder="e.g. Latency Probe --?" Edge Router">
             </div>
             <div class="form-group">
                 <label class="form-label">Service ID <span class="required">*</span></label>
@@ -303,7 +303,7 @@
             <div class="form-group">
                 <label class="form-label">Granularity</label>
                 <select id="m-granularity" class="form-control">
-                    <option value="">�?" select �?"</option>
+                    <option value="">--?" select --?"</option>
                     <option value="minutely">minutely</option>
                     <option value="hourly">hourly</option>
                     <option value="daily">daily</option>
@@ -324,7 +324,7 @@
     <div class="modal" style="max-width:420px">
         <div class="modal__header">
             <h2 class="modal__title">Complete Measurement</h2>
-            <button class="btn btn--ghost btn--icon" onclick="closeModal('measurement-complete-modal')" aria-label="Close">�o.</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('measurement-complete-modal')" aria-label="Close">--o.</button>
         </div>
         <div class="modal__body">
             <p class="text-muted">Enter the measured value. On completion, SLO violation checks will run automatically.</p>
@@ -346,12 +346,12 @@
     <div class="modal">
         <div class="modal__header">
             <h2 class="modal__title">Create Service Level Objective</h2>
-            <button class="btn btn--ghost btn--icon" onclick="closeModal('slo-create-modal')" aria-label="Close">�o.</button>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('slo-create-modal')" aria-label="Close">--o.</button>
         </div>
         <div class="modal__body">
             <div class="form-group">
                 <label class="form-label">Name <span class="required">*</span></label>
-                <input id="slo-name" class="form-control" placeholder="e.g. Latency SLO �?" Edge Router">
+                <input id="slo-name" class="form-control" placeholder="e.g. Latency SLO --?" Edge Router">
             </div>
             <div class="form-group">
                 <label class="form-label">Service ID <span class="required">*</span></label>
@@ -368,7 +368,7 @@
             <div class="form-group">
                 <label class="form-label">Direction</label>
                 <select id="slo-direction" class="form-control">
-                    <option value="">�?" select �?"</option>
+                    <option value="">--?" select --?"</option>
                     <option value="above">above (alert when value exceeds threshold)</option>
                     <option value="below">below (alert when value drops below threshold)</option>
                 </select>
@@ -390,14 +390,14 @@
 </div>
 
 <script>
-// �"?�"? Config �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? Config --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 const API = {
     alarms:       '/tmf-api/alarmManagement/v4/alarm',
     measurements: '/tmf-api/performanceManagement/v4/performanceMeasurement',
     slos:         '/tmf-api/serviceLevelManagement/v4/serviceLevel',
 };
 
-// �"?�"? Tab switching �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? Tab switching --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -408,11 +408,11 @@ function switchTab(name, btn) {
     if (name === 'slos')         loadSLOs();
 }
 
-// �"?�"? Modal helpers �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? Modal helpers --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// �"?�"? Generic REST helpers �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? Generic REST helpers --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 async function apiFetch(url, opts = {}) {
     const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json', ...opts.headers },
@@ -430,10 +430,10 @@ function badge(state, extra = '') {
 }
 
 function truncate(str, n = 8) {
-    return str ? `${str.substring(0, n)}�?�` : '�?"';
+    return str ? `${str.substring(0, n)}--?--` : '--?"';
 }
 
-// �"?�"? ALARMS �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? ALARMS --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 async function loadAlarms() {
     const tbody = document.getElementById('alarms-tbody');
     try {
@@ -446,10 +446,10 @@ async function loadAlarms() {
             <tr>
                 <td class="id-cell" title="${a.id}">${truncate(a.id)}</td>
                 <td>${escHtml(a.name)}</td>
-                <td>${a.severity ? badge(a.severity) : '�?"'}</td>
+                <td>${a.severity ? badge(a.severity) : '--?"'}</td>
                 <td>${badge(a.state)}</td>
                 <td class="id-cell" title="${a.service_id}">${truncate(a.service_id)}</td>
-                <td>${a.raised_at ? new Date(a.raised_at).toLocaleString() : '�?"'}</td>
+                <td>${a.raised_at ? new Date(a.raised_at).toLocaleString() : '--?"'}</td>
                 <td class="actions-cell">${alarmActions(a)}</td>
             </tr>`).join('');
     } catch (e) {
@@ -462,7 +462,7 @@ function alarmActions(a) {
     if (a.state === 'raised')        btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionAlarm('${a.id}','acknowledged')">Acknowledge</button>`);
     if (a.state === 'acknowledged')  btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionAlarm('${a.id}','cleared')">Clear</button>`);
     if (a.state === 'cleared')       btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteEntity('alarms','${a.id}',loadAlarms)">Delete</button>`);
-    return btns.join('') || '�?"';
+    return btns.join('') || '--?"';
 }
 
 async function transitionAlarm(id, state) {
@@ -488,7 +488,7 @@ async function createAlarm() {
     } catch (e) { alert(e.message); }
 }
 
-// �"?�"? MEASUREMENTS �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? MEASUREMENTS --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 async function loadMeasurements() {
     const tbody = document.getElementById('measurements-tbody');
     try {
@@ -502,7 +502,7 @@ async function loadMeasurements() {
                 <td class="id-cell" title="${m.id}">${truncate(m.id)}</td>
                 <td>${escHtml(m.name)}</td>
                 <td>${escHtml(m.metric_name)}</td>
-                <td>${m.metric_value != null ? m.metric_value + (m.unit_of_measure ? ' ' + m.unit_of_measure : '') : '�?"'}</td>
+                <td>${m.metric_value != null ? m.metric_value + (m.unit_of_measure ? ' ' + m.unit_of_measure : '') : '--?"'}</td>
                 <td>${badge(m.state)}</td>
                 <td class="id-cell" title="${m.service_id}">${truncate(m.service_id)}</td>
                 <td class="actions-cell">${measurementActions(m)}</td>
@@ -521,7 +521,7 @@ function measurementActions(m) {
     if (m.state === 'completed' || m.state === 'failed') {
         btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteEntity('measurements','${m.id}',loadMeasurements)">Delete</button>`);
     }
-    return btns.join('') || '�?"';
+    return btns.join('') || '--?"';
 }
 
 async function transitionMeasurement(id, state) {
@@ -570,7 +570,7 @@ async function createMeasurement() {
     } catch (e) { alert(e.message); }
 }
 
-// �"?�"? SLOs �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? SLOs --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 async function loadSLOs() {
     const tbody = document.getElementById('slos-tbody');
     try {
@@ -584,8 +584,8 @@ async function loadSLOs() {
                 <td class="id-cell" title="${s.id}">${truncate(s.id)}</td>
                 <td>${escHtml(s.name)}</td>
                 <td>${escHtml(s.metric_name)}</td>
-                <td>${s.threshold_value != null ? s.threshold_value : '�?"'}</td>
-                <td>${s.direction || '�?"'}</td>
+                <td>${s.threshold_value != null ? s.threshold_value : '--?"'}</td>
+                <td>${s.direction || '--?"'}</td>
                 <td>${badge(s.state)}</td>
                 <td class="id-cell" title="${s.service_id}">${truncate(s.service_id)}</td>
                 <td class="actions-cell">${sloActions(s)}</td>
@@ -607,7 +607,7 @@ function sloActions(s) {
         btns.push(`<button class="btn btn--secondary btn--sm" onclick="transitionSLO('${s.id}','active')">Activate</button>`);
         btns.push(`<button class="btn btn--danger btn--sm" onclick="deleteEntity('slos','${s.id}',loadSLOs)">Delete</button>`);
     }
-    return btns.join('') || '�?"';
+    return btns.join('') || '--?"';
 }
 
 async function transitionSLO(id, state) {
@@ -636,7 +636,7 @@ async function createSLO() {
     } catch (e) { alert(e.message); }
 }
 
-// �"?�"? Shared delete �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? Shared delete --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 async function deleteEntity(kind, id, refresh) {
     if (!confirm('Delete this record permanently?')) return;
     try {
@@ -645,14 +645,14 @@ async function deleteEntity(kind, id, refresh) {
     } catch (e) { alert(e.message); }
 }
 
-// �"?�"? XSS-safe string escape �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? XSS-safe string escape --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 function escHtml(str) {
     const d = document.createElement('div');
     d.appendChild(document.createTextNode(str || ''));
     return d.innerHTML;
 }
 
-// �"?�"? Init �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+// --?--? Init --?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?--?
 window.addEventListener('DOMContentLoaded', loadAlarms);
 </script>
 </body>
