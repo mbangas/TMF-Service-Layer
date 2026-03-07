@@ -41,6 +41,9 @@ services:
     volumes:
       # Mount source for hot-reload in development
       - ./src:/app/src:ro
+      # Mount frontend and alembic so new files are picked up without a rebuild
+      - ./frontend:/app/frontend:ro
+      - ./alembic:/app/alembic:ro
     command: >
       sh -c "alembic upgrade head &&
              uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
