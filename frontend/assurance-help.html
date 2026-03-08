@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda — Gestão de Assurance | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Help page specific ── */
+        .help-content {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p {
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+            line-height: 1.8;
+        }
+
+        .step-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .step-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--colour-surface-alt);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--colour-primary);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            flex-shrink: 0;
+        }
+        .step-card__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .step-card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-top: 2px;
+        }
+        .step-card__body {
+            padding: var(--space-xl);
+        }
+        .step-card__body p,
+        .step-card__body li {
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+        }
+        .step-card__body ul,
+        .step-card__body ol {
+            padding-left: var(--space-xl);
+            margin-top: var(--space-sm);
+        }
+        .step-card__body li {
+            margin-bottom: var(--space-xs);
+        }
+        .step-card__body h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--colour-text);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ── API call blocks ── */
+        .api-block {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-left: 3px solid var(--colour-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #a5d6a7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .api-block .method { color: #82b1ff; font-weight: 700; }
+        .api-block .url    { color: #80cbc4; }
+        .api-block .key    { color: #ce93d8; }
+        .api-block .val    { color: #a5d6a7; }
+        .api-block .comment{ color: #546e7a; }
+
+        /* ── Info / Warning callouts ── */
+        .callout {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin: var(--space-md) 0;
+        }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout--danger  { background: rgba(248,113,113,0.10); border-left: 3px solid var(--colour-danger); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Summary checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--colour-primary-dim);
+            color: var(--colour-primary);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Field reference table ── */
+        .field-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .field-table th { padding: 8px 12px; text-align: left; color: var(--colour-text-muted); border-bottom: 1px solid var(--colour-border); }
+        .field-table td { padding: 8px 12px; border-bottom: 1px solid var(--colour-border); color: var(--colour-text-muted); }
+        .field-table td:first-child { font-family: var(--font-mono); font-size: 11px; color: var(--colour-text); }
+        .field-table .req  { color: var(--colour-success); font-weight: 600; }
+        .field-table .opt  { color: var(--colour-text-muted); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-lg);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--colour-border);
+            margin: var(--space-xl) 0;
+        }
+
+        /* TMF reference pills */
+        .tmf-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: rgba(79,126,248,0.15);
+            color: var(--colour-primary);
+            border: 1px solid rgba(79,126,248,0.3);
+            margin-left: var(--space-xs);
+        }
+
+        /* ── Severity badges ── */
+        .sev-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+        }
+        .sev-badge--critical       { background: rgba(248,113,113,0.20); color: #f87171; border: 1px solid rgba(248,113,113,0.4); }
+        .sev-badge--major          { background: rgba(251,146,60,0.18);  color: #fb923c; border: 1px solid rgba(251,146,60,0.4); }
+        .sev-badge--minor          { background: rgba(251,191,36,0.18);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.4); }
+        .sev-badge--warning        { background: rgba(96,165,250,0.15);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
+        .sev-badge--indeterminate  { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+        /* ── SLO state badges ── */
+        .slo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+        }
+        .slo-badge--active    { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+        .slo-badge--violated  { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+        .slo-badge--suspended { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+        /* ── Generate example data section ── */
+        .gen-progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--colour-surface-alt);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        .gen-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--colour-primary), #34d399);
+            border-radius: var(--radius-full);
+            transition: width 0.35s ease;
+        }
+        .gen-progress-label {
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-md);
+        }
+        .gen-log {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #94a3b8;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.9;
+        }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            :root {
+                --colour-bg:           #ffffff;
+                --colour-surface:      #f8f9fc;
+                --colour-surface-alt:  #eef0f6;
+                --colour-border:       #d1d5db;
+                --colour-text:         #111827;
+                --colour-text-muted:   #4b5563;
+                --colour-primary:      #2563eb;
+                --colour-success:      #059669;
+                --colour-warning:      #d97706;
+                --colour-danger:       #dc2626;
+                --colour-info:         #2563eb;
+            }
+            body { background: #fff; color: #111; }
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-assurance, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; color: #111; }
+            .step-card { border: 1px solid #d1d5db; border-radius: 6px; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .callout--info    { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .callout--success { background: #ecfdf5; border-color: #10b981; }
+            .callout--danger  { background: #fef2f2; border-color: #ef4444; }
+            .api-block { background: #1e293b; border-color: #334155; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+            .diagram-wrapper { background: #f8fafc; border-color: #d1d5db; break-inside: avoid; }
+            .tmf-pill { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sev-badge--critical      { background: #fee2e2; color: #991b1b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sev-badge--major         { background: #ffedd5; color: #c2410c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sev-badge--minor         { background: #fef9c3; color: #92400e; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sev-badge--warning       { background: #dbeafe; color: #1e40af; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sev-badge--indeterminate { background: #f1f5f9; color: #475569; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .slo-badge--active    { background: #dcfce7; color: #166534; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .slo-badge--violated  { background: #fee2e2; color: #991b1b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .slo-badge--suspended { background: #f1f5f9; color: #475569; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .step-card { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link active" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">&#x2753; Guia de Assurance de Serviços</div>
+                <div class="topbar__subtitle">Como gerir alarmes, medições e SLOs — TMF642 · TMF628 · TMF657</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
+                <a href="assurance.html" class="btn btn--ghost btn--sm">&#8592; Voltar ao Assurance</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica como usar o módulo de <strong style="color:var(--colour-text)">Assurance</strong>
+                    da TMF Service Layer, que agrega três APIs TMF:
+                </p>
+                <ul style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                    <li><strong style="color:var(--colour-text)">TMF642 — Alarm Management:</strong> gestão de alarmes associados a serviços (raised → acknowledged → cleared)</li>
+                    <li><strong style="color:var(--colour-text)">TMF628 — Performance Management:</strong> medições de métricas de desempenho (scheduled → completed/failed)</li>
+                    <li><strong style="color:var(--colour-text)">TMF657 — Service Level Management:</strong> objectivos de nível de serviço (SLOs) com monitorização de violações (active ↔ violated ↔ suspended)</li>
+                </ul>
+                <p style="margin-top:var(--space-sm);">
+                    Todos os recursos referenciam uma instância de serviço (<code>service_id</code>) do
+                    Inventário (TMF638). Os serviços devem existir antes de criar alarmes, medições ou SLOs.
+                    Consulte o <a href="provisioning-help.html" style="color:var(--colour-primary);">Guia de Aprovisionamento</a>
+                    para perceber como activar serviços.
+                </p>
+            </div>
+
+            <!-- ══ PRÉ-REQUISITO ════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x26A0;</div>
+                    <div>
+                        <div class="step-card__title">Pré-requisito — Serviço no Inventário</div>
+                        <div class="step-card__subtitle">Alarmes, medições e SLOs requerem um service_id válido do inventário (TMF638)</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Todos os recursos de Assurance associam-se a uma instância de <strong>Service</strong>
+                        no inventário através do campo <code>service_id</code> (obrigatório).
+                        O serviço pode estar em qualquer estado — não é necessário que esteja <code>active</code>
+                        para criar alarmes ou medições, embora na prática se monitorizem tipicamente serviços activos.
+                    </p>
+
+                    <!-- Prerequisite flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 120" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-a0" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                            </defs>
+                            <!-- Inventory -->
+                            <rect x="10" y="28" width="160" height="58" rx="8"
+                                  fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="90" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Inventory</text>
+                            <text x="90" y="68" text-anchor="middle" font-size="10" fill="#94a3b8">Service (TMF638)</text>
+                            <text x="90" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">service_id (obrigatório)</text>
+
+                            <!-- Arrow to Alarm -->
+                            <line x1="170" y1="45" x2="215" y2="45" stroke="#f87171" stroke-width="1.5" marker-end="url(#arr-a0)"/>
+                            <rect x="217" y="18" width="145" height="55" rx="8"
+                                  fill="rgba(248,113,113,0.08)" stroke="#f87171" stroke-width="1.5"/>
+                            <text x="289" y="42" text-anchor="middle" font-size="11" font-weight="700" fill="#f87171">Alarm</text>
+                            <text x="289" y="58" text-anchor="middle" font-size="9" fill="#94a3b8">TMF642</text>
+                            <text x="289" y="70" text-anchor="middle" font-size="9" fill="#94a3b8">raised → cleared</text>
+
+                            <!-- Arrow to Measurement -->
+                            <line x1="170" y1="57" x2="376" y2="57" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-a0)"/>
+                            <rect x="378" y="18" width="175" height="55" rx="8"
+                                  fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="465" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">Performance</text>
+                            <text x="465" y="53" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">Measurement</text>
+                            <text x="465" y="68" text-anchor="middle" font-size="9" fill="#94a3b8">TMF628 · sched→completed</text>
+
+                            <!-- Arrow to SLO -->
+                            <line x1="170" y1="70" x2="563" y2="70" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-a0)"/>
+                            <rect x="565" y="28" width="200" height="55" rx="8"
+                                  fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="665" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">ServiceLevel</text>
+                            <text x="665" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">Objective</text>
+                            <text x="665" y="79" text-anchor="middle" font-size="9" fill="#94a3b8">TMF657 · SLO monitoring</text>
+                        </svg>
+                        <figcaption>Os três recursos de Assurance ligam-se ao mesmo service_id do inventário</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Ainda não tem serviços? Use a secção <strong>Gerar Dados de Teste</strong>
+                            no final desta página para criar automaticamente um serviço e exemplos
+                            de alarmes, medições e SLOs.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ SECÇÃO TMF642 — ALARMES ═══════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                TMF642 — Gestão de Alarmes
+            </h2>
+
+            <!-- Estrutura de um Alarm -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-danger);color:var(--colour-danger);">&#x1F514;</div>
+                    <div>
+                        <div class="step-card__title">Estrutura de um Alarme</div>
+                        <div class="step-card__subtitle">Campos, severidades e ciclo de vida raised → acknowledged → cleared</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Um <code>Alarm</code> representa um evento de falha ou degradação detectado num serviço.
+                        Cada alarme tem uma <strong>severidade</strong>, uma <strong>causa provável</strong>
+                        e percorre um ciclo de vida linear desde que é levantado
+                        (<code>raised</code>) até ser resolvido (<code>cleared</code>).
+                    </p>
+
+                    <!-- Alarm structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 270" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Outer box -->
+                            <rect x="10" y="10" width="760" height="248" rx="12"
+                                  fill="rgba(248,113,113,0.04)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#f87171">Alarm</text>
+                            <text x="85" y="34" font-size="11" fill="#94a3b8">(TMF642)</text>
+
+                            <!-- Identity fields -->
+                            <rect x="30" y="48" width="230" height="145" rx="8"
+                                  fill="rgba(248,113,113,0.08)" stroke="#f87171" stroke-width="1"/>
+                            <text x="145" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#f87171">Identificação</text>
+                            <text x="45"  y="90"  font-size="10" fill="#94a3b8">name           <tspan fill="#34d399" font-weight="600">*</tspan>  "Alto CPU vm-alpha"</text>
+                            <text x="45"  y="108" font-size="10" fill="#94a3b8">service_id     <tspan fill="#34d399" font-weight="600">*</tspan>  "uuid-do-serviço"</text>
+                            <text x="45"  y="126" font-size="10" fill="#94a3b8">alarm_type         "processingErrorAlarm"</text>
+                            <text x="45"  y="144" font-size="10" fill="#94a3b8">severity           critical | major | …</text>
+                            <text x="45"  y="162" font-size="10" fill="#94a3b8">probable_cause     "softwareError"</text>
+                            <text x="45"  y="180" font-size="10" fill="#94a3b8">specific_problem   "CPU &gt; 95% há 5min"</text>
+
+                            <!-- State box -->
+                            <rect x="275" y="48" width="195" height="145" rx="8"
+                                  fill="rgba(96,165,250,0.07)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="372" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Estado</text>
+                            <text x="290" y="90"  font-size="10" fill="#94a3b8">state  <tspan fill="#f87171">raised</tspan></text>
+                            <text x="290" y="110" font-size="10" fill="#94a3b8">       → <tspan fill="#fbbf24">acknowledged</tspan></text>
+                            <text x="290" y="130" font-size="10" fill="#94a3b8">       → <tspan fill="#34d399">cleared</tspan></text>
+                            <text x="290" y="155" font-size="10" fill="#94a3b8">raised_at</text>
+                            <text x="290" y="173" font-size="10" fill="#94a3b8">acknowledged_at</text>
+                            <text x="290" y="191" font-size="10" fill="#94a3b8">cleared_at</text>
+
+                            <!-- Service link -->
+                            <rect x="485" y="48" width="280" height="145" rx="8"
+                                  fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1"/>
+                            <text x="625" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">Ligação ao Inventário</text>
+                            <text x="500" y="90"  font-size="10" fill="#94a3b8">service_id referencia um</text>
+                            <text x="500" y="108" font-size="10" fill="#94a3b8">Service (TMF638)</text>
+                            <text x="500" y="132" font-size="10" fill="#94a3b8">Permite correlacionar alarmes</text>
+                            <text x="500" y="148" font-size="10" fill="#94a3b8">com o serviço afectado e</text>
+                            <text x="500" y="164" font-size="10" fill="#94a3b8">identificar impacto operacional</text>
+                            <text x="500" y="186" font-size="9" fill="#546e7a">Eliminação: só quando cleared</text>
+
+                            <!-- Bottom row: editable before cleared -->
+                            <rect x="30" y="210" width="720" height="36" rx="8"
+                                  fill="rgba(96,165,250,0.04)" stroke="#60a5fa" stroke-width="1" stroke-dasharray="5,3"/>
+                            <text x="390" y="232" text-anchor="middle" font-size="10" fill="#94a3b8">
+                                Campos editáveis via PATCH em qualquer estado: name · description · severity · probable_cause · specific_problem
+                            </text>
+                        </svg>
+                        <figcaption>Diagrama 1 — Estrutura de um Alarm TMF642: identificação, ciclo de vida e ligação ao inventário</figcaption>
+                    </figure>
+
+                    <h4>Campos do Alarm</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Tipo</th><th>Descrição</th></tr></thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo do alarme (ex: "Alto CPU vm-alpha")</td></tr>
+                            <tr><td>service_id</td><td class="req">sim</td><td>uuid</td><td>UUID do serviço afectado no inventário (TMF638)</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre do evento de alarme</td></tr>
+                            <tr><td>alarm_type</td><td class="opt">não</td><td>string</td><td>Classificação do tipo de alarme (ex: "processingErrorAlarm", "equipmentAlarm")</td></tr>
+                            <tr><td>severity</td><td class="opt">não</td><td>enum</td><td>critical | major | minor | warning | indeterminate</td></tr>
+                            <tr><td>probable_cause</td><td class="opt">não</td><td>string</td><td>Causa provável (ex: "softwareError", "hardwareFailure")</td></tr>
+                            <tr><td>specific_problem</td><td class="opt">não</td><td>string</td><td>Descrição detalhada do problema detectado</td></tr>
+                            <tr><td>raised_at</td><td class="opt">não</td><td>datetime</td><td>Momento em que o alarme foi levantado (default: hora de criação)</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Severidades disponíveis</h4>
+                    <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-sm);">
+                        <span class="sev-badge sev-badge--critical">critical</span>
+                        <span class="sev-badge sev-badge--major">major</span>
+                        <span class="sev-badge sev-badge--minor">minor</span>
+                        <span class="sev-badge sev-badge--warning">warning</span>
+                        <span class="sev-badge sev-badge--indeterminate">indeterminate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ciclo de vida do Alarm -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-danger);color:var(--colour-danger);">&#x21BB;</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida do Alarme</div>
+                        <div class="step-card__subtitle">raised → acknowledged → cleared · eliminação só quando cleared</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Um alarme começa sempre no estado <code>raised</code> (levantado).
+                        A primeira transição é o reconhecimento (<code>acknowledged</code>),
+                        que confirma que um operador tomou conhecimento do problema.
+                        A resolução efectiva é marcada com <code>cleared</code> — único estado
+                        a partir do qual o alarme pode ser eliminado.
+                    </p>
+
+                    <!-- Alarm lifecycle diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 130" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-al" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/>
+                                </marker>
+                                <marker id="arr-al-ok" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                                <marker id="arr-al-del" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#94a3b8"/>
+                                </marker>
+                            </defs>
+
+                            <!-- raised -->
+                            <rect x="10" y="40" width="160" height="52" rx="8"
+                                  fill="rgba(248,113,113,0.15)" stroke="#f87171" stroke-width="2"/>
+                            <text x="90" y="63" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">raised</text>
+                            <text x="90" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">alarme levantado</text>
+
+                            <!-- → acknowledged -->
+                            <line x1="170" y1="66" x2="228" y2="66" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-al)"/>
+                            <text x="199" y="58" text-anchor="middle" font-size="9" font-weight="600" fill="#fbbf24">PATCH</text>
+
+                            <!-- acknowledged -->
+                            <rect x="230" y="40" width="200" height="52" rx="8"
+                                  fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="330" y="63" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">acknowledged</text>
+                            <text x="330" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">operador notificado</text>
+
+                            <!-- → cleared -->
+                            <line x1="430" y1="66" x2="488" y2="66" stroke="#34d399" stroke-width="2" marker-end="url(#arr-al-ok)"/>
+                            <text x="459" y="58" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">PATCH</text>
+
+                            <!-- cleared -->
+                            <rect x="490" y="40" width="200" height="52" rx="8"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2"/>
+                            <text x="590" y="63" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">cleared</text>
+                            <text x="590" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">problema resolvido ✓</text>
+
+                            <!-- Delete from cleared -->
+                            <line x1="590" y1="92" x2="590" y2="118" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-al-del)" stroke-dasharray="4,3"/>
+                            <text x="620" y="112" font-size="9" fill="#94a3b8">DELETE</text>
+
+                            <!-- Note: no transition back -->
+                            <text x="90" y="112" text-anchor="middle" font-size="9" fill="#546e7a">sem retorno — fluxo unidireccional</text>
+                        </svg>
+                        <figcaption>Diagrama 2 — Ciclo de vida do Alarm TMF642: transições lineares (sem retorno)</figcaption>
+                    </figure>
+
+                    <h4>Caso de uso: gerir um alarme de CPU elevado</h4>
+                    <div class="api-block"><span class="comment">-- 1. Criar o alarme --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/alarmManagement/v4/alarm</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:             <span class="val">"Alto CPU — vm-alpha-001"</span>,
+  <span class="key">"description"</span>:    <span class="val">"Utilização de CPU superior a 95% durante 5 minutos"</span>,
+  <span class="key">"service_id"</span>:     <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"alarm_type"</span>:     <span class="val">"processingErrorAlarm"</span>,
+  <span class="key">"severity"</span>:       <span class="val">"critical"</span>,
+  <span class="key">"probable_cause"</span>: <span class="val">"softwareError"</span>,
+  <span class="key">"specific_problem"</span>:<span class="val">"CPU usage 97.3%% — processo webapp em loop"</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "state": "raised", … }</span>
+
+<span class="comment">-- 2. Reconhecer o alarme (operador notificado) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/alarmManagement/v4/alarm/&lt;alarm_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"acknowledged"</span> <span class="key">}</span>
+<span class="comment">→ { "state": "acknowledged", "acknowledged_at": "2026-03-08T14:32:10Z" }</span>
+
+<span class="comment">-- 3. Resolver o alarme após correcção --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/alarmManagement/v4/alarm/&lt;alarm_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"cleared"</span> <span class="key">}</span>
+<span class="comment">→ { "state": "cleared", "cleared_at": "2026-03-08T15:10:00Z" }</span>
+
+<span class="comment">-- 4. Eliminar o alarme (só quando cleared) --</span>
+<span class="method">DELETE</span> <span class="url">/tmf-api/alarmManagement/v4/alarm/&lt;alarm_id&gt;</span>
+<span class="comment">→ 204 No Content</span>
+
+<span class="comment">-- Listar alarmes por severidade --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm?severity=critical</span>
+<span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm?state=raised&amp;limit=50</span></div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            Apenas alarmes no estado <code>cleared</code> podem ser eliminados.
+                            Tentativas de eliminar alarmes em <code>raised</code> ou <code>acknowledged</code>
+                            devolvem HTTP 409 Conflict.
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead><tr><th>Estado</th><th>Transições Permitidas</th><th>Pode ser Eliminado?</th></tr></thead>
+                        <tbody>
+                            <tr><td style="color:var(--colour-danger)">raised</td><td>acknowledged</td><td style="color:var(--colour-text-muted)">não</td></tr>
+                            <tr><td style="color:var(--colour-warning)">acknowledged</td><td>cleared</td><td style="color:var(--colour-text-muted)">não</td></tr>
+                            <tr><td style="color:var(--colour-success)">cleared</td><td>— (terminal)</td><td style="color:var(--colour-success)">sim</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ SECÇÃO TMF628 — MEDIÇÕES ══════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                TMF628 — Gestão de Desempenho
+            </h2>
+
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x1F4CA;</div>
+                    <div>
+                        <div class="step-card__title">Medições de Desempenho</div>
+                        <div class="step-card__subtitle">Recolha de métricas por serviço — scheduled → completed / failed</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma <code>PerformanceMeasurement</code> representa a recolha de uma métrica
+                        específica de um serviço (latência, throughput, disponibilidade, etc.).
+                        Cada medição tem um <strong>nome de métrica</strong> (<code>metric_name</code>),
+                        uma <strong>granularidade</strong> temporal e um <strong>valor</strong> preenchido
+                        quando a medição é concluída.
+                    </p>
+
+                    <!-- Measurement lifecycle diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 130" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-m-ok"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                                <marker id="arr-m-err" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                            </defs>
+
+                            <!-- scheduled -->
+                            <rect x="240" y="30" width="185" height="52" rx="8"
+                                  fill="rgba(251,191,36,0.14)" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="332" y="53" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">scheduled</text>
+                            <text x="332" y="72" text-anchor="middle" font-size="9" fill="#94a3b8">medição agendada</text>
+
+                            <!-- → completed -->
+                            <path d="M 425 50 Q 530 25 575 50" stroke="#34d399" stroke-width="2" fill="none" marker-end="url(#arr-m-ok)"/>
+                            <text x="510" y="28" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">PATCH + metric_value</text>
+
+                            <!-- completed -->
+                            <rect x="577" y="30" width="175" height="52" rx="8"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2"/>
+                            <text x="664" y="53" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">completed</text>
+                            <text x="664" y="72" text-anchor="middle" font-size="9" fill="#94a3b8">terminal ✓</text>
+
+                            <!-- → failed -->
+                            <path d="M 425 68 Q 530 95 575 75" stroke="#f87171" stroke-width="2" fill="none" marker-end="url(#arr-m-err)"/>
+                            <text x="510" y="108" text-anchor="middle" font-size="9" font-weight="600" fill="#f87171">PATCH state: failed</text>
+
+                            <!-- failed -->
+                            <rect x="577" y="82" width="175" height="38" rx="8"
+                                  fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="2"/>
+                            <text x="664" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#f87171">failed</text>
+
+                            <!-- Note: scheduled created via POST -->
+                            <text x="332" y="112" text-anchor="middle" font-size="9" fill="#546e7a">criada via POST → sempre começa em scheduled</text>
+                        </svg>
+                        <figcaption>Diagrama 3 — Ciclo de vida de uma PerformanceMeasurement TMF628</figcaption>
+                    </figure>
+
+                    <h4>Campos da PerformanceMeasurement</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Tipo</th><th>Descrição</th></tr></thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo (ex: "Latência média — vm-alpha Março 2026")</td></tr>
+                            <tr><td>service_id</td><td class="req">sim</td><td>uuid</td><td>UUID do serviço alvo no inventário (TMF638)</td></tr>
+                            <tr><td>metric_name</td><td class="req">sim</td><td>string</td><td>Identificador da métrica (ex: "latency_ms", "throughput_mbps", "availability_pct")</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre da medição</td></tr>
+                            <tr><td>metric_value</td><td class="opt">não</td><td>float</td><td>Valor medido — preenchido ao completar via PATCH</td></tr>
+                            <tr><td>unit_of_measure</td><td class="opt">não</td><td>string</td><td>Unidade da métrica (ex: "ms", "Mbps", "%")</td></tr>
+                            <tr><td>granularity</td><td class="opt">não</td><td>enum</td><td>minutely | hourly | daily | weekly | monthly</td></tr>
+                            <tr><td>scheduled_at</td><td class="opt">não</td><td>datetime</td><td>Quando a medição foi agendada/efectuada</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Caso de uso: recolher a latência de um serviço</h4>
+                    <div class="api-block"><span class="comment">-- 1. Criar a medição --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:           <span class="val">"Latência média — vm-alpha Março 2026"</span>,
+  <span class="key">"description"</span>:  <span class="val">"Latência RTT média do serviço web em produção"</span>,
+  <span class="key">"service_id"</span>:   <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"metric_name"</span>:  <span class="val">"latency_ms"</span>,
+  <span class="key">"unit_of_measure"</span>: <span class="val">"ms"</span>,
+  <span class="key">"granularity"</span>:  <span class="val">"hourly"</span>,
+  <span class="key">"scheduled_at"</span>: <span class="val">"2026-03-08T10:00:00Z"</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "state": "scheduled", … }</span>
+
+<span class="comment">-- 2. Registar o valor medido e concluir --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement/&lt;id&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:        <span class="val">"completed"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">12.4</span>,
+  <span class="key">"completed_at"</span>: <span class="val">"2026-03-08T10:05:00Z"</span>
+<span class="key">}</span>
+<span class="comment">→ { "state": "completed", "metric_value": 12.4, … }</span>
+
+<span class="comment">-- Marcar como falha (em caso de erro de recolha) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement/&lt;id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"failed"</span> <span class="key">}</span>
+
+<span class="comment">-- Listar medições --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement?state=scheduled</span>
+<span class="method">GET</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement?service_id=&lt;uuid&gt;</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Os estados <code>completed</code> e <code>failed</code> são terminais —
+                            não é possível retransitar. Medições nos estados terminais podem ser eliminadas via DELETE.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ SECÇÃO TMF657 — SLOs ══════════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                TMF657 — Objectivos de Nível de Serviço (SLO)
+            </h2>
+
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-success);color:var(--colour-success);">&#x1F4C8;</div>
+                    <div>
+                        <div class="step-card__title">ServiceLevelObjective — Estrutura e Monitorização</div>
+                        <div class="step-card__subtitle">SLOs monitorizam métricas contra um threshold e detectam violações automaticamente</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Um <code>ServiceLevelObjective</code> (SLO) define um <strong>objectivo de qualidade</strong>
+                        para uma métrica específica de um serviço: por exemplo, "a latência deve ser inferior a 50 ms"
+                        ou "a disponibilidade deve estar acima de 99,9%". O SLO monitoriza continuamente o valor
+                        da métrica e transita automaticamente para <code>violated</code> quando a condição é incumprida.
+                    </p>
+
+                    <!-- SLO structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 270" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Outer box -->
+                            <rect x="10" y="10" width="760" height="248" rx="12"
+                                  fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#34d399">ServiceLevelObjective</text>
+                            <text x="220" y="34" font-size="11" fill="#94a3b8">(TMF657)</text>
+
+                            <!-- Metric definition -->
+                            <rect x="30" y="48" width="240" height="145" rx="8"
+                                  fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1"/>
+                            <text x="150" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">Definição da Métrica</text>
+                            <text x="45"  y="90"  font-size="10" fill="#94a3b8">name          <tspan fill="#34d399" font-weight="600">*</tspan>  "Latência SLO — Alpha"</text>
+                            <text x="45"  y="108" font-size="10" fill="#94a3b8">service_id    <tspan fill="#34d399" font-weight="600">*</tspan>  "uuid-do-serviço"</text>
+                            <text x="45"  y="126" font-size="10" fill="#94a3b8">metric_name   <tspan fill="#34d399" font-weight="600">*</tspan>  "latency_ms"</text>
+                            <text x="45"  y="144" font-size="10" fill="#94a3b8">threshold_value    50.0  (ms)</text>
+                            <text x="45"  y="162" font-size="10" fill="#94a3b8">direction          "below"  (ou "above")</text>
+                            <text x="45"  y="180" font-size="10" fill="#94a3b8">tolerance          5.0  (±tolerância)</text>
+                            <text x="45"  y="198" font-size="10" fill="#94a3b8">sls_id             uuid-da-spec  (opcional)</text>
+
+                            <!-- States box -->
+                            <rect x="285" y="48" width="200" height="145" rx="8"
+                                  fill="rgba(96,165,250,0.07)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="385" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Estados</text>
+                            <text x="300" y="90"  font-size="10" fill="#94a3b8">state  <tspan fill="#34d399">active</tspan></text>
+                            <text x="300" y="106" font-size="10" fill="#94a3b8">       ↔ <tspan fill="#f87171">violated</tspan>  (auto)</text>
+                            <text x="300" y="122" font-size="10" fill="#94a3b8">       ↔ <tspan fill="#94a3b8">suspended</tspan>  (manual)</text>
+                            <text x="300" y="148" font-size="9"  fill="#546e7a">violated: só por check_violations</text>
+                            <text x="300" y="163" font-size="9"  fill="#546e7a">suspended: controlo manual</text>
+                            <text x="300" y="178" font-size="9"  fill="#546e7a">eliminação: só quando suspended</text>
+
+                            <!-- Direction explanation -->
+                            <rect x="500" y="48" width="265" height="145" rx="8"
+                                  fill="rgba(251,191,36,0.06)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="632" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Direcção do Threshold</text>
+                            <text x="515" y="90"  font-size="10" fill="#94a3b8">direction: <tspan fill="#34d399">"below"</tspan></text>
+                            <text x="515" y="106" font-size="10" fill="#94a3b8">  → violado quando métrica &gt; threshold</text>
+                            <text x="515" y="122" font-size="10" fill="#94a3b8">  Ex: latência &gt; 50ms  → violated</text>
+                            <text x="515" y="148" font-size="10" fill="#94a3b8">direction: <tspan fill="#34d399">"above"</tspan></text>
+                            <text x="515" y="164" font-size="10" fill="#94a3b8">  → violado quando métrica &lt; threshold</text>
+                            <text x="515" y="180" font-size="10" fill="#94a3b8">  Ex: disponib. &lt; 99.9%  → violated</text>
+
+                            <!-- Footer: check_violations -->
+                            <rect x="30" y="208" width="720" height="36" rx="8"
+                                  fill="rgba(248,113,113,0.05)" stroke="#f87171" stroke-width="1" stroke-dasharray="5,3"/>
+                            <text x="390" y="230" text-anchor="middle" font-size="10" fill="#94a3b8">
+                                A transição para <tspan fill="#f87171" font-weight="600">violated</tspan> é automática — acionada por POST /serviceLevel/check_violations com a métrica actual
+                            </text>
+                        </svg>
+                        <figcaption>Diagrama 4 — Estrutura de um ServiceLevelObjective TMF657: definição, estados e direcção do threshold</figcaption>
+                    </figure>
+
+                    <h4>Campos do ServiceLevelObjective</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Tipo</th><th>Descrição</th></tr></thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo do SLO (ex: "Latência SLO — vm-alpha Produção")</td></tr>
+                            <tr><td>service_id</td><td class="req">sim</td><td>uuid</td><td>UUID do serviço monitorizado no inventário (TMF638)</td></tr>
+                            <tr><td>metric_name</td><td class="req">sim</td><td>string</td><td>Métrica monitorizada (ex: "latency_ms", "availability_pct", "throughput_mbps")</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre do objectivo</td></tr>
+                            <tr><td>threshold_value</td><td class="opt">não</td><td>float</td><td>Valor limite que define o objectivo</td></tr>
+                            <tr><td>direction</td><td class="opt">não</td><td>enum</td><td>"above" (alerta quando &lt; threshold) ou "below" (alerta quando &gt; threshold)</td></tr>
+                            <tr><td>tolerance</td><td class="opt">não</td><td>float</td><td>Tolerância aceitável em torno do threshold antes de reportar violação</td></tr>
+                            <tr><td>sls_id</td><td class="opt">não</td><td>uuid</td><td>UUID da ServiceLevelSpecification do catálogo (TMF633) que este SLO implementa</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLO Lifecycle -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-success);color:var(--colour-success);">&#x21BB;</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida do SLO e Detecção de Violações</div>
+                        <div class="step-card__subtitle">active ↔ violated (auto) ↔ suspended (manual)</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O SLO começa no estado <code>active</code> (a monitorizar). A transição para
+                        <code>violated</code> é <strong>automática</strong> — desencadeada pelo endpoint
+                        <code>POST /serviceLevel/check_violations</code> quando a métrica reportada
+                        ultrapassa o threshold. A transição para <code>suspended</code> é manual
+                        (via PATCH) e permite pausar a monitorização temporariamente.
+                    </p>
+
+                    <!-- SLO state machine -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-slo-g"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                                <marker id="arr-slo-r"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                                <marker id="arr-slo-gr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#94a3b8"/></marker>
+                                <marker id="arr-slo-del" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#64748b"/></marker>
+                            </defs>
+
+                            <!-- active -->
+                            <rect x="285" y="20" width="200" height="56" rx="28"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2.5"/>
+                            <text x="385" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">active</text>
+                            <text x="385" y="65" text-anchor="middle" font-size="9" fill="#94a3b8">a monitorizar o serviço</text>
+
+                            <!-- active → violated (auto) -->
+                            <path d="M 490 47 Q 590 45 620 95" stroke="#f87171" stroke-width="2" fill="none" marker-end="url(#arr-slo-r)"/>
+                            <rect x="518" y="50" width="116" height="28" rx="6" fill="rgba(248,113,113,0.10)"/>
+                            <text x="576" y="63" text-anchor="middle" font-size="9" font-weight="600" fill="#f87171">check_violations</text>
+                            <text x="576" y="74" text-anchor="middle" font-size="9" fill="#94a3b8">(automático)</text>
+
+                            <!-- violated -->
+                            <rect x="520" y="100" width="220" height="56" rx="12"
+                                  fill="rgba(248,113,113,0.15)" stroke="#f87171" stroke-width="2"/>
+                            <text x="630" y="126" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">violated</text>
+                            <text x="630" y="145" text-anchor="middle" font-size="9" fill="#94a3b8">threshold ultrapassado</text>
+
+                            <!-- violated → active (PATCH) -->
+                            <path d="M 520 128 Q 420 128 395 76" stroke="#34d399" stroke-width="1.5" fill="none" marker-end="url(#arr-slo-g)" stroke-dasharray="5,3"/>
+                            <rect x="390" y="107" width="80" height="20" rx="4" fill="rgba(52,211,153,0.10)"/>
+                            <text x="430" y="121" text-anchor="middle" font-size="9" fill="#34d399">PATCH active</text>
+
+                            <!-- violated → suspended -->
+                            <path d="M 520 145 Q 420 160 175 155" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#arr-slo-gr)"/>
+                            <text x="380" y="168" text-anchor="middle" font-size="9" fill="#94a3b8">PATCH suspended</text>
+
+                            <!-- active → suspended -->
+                            <path d="M 285 48 Q 185 48 175 105" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#arr-slo-gr)" stroke-dasharray="5,3"/>
+                            <text x="175" y="78" text-anchor="middle" font-size="9" fill="#94a3b8">PATCH suspended</text>
+
+                            <!-- suspended -->
+                            <rect x="20" y="108" width="200" height="56" rx="12"
+                                  fill="rgba(100,116,139,0.12)" stroke="#94a3b8" stroke-width="1.5"/>
+                            <text x="120" y="134" text-anchor="middle" font-size="13" font-weight="700" fill="#94a3b8">suspended</text>
+                            <text x="120" y="153" text-anchor="middle" font-size="9" fill="#94a3b8">monitorização pausada</text>
+
+                            <!-- suspended → active -->
+                            <path d="M 220 120 Q 270 105 283 78" stroke="#34d399" stroke-width="1.5" fill="none" marker-end="url(#arr-slo-g)"/>
+                            <text x="292" y="108" text-anchor="middle" font-size="9" fill="#34d399">PATCH active</text>
+
+                            <!-- DELETE from suspended -->
+                            <line x1="120" y1="164" x2="120" y2="195" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr-slo-del)" stroke-dasharray="4,3"/>
+                            <text x="150" y="192" font-size="9" fill="#64748b">DELETE</text>
+                        </svg>
+                        <figcaption>Diagrama 5 — Ciclo de vida do SLO TMF657: transições manuais e automáticas</figcaption>
+                    </figure>
+
+                    <h4>Caso de uso: monitorizar a latência de um serviço</h4>
+                    <div class="api-block"><span class="comment">-- 1. Criar o SLO --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:            <span class="val">"Latência SLO — vm-alpha"</span>,
+  <span class="key">"description"</span>:   <span class="val">"Latência RTT não deve exceder 50ms"</span>,
+  <span class="key">"service_id"</span>:    <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"metric_name"</span>:   <span class="val">"latency_ms"</span>,
+  <span class="key">"threshold_value"</span>:<span class="val">50.0</span>,
+  <span class="key">"direction"</span>:     <span class="val">"below"</span>,
+  <span class="key">"tolerance"</span>:     <span class="val">5.0</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "state": "active", … }</span>
+
+<span class="comment">-- 2. Verificar violações (fornecer o valor actual da métrica) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/check_violations</span>
+<span class="key">{</span>
+  <span class="key">"service_id"</span>:   <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"metric_name"</span>:  <span class="val">"latency_ms"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">78.2</span>
+<span class="key">}</span>
+<span class="comment">→ SLOs em 'active' com latency_ms / direction "below" / threshold 50:</span>
+<span class="comment">  78.2 &gt; 50 + 5 (tolerância) → transição automática para 'violated'</span>
+
+<span class="comment">-- 3. Repor o SLO para active após correcção --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/&lt;slo_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"active"</span> <span class="key">}</span>
+
+<span class="comment">-- 4. Suspender temporariamente (ex: janela de manutenção) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/&lt;slo_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"suspended"</span> <span class="key">}</span>
+
+<span class="comment">-- Eliminar SLO (só quando suspended) --</span>
+<span class="method">DELETE</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/&lt;slo_id&gt;</span>
+
+<span class="comment">-- Listar SLOs por estado --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel?state=violated</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel?service_id=&lt;uuid&gt;</span></div>
+
+                    <div class="callout callout--danger">
+                        <span class="callout__icon">🔴</span>
+                        <div class="callout__text">
+                            A transição para <code>violated</code> é <strong>exclusivamente automática</strong>
+                            via <code>POST /check_violations</code>. Um PATCH manual para <code>violated</code>
+                            é rejeitado pela API (HTTP 422).
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead><tr><th>Estado</th><th>Transições Manuais (PATCH)</th><th>Pode ser Eliminado?</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="slo-badge slo-badge--active">active</span></td>
+                                <td>suspended</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td><span class="slo-badge slo-badge--violated">violated</span></td>
+                                <td>active, suspended</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td><span class="slo-badge slo-badge--suspended">suspended</span></td>
+                                <td>active</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ GUIA PASSO A PASSO ════════════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                Guia Passo a Passo — Cenário Completo
+            </h2>
+
+            <!-- Passo 1 — Alarme crítico -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Gerir um Alarme Crítico de Serviço</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF642 POST /alarm</span>
+                            &nbsp;raised → acknowledged → cleared
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Cenário: o sistema de monitorização detecta que o serviço <strong>vm-alpha-001</strong>
+                        está a consumir 97% de CPU. O incidente é registado como alarme, reconhecido pelo
+                        operador e resolvido após reinício do processo em causa.
+                    </p>
+
+                    <!-- Alarm flow -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 130" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-af1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                                <marker id="arr-af2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                            </defs>
+                            <text x="390" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Fluxo — alarme crítico de CPU</text>
+
+                            <rect x="10" y="35" width="160" height="60" rx="8" fill="rgba(248,113,113,0.14)" stroke="#f87171" stroke-width="2"/>
+                            <text x="90" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#f87171">raised</text>
+                            <text x="90" y="74" text-anchor="middle" font-size="9" fill="#94a3b8">alarm criado</text>
+                            <text x="90" y="87" text-anchor="middle" font-size="9" fill="#f87171">severity: critical</text>
+
+                            <line x1="170" y1="65" x2="218" y2="65" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-af1)"/>
+                            <text x="194" y="57" text-anchor="middle" font-size="9" fill="#fbbf24">PATCH</text>
+
+                            <rect x="220" y="35" width="200" height="60" rx="8" fill="rgba(251,191,36,0.14)" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="320" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">acknowledged</text>
+                            <text x="320" y="74" text-anchor="middle" font-size="9" fill="#94a3b8">operador ciente</text>
+                            <text x="320" y="87" text-anchor="middle" font-size="9" fill="#94a3b8">investigação em curso</text>
+
+                            <line x1="420" y1="65" x2="468" y2="65" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-af2)"/>
+                            <text x="444" y="57" text-anchor="middle" font-size="9" fill="#34d399">PATCH</text>
+
+                            <rect x="470" y="35" width="185" height="60" rx="8" fill="rgba(52,211,153,0.14)" stroke="#34d399" stroke-width="2"/>
+                            <text x="562" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">cleared</text>
+                            <text x="562" y="74" text-anchor="middle" font-size="9" fill="#94a3b8">problema resolvido</text>
+                            <text x="562" y="87" text-anchor="middle" font-size="9" fill="#34d399">pode ser eliminado</text>
+
+                            <!-- Restart process -->
+                            <rect x="668" y="40" width="105" height="50" rx="6" fill="rgba(52,211,153,0.08)" stroke="rgba(52,211,153,0.3)" stroke-dasharray="4,3"/>
+                            <text x="720" y="58" text-anchor="middle" font-size="9" fill="#34d399">Processo</text>
+                            <text x="720" y="72" text-anchor="middle" font-size="9" fill="#34d399">reiniciado</text>
+                            <text x="720" y="85" text-anchor="middle" font-size="9" fill="#94a3b8">CPU: 12%%</text>
+                        </svg>
+                        <figcaption>Fluxo completo do alarme: criação, reconhecimento, resolução e possível eliminação</figcaption>
+                    </figure>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: use o separador <strong>Alarms</strong> do módulo Assurance.
+                            Os botões <strong>Acknowledge</strong> e <strong>Clear</strong> aparecem
+                            na linha do alarme conforme o estado actual.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passo 2 — Medição de desempenho -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Registar uma Medição de Desempenho</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF628 POST /performanceMeasurement</span>
+                            &nbsp;scheduled → completed
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Cenário: registar a latência horária do serviço vm-alpha-001 para análise de tendência.
+                        Cada hora, o sistema de monitorização cria uma medição <code>scheduled</code>
+                        e, após recolha, preenche o valor e transita para <code>completed</code>.
+                    </p>
+
+                    <div class="api-block"><span class="comment">-- 1. Agendar a medição --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:           <span class="val">"Latência horária — vm-alpha 10h00"</span>,
+  <span class="key">"service_id"</span>:   <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"metric_name"</span>:  <span class="val">"latency_ms"</span>,
+  <span class="key">"unit_of_measure"</span>: <span class="val">"ms"</span>,
+  <span class="key">"granularity"</span>:  <span class="val">"hourly"</span>,
+  <span class="key">"scheduled_at"</span>: <span class="val">"2026-03-08T10:00:00Z"</span>
+<span class="key">}</span>
+
+<span class="comment">-- 2. Após recolha, registar o valor e completar --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement/&lt;id&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:        <span class="val">"completed"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">12.4</span>,
+  <span class="key">"completed_at"</span>: <span class="val">"2026-03-08T10:05:00Z"</span>
+<span class="key">}</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Um valor de <code>metric_value</code> de <strong>12.4 ms</strong> está
+                            abaixo do threshold de 50 ms do SLO criado no passo anterior —
+                            o SLO permaneceria <code>active</code>. Se fosse 78 ms, dispararia uma violação.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passo 3 — SLO e violação -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Criar um SLO e Simular uma Violação</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF657 POST /serviceLevel</span>
+                            &nbsp;active → violated → active / suspended
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Cenário: definir um SLO de latência (&lt;50 ms) para o serviço vm-alpha-001.
+                        O sistema de monitorização chama periodicamente <code>check_violations</code>
+                        com o valor actual da métrica. Se a latência exceder 55 ms (50 + tolerância 5),
+                        o SLO transita automaticamente para <code>violated</code>.
+                    </p>
+
+                    <div class="api-block"><span class="comment">-- 1. Criar o SLO --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:             <span class="val">"Latência SLO &lt; 50ms — vm-alpha"</span>,
+  <span class="key">"service_id"</span>:      <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"metric_name"</span>:     <span class="val">"latency_ms"</span>,
+  <span class="key">"threshold_value"</span>: <span class="val">50.0</span>,
+  <span class="key">"direction"</span>:       <span class="val">"below"</span>,
+  <span class="key">"tolerance"</span>:       <span class="val">5.0</span>
+<span class="key">}</span>
+<span class="comment">→ { "id": "uuid", "state": "active" }</span>
+
+<span class="comment">-- 2. Verificar (latência medida: 78ms — viola o SLO) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/check_violations</span>
+<span class="key">{</span> <span class="key">"service_id"</span>: <span class="val">"&lt;uuid&gt;"</span>, <span class="key">"metric_name"</span>: <span class="val">"latency_ms"</span>, <span class="key">"metric_value"</span>: <span class="val">78.0</span> <span class="key">}</span>
+<span class="comment">→ SLO transita para state: "violated"</span>
+
+<span class="comment">-- 3. Após resolução: repor para active --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/&lt;slo_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"active"</span> <span class="key">}</span>
+
+<span class="comment">-- 4. Suspender durante manutenção --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel/&lt;slo_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"suspended"</span> <span class="key">}</span></div>
+                </div>
+            </div>
+
+            <!-- Passo 4 — Consultar e filtrar -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-card__title">Consultar e Filtrar Recursos de Assurance</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF642/628/657 GET</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <h4>Alarmes</h4>
+                    <div class="api-block"><span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm</span>
+<span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm?state=raised</span>
+<span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm?severity=critical</span>
+<span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm?service_id=&lt;uuid&gt;</span>
+<span class="method">GET</span> <span class="url">/tmf-api/alarmManagement/v4/alarm?limit=20&amp;offset=0</span></div>
+
+                    <h4>Medições</h4>
+                    <div class="api-block"><span class="method">GET</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement</span>
+<span class="method">GET</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement?state=scheduled</span>
+<span class="method">GET</span> <span class="url">/tmf-api/performanceManagement/v4/performanceMeasurement?service_id=&lt;uuid&gt;</span></div>
+
+                    <h4>SLOs</h4>
+                    <div class="api-block"><span class="method">GET</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel?state=violated</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceLevelManagement/v4/serviceLevel?service_id=&lt;uuid&gt;</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Todos os endpoints de listagem suportam paginação via <code>limit</code> e <code>offset</code>.
+                            Os cabeçalhos <strong>X-Total-Count</strong> e <strong>X-Result-Count</strong>
+                            são devolvidos em conformidade com o padrão TMF.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ RESUMO ══════════════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-success);color:white;">&#x2714;</div>
+                    <div>
+                        <div class="step-card__title">Resumo — Fluxo Completo de Assurance</div>
+                        <div class="step-card__subtitle">Caso de uso típico — monitorização de um serviço vm-alpha em produção</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> Verificar que existe um <strong>Service</strong> activo no Inventário (TMF638) — obter o <code>service_id</code></li>
+                        <li><span class="checklist__num">2</span> Criar um <strong>SLO</strong> via <code>POST /serviceLevel</code> com a métrica, o threshold e a direcção adequados</li>
+                        <li><span class="checklist__num">3</span> Periodicamente, criar <strong>Medições</strong> via <code>POST /performanceMeasurement</code> e preencher o valor com PATCH</li>
+                        <li><span class="checklist__num">4</span> Ao registar uma medição, chamar <code>POST /serviceLevel/check_violations</code> para actualizar o estado dos SLOs</li>
+                        <li><span class="checklist__num">5</span> Se um SLO estiver <code>violated</code>, investigar e criar um <strong>Alarme</strong> via <code>POST /alarm</code> se aplicável</li>
+                        <li><span class="checklist__num">6</span> Reconhecer o alarme (<code>acknowledged</code>) e resolvê-lo (<code>cleared</code>) após correcção</li>
+                        <li><span class="checklist__num">7</span> Repor o SLO para <code>active</code> após a situação estar normalizada</li>
+                        <li><span class="checklist__num">8</span> Eliminar alarmes <code>cleared</code> e medições terminais para manter o dashboard limpo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ══ GERAR DADOS DE EXEMPLO ════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Teste</div>
+                        <div class="step-card__subtitle">Cria automaticamente alarmes, medições e SLOs de exemplo para o serviço vm-alpha</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Clique no botão abaixo para gerar automaticamente dados de exemplo de Assurance.
+                        O script executa os seguintes passos:
+                    </p>
+                    <ol style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                        <li>Procura ou cria um serviço <strong>vm-alpha-001</strong> no inventário</li>
+                        <li>Cria um alarme <code>critical</code> (raised) — "Alto CPU"</li>
+                        <li>Reconhece o alarme (acknowledged)</li>
+                        <li>Cria um segundo alarme <code>major</code> e deixa-o em <code>raised</code> (para demonstração)</li>
+                        <li>Cria uma medição de latência (scheduled → completed com valor de 12.4 ms)</li>
+                        <li>Cria um SLO de latência (active, threshold 50 ms)</li>
+                        <li>Verifica violações com um valor alto (78 ms) — SLO passa a <code>violated</code></li>
+                    </ol>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Execuções repetidas:</strong> cada execução cria conjuntos de recursos independentes
+                            com sufixo numérico (ex: <strong>"vm-alpha-001-2"</strong>).
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-assurance" onclick="generateAssuranceExamples()">
+                        &#x1F680; Gerar Dados de Teste
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="assurance.html" class="back-link">&#8592; Voltar ao Assurance</a>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=6"></script>
+<script>
+    function printToPDF() {
+        const btn = document.querySelector('.topbar__actions button');
+        btn.disabled = true; btn.textContent = 'A preparar…';
+        setTimeout(function () { window.print(); btn.disabled = false; btn.innerHTML = '&#x1F4E5; Gerar PDF'; }, 120);
+    }
+
+    async function generateAssuranceExamples() {
+        const btn   = document.getElementById('btn-gen-assurance');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_assurance_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : '-' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        // Steps:
+        // 1  — procurar / criar serviço vm-alpha-001
+        // 2  — criar alarme critical (raised)
+        // 3  — reconhecer alarme critical (acknowledged)
+        // 4  — criar alarme major (raised — deixar activo)
+        // 5  — criar medição latência (scheduled)
+        // 6  — completar medição (completed, 12.4 ms)
+        // 7  — criar SLO latência (active)
+        // 8  — check_violations com valor alto (78 ms) → violated
+        const TOTAL = 8;
+        let step = 0;
+
+        const INV_BASE   = '/tmf-api/serviceInventory/v4/service';
+        const ALARM_BASE = '/tmf-api/alarmManagement/v4/alarm';
+        const MEAS_BASE  = '/tmf-api/performanceManagement/v4/performanceMeasurement';
+        const SLO_BASE   = '/tmf-api/serviceLevelManagement/v4/serviceLevel';
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' — ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function apiGet(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('GET ' + url + ' → HTTP ' + r.status);
+            return r.json();
+        }
+
+        async function apiPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        async function apiPatch(url, body) {
+            const r = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('PATCH ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        try {
+            // ── 1. Procurar / criar serviço vm-alpha-001 ───────────────────
+            progress('A procurar serviço vm-alpha-001 no inventário…');
+            log('→ GET ' + INV_BASE + '?limit=100');
+            const services = await apiGet(INV_BASE + '?limit=100');
+            const targetName = 'vm-alpha-001' + sfx;
+            let svc = services.find(s => s.name && s.name.toLowerCase() === targetName.toLowerCase());
+
+            if (!svc) {
+                log('→ POST ' + INV_BASE + '  [name: ' + targetName + ']');
+                svc = await apiPost(INV_BASE, {
+                    name:         targetName,
+                    description:  'VM de serviço para demonstração de Assurance',
+                    state:        'active',
+                    service_type: 'VM Completa'
+                });
+                log('✓ Serviço criado  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+            } else {
+                log('✓ Serviço encontrado: ' + svc.name + '  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+            }
+
+            const serviceId = svc.id;
+
+            // ── 2. Criar alarme critical (raised) ─────────────────────────
+            progress('A criar alarme critical — "Alto CPU"…');
+            log('→ POST ' + ALARM_BASE + '  [severity: critical]');
+            const alarm1 = await apiPost(ALARM_BASE, {
+                name:             'Alto CPU — ' + targetName,
+                description:      'Utilização de CPU superior a 95%% durante 5 minutos consecutivos',
+                service_id:       serviceId,
+                alarm_type:       'processingErrorAlarm',
+                severity:         'critical',
+                probable_cause:   'softwareError',
+                specific_problem: 'CPU usage 97.3%% — processo webapp em loop infinito',
+                raised_at:        new Date().toISOString()
+            });
+            log('✓ Alarme critical criado  id:' + alarm1.id + '  state:' + alarm1.state, 'gen-log-ok');
+
+            // ── 3. Reconhecer alarme critical ─────────────────────────────
+            progress('A reconhecer alarme critical…');
+            log('→ PATCH ' + ALARM_BASE + '/' + alarm1.id + '  { state: "acknowledged" }');
+            const alarm1a = await apiPatch(ALARM_BASE + '/' + alarm1.id, { state: 'acknowledged' });
+            log('✓ Alarme critical → acknowledged  state:' + alarm1a.state, 'gen-log-ok');
+
+            // ── 4. Criar alarme major (raised — activo) ───────────────────
+            progress('A criar alarme major — "Memória elevada" (em raised)…');
+            log('→ POST ' + ALARM_BASE + '  [severity: major, state: raised]');
+            const alarm2 = await apiPost(ALARM_BASE, {
+                name:             'Memória elevada — ' + targetName,
+                description:      'Uso de memória RAM acima de 85%% — possível memory leak',
+                service_id:       serviceId,
+                alarm_type:       'processingErrorAlarm',
+                severity:         'major',
+                probable_cause:   'memoryLeak',
+                specific_problem: 'RAM usage 87.2%% — módulo cache sem limite configurado',
+                raised_at:        new Date().toISOString()
+            });
+            log('✓ Alarme major criado  id:' + alarm2.id + '  state:' + alarm2.state + '  (activo)', 'gen-log-ok');
+
+            // ── 5. Criar medição de latência (scheduled) ──────────────────
+            progress('A criar medição de latência (scheduled)…');
+            log('→ POST ' + MEAS_BASE + '  [metric: latency_ms, granularity: hourly]');
+            const meas = await apiPost(MEAS_BASE, {
+                name:            'Latência horária — ' + targetName + sfx,
+                description:     'Medição de latência RTT média do serviço em produção',
+                service_id:      serviceId,
+                metric_name:     'latency_ms',
+                unit_of_measure: 'ms',
+                granularity:     'hourly',
+                scheduled_at:    new Date().toISOString()
+            });
+            log('✓ Medição criada  id:' + meas.id + '  state:' + meas.state, 'gen-log-ok');
+
+            // ── 6. Completar medição (12.4 ms) ────────────────────────────
+            progress('A completar medição com valor 12.4 ms…');
+            log('→ PATCH ' + MEAS_BASE + '/' + meas.id + '  { state: "completed", metric_value: 12.4 }');
+            const measC = await apiPatch(MEAS_BASE + '/' + meas.id, {
+                state:        'completed',
+                metric_value: 12.4,
+                completed_at: new Date().toISOString()
+            });
+            log('✓ Medição → completed  metric_value:' + measC.metric_value + ' ms', 'gen-log-ok');
+
+            // ── 7. Criar SLO de latência (active) ─────────────────────────
+            progress('A criar SLO de latência < 50ms (active)…');
+            log('→ POST ' + SLO_BASE + '  [metric: latency_ms, threshold: 50, direction: below]');
+            const slo = await apiPost(SLO_BASE, {
+                name:            'Latência SLO < 50ms — ' + targetName,
+                description:     'Latência RTT não deve exceder 50ms (tolerância: ±5ms)',
+                service_id:      serviceId,
+                metric_name:     'latency_ms',
+                threshold_value: 50.0,
+                direction:       'below',
+                tolerance:       5.0
+            });
+            log('✓ SLO criado  id:' + slo.id + '  state:' + slo.state, 'gen-log-ok');
+
+            // ── 8. check_violations com valor alto (78 ms) → violated ──────
+            progress('A verificar violações com latência de 78ms (viola o SLO)…');
+            log('→ POST ' + SLO_BASE + '/check_violations  { metric_value: 78, latency_ms }');
+            const cvResult = await apiPost(SLO_BASE + '/check_violations', {
+                service_id:   serviceId,
+                metric_name:  'latency_ms',
+                metric_value: 78.0
+            });
+            const violatedCount = Array.isArray(cvResult) ? cvResult.length : (cvResult.violated_count || '?');
+            log('✓ check_violations concluído — SLOs violados: ' + violatedCount, 'gen-log-ok');
+            log('✓ SLO de latência transitou para state: violated', 'gen-log-ok');
+
+            // ── Concluído ─────────────────────────────────────────────────
+            fill.style.width = '100%';
+            lbl.textContent  = 'Concluído!';
+            log('', '');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('✓ Dados de teste criados com sucesso:', 'gen-log-ok');
+            log('  Serviço:    ' + targetName + '  (state: active)', 'gen-log-ok');
+            log('  Alarme 1:   Alto CPU' + sfx + '          → acknowledged', 'gen-log-ok');
+            log('  Alarme 2:   Memória elevada' + sfx + '    → raised (activo)', 'gen-log-ok');
+            log('  Medição:    Latência horária' + sfx + '  → completed (12.4ms)', 'gen-log-ok');
+            log('  SLO:        Latência < 50ms' + sfx + '   → violated (78ms)', 'gen-log-ok');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('Navegue para Assurance para ver os recursos criados.', 'gen-log-info');
+
+        } catch (err) {
+            fill.style.width = '100%';
+            lbl.textContent  = 'Erro';
+            log('✗ Erro: ' + err.message, 'gen-log-err');
+        } finally {
+            btn.disabled    = false;
+            btn.innerHTML   = '&#x1F680; Gerar Dados de Teste';
+        }
+    }
+</script>
+
+</body>
+</html>

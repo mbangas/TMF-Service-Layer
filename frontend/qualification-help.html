@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda — Qualificação de Serviços | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Help page specific ── */
+        .help-content {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p {
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+            line-height: 1.8;
+        }
+
+        .step-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .step-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--colour-surface-alt);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--colour-primary);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            flex-shrink: 0;
+        }
+        .step-card__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .step-card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-top: 2px;
+        }
+        .step-card__body {
+            padding: var(--space-xl);
+        }
+        .step-card__body p,
+        .step-card__body li {
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+        }
+        .step-card__body ul,
+        .step-card__body ol {
+            padding-left: var(--space-xl);
+            margin-top: var(--space-sm);
+        }
+        .step-card__body li {
+            margin-bottom: var(--space-xs);
+        }
+        .step-card__body h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--colour-text);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ── API call blocks ── */
+        .api-block {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-left: 3px solid var(--colour-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #a5d6a7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .api-block .method { color: #82b1ff; font-weight: 700; }
+        .api-block .url    { color: #80cbc4; }
+        .api-block .key    { color: #ce93d8; }
+        .api-block .val    { color: #a5d6a7; }
+        .api-block .comment{ color: #546e7a; }
+
+        /* ── Info / Warning callouts ── */
+        .callout {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin: var(--space-md) 0;
+        }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Summary checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--colour-primary-dim);
+            color: var(--colour-primary);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Field reference table ── */
+        .field-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .field-table th { padding: 8px 12px; text-align: left; color: var(--colour-text-muted); border-bottom: 1px solid var(--colour-border); }
+        .field-table td { padding: 8px 12px; border-bottom: 1px solid var(--colour-border); color: var(--colour-text-muted); }
+        .field-table td:first-child { font-family: var(--font-mono); font-size: 11px; color: var(--colour-text); }
+        .field-table .req  { color: var(--colour-success); font-weight: 600; }
+        .field-table .opt  { color: var(--colour-text-muted); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-lg);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--colour-border);
+            margin: var(--space-xl) 0;
+        }
+
+        /* TMF reference pills */
+        .tmf-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: rgba(79,126,248,0.15);
+            color: var(--colour-primary);
+            border: 1px solid rgba(79,126,248,0.3);
+            margin-left: var(--space-xs);
+        }
+
+        /* ── Item result badges ── */
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+        }
+        .result-badge--approved       { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+        .result-badge--rejected       { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+        .result-badge--unableToProvide{ background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+
+        /* ── Generate example data section ── */
+        .gen-progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--colour-surface-alt);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        .gen-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--colour-primary), #34d399);
+            border-radius: var(--radius-full);
+            transition: width 0.35s ease;
+        }
+        .gen-progress-label {
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-md);
+        }
+        .gen-log {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #94a3b8;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.9;
+        }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            :root {
+                --colour-bg:           #ffffff;
+                --colour-surface:      #f8f9fc;
+                --colour-surface-alt:  #eef0f6;
+                --colour-border:       #d1d5db;
+                --colour-text:         #111827;
+                --colour-text-muted:   #4b5563;
+                --colour-primary:      #2563eb;
+                --colour-success:      #059669;
+                --colour-warning:      #d97706;
+                --colour-danger:       #dc2626;
+                --colour-info:         #2563eb;
+            }
+            body { background: #fff; color: #111; }
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-qual, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; color: #111; }
+            .step-card { border: 1px solid #d1d5db; border-radius: 6px; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .callout--info    { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .callout--success { background: #ecfdf5; border-color: #10b981; }
+            .api-block { background: #1e293b; border-color: #334155; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+            .diagram-wrapper { background: #f8fafc; border-color: #d1d5db; break-inside: avoid; }
+            .tmf-pill { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .result-badge--approved        { background: #dcfce7; color: #166534; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .result-badge--rejected        { background: #fee2e2; color: #991b1b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .result-badge--unableToProvide { background: #fef9c3; color: #92400e; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .step-card { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link active" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">&#x2753; Guia de Qualificação de Serviços</div>
+                <div class="topbar__subtitle">Como criar e gerir pedidos de qualificação — TMF645 Service Qualification Management</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
+                <a href="qualification.html" class="btn btn--ghost btn--sm">&#8592; Voltar à Qualificação</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica como usar o módulo de <strong style="color:var(--colour-text)">Qualificação de Serviços</strong>
+                    da TMF Service Layer (TMF645 — Service Qualification Management). A qualificação é
+                    uma <strong style="color:var(--colour-text)">verificação de viabilidade pré-venda</strong>
+                    que determina se um serviço pode ser entregue a um cliente antes de criar uma ordem formal.
+                </p>
+                <p style="margin-top:var(--space-sm);">
+                    Um pedido de qualificação (<code>ServiceQualification</code>) contém um ou mais
+                    <strong style="color:var(--colour-text)">itens de qualificação</strong>
+                    (<code>ServiceQualificationItem</code>), cada um referenciando uma especificação de serviço
+                    do catálogo e devolvendo um resultado: <code>approved</code>, <code>rejected</code>
+                    ou <code>unableToProvide</code>.
+                </p>
+                <p style="margin-top:var(--space-sm);">
+                    Após a qualificação ser <code>accepted</code>, o resultado serve de fundamento
+                    para criar uma Ordem de Serviço (TMF641).
+                    Consulte o <a href="orders-help.html" style="color:var(--colour-primary);">Guia de Ordens</a>
+                    para o passo seguinte.
+                </p>
+            </div>
+
+            <!-- ══ PRÉ-REQUISITO ════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x26A0;</div>
+                    <div>
+                        <div class="step-card__title">Pré-requisito — Catálogo Configurado (recomendado)</div>
+                        <div class="step-card__subtitle">Os itens de qualificação podem referenciar especificações de serviço do catálogo (TMF633)</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Cada <code>ServiceQualificationItem</code> aceita um <code>service_spec_id</code>
+                        (UUID de uma ServiceSpecification do catálogo). Este campo é <strong>opcional</strong>:
+                        pode criar itens sem referenciar o catálogo, mas a referência enriquece o resultado
+                        e permite ligar a qualificação ao processo de encomenda subsequente.
+                    </p>
+
+                    <!-- Prerequisite flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 115" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-q" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                                <marker id="arr-q-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                            </defs>
+                            <!-- Catalog -->
+                            <rect x="10" y="28" width="165" height="55" rx="8"
+                                  fill="rgba(79,126,248,0.10)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="92" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">Catalog</text>
+                            <text x="92" y="68" text-anchor="middle" font-size="10" fill="#94a3b8">ServiceSpecification</text>
+                            <text x="92" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">(TMF633) — opcional</text>
+
+                            <line x1="175" y1="55" x2="213" y2="55" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-q)"/>
+                            <text x="194" y="47" text-anchor="middle" font-size="9" fill="#94a3b8">service_spec_id</text>
+
+                            <!-- Qualification -->
+                            <rect x="215" y="18" width="200" height="75" rx="8"
+                                  fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="315" y="42" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">Service</text>
+                            <text x="315" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">Qualification</text>
+                            <text x="315" y="76" text-anchor="middle" font-size="10" fill="#94a3b8">TMF645 — verifica viabilidade</text>
+                            <text x="315" y="89" text-anchor="middle" font-size="9" fill="#94a3b8">state: acknowledged</text>
+
+                            <line x1="415" y1="55" x2="453" y2="55" stroke="#34d399" stroke-width="2" marker-end="url(#arr-q-g)"/>
+                            <text x="434" y="47" text-anchor="middle" font-size="9" fill="#34d399">accepted</text>
+
+                            <!-- Order -->
+                            <rect x="455" y="28" width="155" height="55" rx="8"
+                                  fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="532" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24">ServiceOrder</text>
+                            <text x="532" y="68" text-anchor="middle" font-size="10" fill="#94a3b8">TMF641 — encomenda</text>
+                            <text x="532" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">passo seguinte</text>
+
+                            <line x1="610" y1="55" x2="648" y2="55" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-q)"/>
+                            <text x="629" y="47" text-anchor="middle" font-size="9" fill="#94a3b8">activa</text>
+
+                            <!-- Inventory -->
+                            <rect x="650" y="28" width="120" height="55" rx="8"
+                                  fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="710" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">Inventário</text>
+                            <text x="710" y="68" text-anchor="middle" font-size="10" fill="#94a3b8">TMF638</text>
+                            <text x="710" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">instância criada</text>
+                        </svg>
+                        <figcaption>Posição da Qualificação no fluxo end-to-end: precede a Ordem de Serviço</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Ainda não tem o catálogo configurado? Use a secção
+                            <strong>Gerar Dados de Exemplo</strong> no final desta página
+                            para criar automaticamente uma qualificação de teste.
+                            O catálogo não é obrigatório — pode omitir o <code>service_spec_id</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ VISÃO GERAL ═══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x1F5FA;</div>
+                    <div>
+                        <div class="step-card__title">Estrutura de uma ServiceQualification</div>
+                        <div class="step-card__subtitle">Campos, itens de qualificação e ciclo de vida</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma <code>ServiceQualification</code> agrupa um ou mais <strong>itens</strong>
+                        (<code>ServiceQualificationItem</code>). Cada item representa a verificação de
+                        viabilidade de um serviço específico e tem o seu próprio resultado.
+                        O estado do pedido evolui de forma independente dos resultados dos itens.
+                    </p>
+
+                    <!-- Structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 295" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Outer box -->
+                            <rect x="10" y="10" width="760" height="272" rx="12"
+                                  fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#34d399">ServiceQualification</text>
+                            <text x="205" y="34" font-size="11" fill="#94a3b8">(TMF645)</text>
+
+                            <!-- Header fields -->
+                            <rect x="30" y="48" width="240" height="150" rx="8"
+                                  fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1"/>
+                            <text x="150" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">Campos do Pedido</text>
+                            <text x="45" y="90"  font-size="10" fill="#94a3b8">name                   <tspan fill="#34d399" font-weight="600">*</tspan>  "Qualif. VM Completa"</text>
+                            <text x="45" y="108" font-size="10" fill="#94a3b8">description                "Verif. pré-venda DC Lisboa"</text>
+                            <text x="45" y="126" font-size="10" fill="#94a3b8">expected_qualification_date  2026-04-01</text>
+                            <text x="45" y="144" font-size="10" fill="#94a3b8">expiration_date              2026-06-30</text>
+                            <text x="45" y="162" font-size="10" fill="#94a3b8">@type      "ServiceQualification"</text>
+                            <text x="45" y="180" font-size="10" fill="#94a3b8">@baseType  "Entity"</text>
+
+                            <!-- State box -->
+                            <rect x="285" y="48" width="185" height="150" rx="8"
+                                  fill="rgba(96,165,250,0.07)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="377" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Estado do Pedido</text>
+                            <text x="300" y="90"  font-size="10" fill="#94a3b8">state  <tspan fill="#fbbf24">acknowledged</tspan></text>
+                            <text x="300" y="108" font-size="10" fill="#94a3b8">       → <tspan fill="#60a5fa">inProgress</tspan></text>
+                            <text x="300" y="126" font-size="10" fill="#94a3b8">       → <tspan fill="#34d399">accepted</tspan></text>
+                            <text x="300" y="144" font-size="10" fill="#94a3b8">       → <tspan fill="#f87171">rejected</tspan></text>
+                            <text x="300" y="162" font-size="10" fill="#94a3b8">       → <tspan fill="#64748b">cancelled</tspan></text>
+                            <text x="300" y="185" font-size="9" fill="#546e7a">terminal: accepted | rejected | cancelled</text>
+
+                            <!-- Items box -->
+                            <rect x="485" y="48" width="280" height="150" rx="8"
+                                  fill="rgba(79,126,248,0.06)" stroke="#4f7ef8" stroke-width="1"/>
+                            <text x="625" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#4f7ef8">items [ ] — Itens de Qualificação</text>
+
+                            <rect x="502" y="78" width="246" height="50" rx="6"
+                                  fill="rgba(52,211,153,0.12)" stroke="rgba(52,211,153,0.3)"/>
+                            <text x="625" y="96" text-anchor="middle" font-size="10" fill="#34d399">item 1 — approved</text>
+                            <text x="625" y="114" text-anchor="middle" font-size="9" fill="#94a3b8">service_spec_id:  "uuid-vm-completa"</text>
+                            <text x="625" y="126" text-anchor="middle" font-size="9" fill="#94a3b8">qualifier_message: "Disponível em DC Lisboa"</text>
+
+                            <rect x="502" y="135" width="246" height="50" rx="6"
+                                  fill="rgba(248,113,113,0.08)" stroke="rgba(248,113,113,0.25)"/>
+                            <text x="625" y="153" text-anchor="middle" font-size="10" fill="#f87171">item 2 — rejected</text>
+                            <text x="625" y="171" text-anchor="middle" font-size="9" fill="#94a3b8">service_spec_id:  "uuid-outro-serv"</text>
+                            <text x="625" y="183" text-anchor="middle" font-size="9" fill="#94a3b8">termination_error: "Sem capacidade"</text>
+
+                            <!-- Dates row -->
+                            <rect x="30" y="214" width="720" height="54" rx="8"
+                                  fill="rgba(96,165,250,0.04)" stroke="#60a5fa" stroke-width="1" stroke-dasharray="5,3"/>
+                            <text x="390" y="236" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Datas e Metadados (auto-geridos)</text>
+                            <text x="390" y="256" text-anchor="middle" font-size="10" fill="#94a3b8">
+                                created_at · updated_at · expected_qualification_date · expiration_date
+                            </text>
+                        </svg>
+                        <figcaption>Diagrama 1 — Estrutura de uma ServiceQualification: campos do pedido, ciclo de vida e itens de qualificação</figcaption>
+                    </figure>
+
+                    <h4>Campos da ServiceQualification</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Obrigatório</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo do pedido (ex: "Qualificação VM Completa — Cliente X")</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre do âmbito do pedido</td></tr>
+                            <tr><td>expected_qualification_date</td><td class="opt">não</td><td>datetime</td><td>Data limite para obter o resultado da qualificação</td></tr>
+                            <tr><td>expiration_date</td><td class="opt">não</td><td>datetime</td><td>Data após a qual o resultado deixa de ser válido</td></tr>
+                            <tr><td>items</td><td class="opt">não</td><td>array</td><td>Lista de itens de qualificação (um por serviço a verificar)</td></tr>
+                            <tr><td>@type</td><td class="opt">não</td><td>string</td><td>Anotação TMF — tipo do recurso (ex: "ServiceQualification")</td></tr>
+                            <tr><td>@baseType</td><td class="opt">não</td><td>string</td><td>Anotação TMF — tipo base da hierarquia</td></tr>
+                            <tr><td>@schemaLocation</td><td class="opt">não</td><td>string</td><td>URI do schema JSON para validação externa</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Campos de cada ServiceQualificationItem</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Obrigatório</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>service_spec_id</td><td class="opt">não</td><td>uuid</td><td>UUID da ServiceSpecification no catálogo (TMF633) a qualificar</td></tr>
+                            <tr><td>state</td><td class="opt">não</td><td>enum</td><td>Resultado: approved | rejected | unableToProvide (default: approved)</td></tr>
+                            <tr><td>qualifier_message</td><td class="opt">não</td><td>string</td><td>Mensagem legível com o resultado da qualificação</td></tr>
+                            <tr><td>termination_error</td><td class="opt">não</td><td>string</td><td>Detalhe do erro quando o estado é rejected ou unableToProvide</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Resultados possíveis de um item</h4>
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Estado do Item</th>
+                                <th>Significado</th>
+                                <th>Acção Típica</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="result-badge result-badge--approved">approved</span></td>
+                                <td>Serviço pode ser entregue — viabilidade confirmada</td>
+                                <td>Avançar para criação de Ordem de Serviço</td>
+                            </tr>
+                            <tr>
+                                <td><span class="result-badge result-badge--rejected">rejected</span></td>
+                                <td>Serviço não pode ser entregue nas condições pedidas</td>
+                                <td>Verificar <code>termination_error</code> e ajustar requisitos</td>
+                            </tr>
+                            <tr>
+                                <td><span class="result-badge result-badge--unableToProvide">unableToProvide</span></td>
+                                <td>Impossível determinar a viabilidade (dados insuficientes, timeout, etc.)</td>
+                                <td>Reiterar o pedido com mais informação ou escalar</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CICLO DE VIDA ══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-info);color:var(--colour-info);">&#x21BB;</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida da Qualificação</div>
+                        <div class="step-card__subtitle">Transições de estado e regras de negócio</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma qualificação começa sempre no estado <code>acknowledged</code> (criada pelo sistema).
+                        O processamento avança por transições explícitas via PATCH. Os estados terminais
+                        (<code>accepted</code>, <code>rejected</code>, <code>cancelled</code>)
+                        não permitem mais transições.
+                    </p>
+
+                    <!-- Lifecycle diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 160" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-lc" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#60a5fa"/>
+                                </marker>
+                                <marker id="arr-lc-ok" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                                <marker id="arr-lc-err" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#f87171"/>
+                                </marker>
+                                <marker id="arr-lc-cancel" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#64748b"/>
+                                </marker>
+                            </defs>
+
+                            <!-- acknowledged -->
+                            <rect x="10" y="55" width="145" height="48" rx="8"
+                                  fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="82" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24">acknowledged</text>
+                            <text x="82" y="93" text-anchor="middle" font-size="9" fill="#94a3b8">estado inicial</text>
+
+                            <!-- → inProgress -->
+                            <line x1="155" y1="79" x2="203" y2="79" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arr-lc)"/>
+                            <text x="179" y="72" text-anchor="middle" font-size="9" fill="#60a5fa">PATCH</text>
+
+                            <!-- inProgress -->
+                            <rect x="205" y="55" width="145" height="48" rx="8"
+                                  fill="rgba(96,165,250,0.12)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="277" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">inProgress</text>
+                            <text x="277" y="93" text-anchor="middle" font-size="9" fill="#94a3b8">em análise</text>
+
+                            <!-- → accepted -->
+                            <line x1="350" y1="72" x2="423" y2="35" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-lc-ok)"/>
+                            <text x="395" y="45" text-anchor="middle" font-size="9" fill="#34d399">PATCH</text>
+
+                            <!-- accepted -->
+                            <rect x="425" y="10" width="130" height="48" rx="8"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2"/>
+                            <text x="490" y="31" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">accepted</text>
+                            <text x="490" y="48" text-anchor="middle" font-size="9" fill="#94a3b8">terminal ✓</text>
+
+                            <!-- → rejected -->
+                            <line x1="350" y1="86" x2="423" y2="100" stroke="#f87171" stroke-width="1.5" marker-end="url(#arr-lc-err)"/>
+                            <text x="394" y="100" text-anchor="middle" font-size="9" fill="#f87171">PATCH</text>
+
+                            <!-- rejected -->
+                            <rect x="425" y="90" width="130" height="48" rx="8"
+                                  fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="2"/>
+                            <text x="490" y="111" text-anchor="middle" font-size="12" font-weight="700" fill="#f87171">rejected</text>
+                            <text x="490" y="128" text-anchor="middle" font-size="9" fill="#94a3b8">terminal ✗</text>
+
+                            <!-- acknowledged → cancelled -->
+                            <path d="M 82 103 Q 82 145 310 145 Q 530 145 560 138" stroke="#64748b" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-lc-cancel)"/>
+                            <text x="310" y="155" text-anchor="middle" font-size="9" fill="#64748b">PATCH state:cancelled (de acknowledged ou inProgress)</text>
+
+                            <!-- cancelled -->
+                            <rect x="590" y="90" width="130" height="48" rx="8"
+                                  fill="rgba(100,116,139,0.12)" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3"/>
+                            <text x="655" y="111" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">cancelled</text>
+                            <text x="655" y="128" text-anchor="middle" font-size="9" fill="#94a3b8">terminal ⊘</text>
+                        </svg>
+                        <figcaption>Diagrama 2 — Ciclo de vida da ServiceQualification: transições de estado via PATCH</figcaption>
+                    </figure>
+
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Estado Actual</th>
+                                <th>Transições Permitidas</th>
+                                <th>Pode ser Eliminada?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="color:var(--colour-warning)">acknowledged</td>
+                                <td>inProgress, cancelled</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td style="color:var(--colour-info)">inProgress</td>
+                                <td>accepted, rejected, cancelled</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td style="color:var(--colour-success)">accepted</td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                            <tr>
+                                <td style="color:var(--colour-danger)">rejected</td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                            <tr>
+                                <td style="color:var(--colour-text-muted)">cancelled</td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                Guia Passo a Passo
+            </h2>
+
+            <!-- ══ PASSO 1 ═══ Criar uma Qualificação ════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Criar um Pedido de Qualificação</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF645 POST /checkServiceQualification</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O pedido é criado com o estado <code>acknowledged</code> automaticamente.
+                        O exemplo abaixo qualifica o serviço <strong>VM Completa</strong> para
+                        um cliente do Projecto Alpha, verificando disponibilidade no DC Lisboa.
+                    </p>
+
+                    <h4>1a — Qualificação com referência ao catálogo (recomendado)</h4>
+                    <p>
+                        Inclua o <code>service_spec_id</code> para ligar o pedido à especificação
+                        do catálogo. O <code>qualifier_message</code> documenta o resultado para o cliente.
+                    </p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:                        <span class="val">"Qualificação VM Completa — Cliente Projecto Alpha"</span>,
+  <span class="key">"description"</span>:               <span class="val">"Verificação de viabilidade pré-venda para DC Lisboa"</span>,
+  <span class="key">"expected_qualification_date"</span>: <span class="val">"2026-04-01T12:00:00Z"</span>,
+  <span class="key">"expiration_date"</span>:            <span class="val">"2026-06-30T23:59:59Z"</span>,
+  <span class="key">"items"</span>: [
+    <span class="key">{</span>
+      <span class="key">"service_spec_id"</span>:    <span class="val">"&lt;uuid-da-spec-vm-completa&gt;"</span>,
+      <span class="key">"state"</span>:             <span class="val">"approved"</span>,
+      <span class="key">"qualifier_message"</span>: <span class="val">"Capacidade disponível em DC Lisboa — entrega em 5 dias úteis"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "state": "acknowledged", "items": [ … ] }</span></div>
+
+                    <h4>1b — Qualificação sem catálogo (mínimo)</h4>
+                    <p>
+                        Pode criar um pedido sem especificações de catálogo — útil para verificações
+                        genéricas ou quando o catálogo ainda não está configurado.
+                    </p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Verificação genérica — Cliente Beta"</span>,
+  <span class="key">"description"</span>: <span class="val">"Qualificação exploratória sem especificação definida"</span>,
+  <span class="key">"items"</span>: [
+    <span class="key">{</span>
+      <span class="key">"state"</span>:             <span class="val">"approved"</span>,
+      <span class="key">"qualifier_message"</span>: <span class="val">"Serviço aprovado para entrega"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <h4>1c — Multiplos serviços na mesma qualificação</h4>
+                    <p>Pode incluir vários itens numa única qualificação — um por cada serviço a verificar.</p>
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>: <span class="val">"Qualificação Bundle VM — DC Lisboa e DC Porto"</span>,
+  <span class="key">"items"</span>: [
+    <span class="key">{</span>
+      <span class="key">"service_spec_id"</span>:    <span class="val">"&lt;uuid-vm-completa&gt;"</span>,
+      <span class="key">"state"</span>:             <span class="val">"approved"</span>,
+      <span class="key">"qualifier_message"</span>: <span class="val">"Disponível em DC Lisboa"</span>
+    <span class="key">}</span>,
+    <span class="key">{</span>
+      <span class="key">"service_spec_id"</span>:    <span class="val">"&lt;uuid-storage&gt;"</span>,
+      <span class="key">"state"</span>:             <span class="val">"rejected"</span>,
+      <span class="key">"qualifier_message"</span>: <span class="val">"Storage SSD indisponível em DC Porto"</span>,
+      <span class="key">"termination_error"</span>: <span class="val">"Capacidade de storage esgotada neste DC"</span>
+    <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 2 ═══ Avançar o Estado ══════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Avançar o Estado do Pedido</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF645 PATCH /checkServiceQualification/{id}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Use PATCH para fazer transitar o estado do pedido. Apenas o campo <code>state</code>
+                        (e os campos de metadados) pode ser alterado após a criação.
+                    </p>
+
+                    <h4>2a — Iniciar análise (acknowledged → inProgress)</h4>
+                    <div class="api-block"><span class="method">PATCH</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>: <span class="val">"inProgress"</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "state": "inProgress", … }</span></div>
+
+                    <h4>2b — Aceitar a qualificação (inProgress → accepted)</h4>
+                    <p>
+                        Um pedido <code>accepted</code> confirma que todos os serviços avaliados
+                        podem ser entregues. Serve de aprovação formal para emitir a Ordem de Serviço.
+                    </p>
+                    <div class="api-block"><span class="method">PATCH</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>: <span class="val">"accepted"</span>
+<span class="key">}</span>
+<span class="comment">→ Estado terminal. Qualificação pode agora ser eliminada.</span></div>
+
+                    <h4>2c — Rejeitar (inProgress → rejected)</h4>
+                    <div class="api-block"><span class="method">PATCH</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>: <span class="val">"rejected"</span>
+<span class="key">}</span>
+<span class="comment">→ Estado terminal. Ordem de serviço não deve ser criada.</span></div>
+
+                    <h4>2d — Cancelar (acknowledged ou inProgress → cancelled)</h4>
+                    <div class="api-block"><span class="method">PATCH</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>: <span class="val">"cancelled"</span>
+<span class="key">}</span></div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Estados terminais:</strong> após <code>accepted</code>, <code>rejected</code>
+                            ou <code>cancelled</code>, o estado não pode mais ser alterado.
+                            Crie um novo pedido de qualificação se necessário.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 3 ═══ Consultar e Filtrar ═══════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Consultar e Filtrar Qualificações</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF645 GET /checkServiceQualification</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <h4>Listar todas as qualificações (paginado)</h4>
+                    <div class="api-block"><span class="method">GET</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification?limit=20&amp;offset=0</span>
+<span class="comment">→ Headers: X-Total-Count, X-Result-Count</span></div>
+
+                    <h4>Filtrar por estado</h4>
+                    <div class="api-block"><span class="method">GET</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification?state=inProgress</span>
+<span class="comment">→ Apenas qualificações em análise</span></div>
+
+                    <h4>Obter uma qualificação específica</h4>
+                    <div class="api-block"><span class="method">GET</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}</span>
+<span class="comment">→ Inclui os itens de qualificação (items[]) na resposta</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Os cabeçalhos <strong>X-Total-Count</strong> e <strong>X-Result-Count</strong>
+                            devolvidos na listagem seguem o padrão TMF de paginação.
+                            Use <code>offset</code> + <code>limit</code> para navegar entre páginas.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PASSO 4 ═══ Eliminar ═══════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-card__title">Eliminar uma Qualificação</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF645 DELETE /checkServiceQualification/{id}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Só é permitido eliminar qualificações em <strong>estados terminais</strong>:
+                        <code>accepted</code>, <code>rejected</code> ou <code>cancelled</code>.
+                        Tentativas de eliminar qualificações em <code>acknowledged</code> ou
+                        <code>inProgress</code> devolvem HTTP 409 Conflict.
+                    </p>
+                    <div class="api-block"><span class="method">DELETE</span> <span class="url">/tmf-api/serviceQualificationManagement/v4/checkServiceQualification/{id}</span>
+<span class="comment">→ 204 No Content (sucesso)
+→ 409 Conflict se estado não for terminal</span></div>
+                </div>
+            </div>
+
+            <!-- ══ RESUMO ══════════════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-success);color:var(--colour-success);">&#x2714;</div>
+                    <div>
+                        <div class="step-card__title">Resumo do Fluxo de Qualificação</div>
+                        <div class="step-card__subtitle">Caso de uso típico — Qualificação da VM Completa para cliente pré-venda</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> (Opcional) Confirmar que a <strong>ServiceSpecification</strong> "VM Completa" existe no catálogo</li>
+                        <li><span class="checklist__num">2</span> Criar a qualificação via <strong>POST /checkServiceQualification</strong> com os itens desejados</li>
+                        <li><span class="checklist__num">3</span> Pedido criado automaticamente no estado <code>acknowledged</code></li>
+                        <li><span class="checklist__num">4</span> Avançar para <code>inProgress</code> via <strong>PATCH</strong> enquanto se verifica a viabilidade</li>
+                        <li><span class="checklist__num">5</span> Após análise, transitar para <code>accepted</code> ou <code>rejected</code></li>
+                        <li><span class="checklist__num">6</span> Se <code>accepted</code> → criar <strong>Ordem de Serviço</strong> (TMF641) com base no resultado</li>
+                        <li><span class="checklist__num">7</span> Após a ordem estar criada, eliminar a qualificação (estado terminal)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ══ GERAR DADOS DE EXEMPLO ════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Teste</div>
+                        <div class="step-card__subtitle">Recria automaticamente o cenário de qualificação da VM Completa para Projecto Alpha</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Clique no botão abaixo para gerar automaticamente os dados de teste de qualificação
+                        usados nos testes de integração TMF645. O script cria três pedidos de qualificação
+                        com diferentes estados para demonstrar o ciclo de vida completo:
+                    </p>
+                    <ol style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                        <li>Cria uma qualificação <code>acknowledged</code> — "Qualificação VM Completa — Projecto Alpha" com item <code>approved</code></li>
+                        <li>Avança para <code>inProgress</code></li>
+                        <li>Conclui como <code>accepted</code> — pronta para criar a ordem</li>
+                        <li>Cria uma segunda qualificação e rejeita-a — demonstra fluxo de rejeição</li>
+                        <li>Cria uma terceira qualificação e deixa-a em <code>inProgress</code> — demonstra estado activo</li>
+                    </ol>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Execuções repetidas:</strong> cada execução cria conjuntos de qualificações independentes
+                            com sufixo numérico (ex: <strong>"Qualificação VM Completa-2"</strong>).
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-qual" onclick="generateQualificationExamples()">
+                        &#x1F680; Gerar Dados de Teste
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="qualification.html" class="back-link">&#8592; Voltar à Qualificação</a>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=6"></script>
+<script>
+    function printToPDF() {
+        const btn = document.querySelector('.topbar__actions button');
+        btn.disabled = true; btn.textContent = 'A preparar…';
+        setTimeout(function () { window.print(); btn.disabled = false; btn.innerHTML = '&#x1F4E5; Gerar PDF'; }, 120);
+    }
+
+    async function generateQualificationExamples() {
+        const btn   = document.getElementById('btn-gen-qual');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_qual_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : '-' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        // Steps:
+        // 1 — criar qualificação 1 (VM Completa accepted)
+        // 2 — avançar para inProgress
+        // 3 — aceitar
+        // 4 — criar qualificação 2 (rejected)
+        // 5 — avançar para inProgress
+        // 6 — rejeitar
+        // 7 — criar qualificação 3 (em inProgress — activa)
+        // 8 — avançar para inProgress
+        const TOTAL = 8;
+        let step = 0;
+
+        const BASE = '/tmf-api/serviceQualificationManagement/v4/checkServiceQualification';
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' — ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function apiPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        async function apiPatch(url, body) {
+            const r = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('PATCH ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        // ── Procurar a spec "VM Completa" no catálogo ───────────────────────
+        let specId = null;
+        try {
+            const specs = await fetch('/tmf-api/serviceCatalogManagement/v4/serviceSpecification?limit=100');
+            if (specs.ok) {
+                const list = await specs.json();
+                const found = list.find(s => s.name && s.name.toLowerCase().includes('vm completa'));
+                if (found) { specId = found.id; }
+            }
+        } catch {}
+
+        try {
+            // ── 1. Criar qualificação 1 ────────────────────────────────────
+            progress('A criar qualificação 1 — VM Completa Projecto Alpha…');
+            log('→ POST ' + BASE + '  [qualificação accepted]');
+            const q1 = await apiPost(BASE, {
+                name:        'Qualificação VM Completa — Projecto Alpha' + sfx,
+                description: 'Verificação de viabilidade pré-venda para DC Lisboa — Projecto Alpha',
+                expected_qualification_date: '2026-04-01T12:00:00Z',
+                expiration_date:             '2026-06-30T23:59:59Z',
+                items: [
+                    {
+                        service_spec_id:    specId || undefined,
+                        state:              'approved',
+                        qualifier_message:  'Capacidade disponível em DC Lisboa — entrega em 5 dias úteis'
+                    }
+                ]
+            });
+            log('✓ Qualificação 1 criada  id:' + q1.id + '  state:' + q1.state, 'gen-log-ok');
+
+            // ── 2. inProgress ──────────────────────────────────────────────
+            progress('A avançar qualificação 1 para inProgress…');
+            log('→ PATCH ' + BASE + '/' + q1.id + '  { state: "inProgress" }');
+            await apiPatch(BASE + '/' + q1.id, { state: 'inProgress' });
+            log('✓ Qualificação 1 → inProgress', 'gen-log-ok');
+
+            // ── 3. accepted ────────────────────────────────────────────────
+            progress('A aceitar qualificação 1…');
+            log('→ PATCH ' + BASE + '/' + q1.id + '  { state: "accepted" }');
+            const q1a = await apiPatch(BASE + '/' + q1.id, { state: 'accepted' });
+            log('✓ Qualificação 1 → accepted  state:' + q1a.state, 'gen-log-ok');
+
+            // ── 4. Criar qualificação 2 (rejected) ─────────────────────────
+            progress('A criar qualificação 2 — Storage DC Porto (rejected)…');
+            log('→ POST ' + BASE + '  [qualificação rejected]');
+            const q2 = await apiPost(BASE, {
+                name:        'Qualificação Storage DC Porto' + sfx,
+                description: 'Verificação de storage SSD no DC Porto — Projecto Beta',
+                items: [
+                    {
+                        state:             'rejected',
+                        qualifier_message: 'Storage SSD indisponível no DC Porto',
+                        termination_error: 'Capacidade esgotada — próxima disponibilidade: Q3 2026'
+                    }
+                ]
+            });
+            log('✓ Qualificação 2 criada  id:' + q2.id + '  state:' + q2.state, 'gen-log-ok');
+
+            // ── 5. inProgress ──────────────────────────────────────────────
+            progress('A avançar qualificação 2 para inProgress…');
+            log('→ PATCH ' + BASE + '/' + q2.id + '  { state: "inProgress" }');
+            await apiPatch(BASE + '/' + q2.id, { state: 'inProgress' });
+            log('✓ Qualificação 2 → inProgress', 'gen-log-ok');
+
+            // ── 6. rejected ────────────────────────────────────────────────
+            progress('A rejeitar qualificação 2…');
+            log('→ PATCH ' + BASE + '/' + q2.id + '  { state: "rejected" }');
+            const q2r = await apiPatch(BASE + '/' + q2.id, { state: 'rejected' });
+            log('✓ Qualificação 2 → rejected  state:' + q2r.state, 'gen-log-ok');
+
+            // ── 7. Criar qualificação 3 (inProgress — activa) ──────────────
+            progress('A criar qualificação 3 — em análise activa…');
+            log('→ POST ' + BASE + '  [qualificação em inProgress]');
+            const q3 = await apiPost(BASE, {
+                name:        'Qualificação VoIP Premium — Projecto Gama' + sfx,
+                description: 'Verificação de viabilidade de serviço VoIP redundante',
+                items: [
+                    {
+                        state:             'approved',
+                        qualifier_message: 'VoIP disponível com redundância geográfica'
+                    }
+                ]
+            });
+            log('✓ Qualificação 3 criada  id:' + q3.id + '  state:' + q3.state, 'gen-log-ok');
+
+            // ── 8. inProgress ──────────────────────────────────────────────
+            progress('A avançar qualificação 3 para inProgress (deixar activa)…');
+            log('→ PATCH ' + BASE + '/' + q3.id + '  { state: "inProgress" }');
+            const q3p = await apiPatch(BASE + '/' + q3.id, { state: 'inProgress' });
+            log('✓ Qualificação 3 → inProgress  state:' + q3p.state, 'gen-log-ok');
+
+            // ── Concluído ──────────────────────────────────────────────────
+            fill.style.width = '100%';
+            lbl.textContent  = 'Concluído!';
+            log('', '');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('✓ Dados de teste criados com sucesso:', 'gen-log-ok');
+            log('  Qualif. 1: "VM Completa — Projecto Alpha' + sfx + '"  → accepted', 'gen-log-ok');
+            log('  Qualif. 2: "Storage DC Porto' + sfx + '"               → rejected', 'gen-log-ok');
+            log('  Qualif. 3: "VoIP Premium — Projecto Gama' + sfx + '"  → inProgress', 'gen-log-ok');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('Navegue para Qualificação para ver os pedidos criados.', 'gen-log-info');
+
+        } catch (err) {
+            fill.style.width = '100%';
+            lbl.textContent  = 'Erro';
+            log('✗ Erro: ' + err.message, 'gen-log-err');
+        } finally {
+            btn.disabled    = false;
+            btn.innerHTML   = '&#x1F680; Gerar Dados de Teste';
+        }
+    }
+</script>
+
+</body>
+</html>
