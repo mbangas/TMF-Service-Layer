@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem Management – TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Tab navigation ── */
+        .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
+        .tab-btn            { padding: var(--space-sm) var(--space-md); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); transition: color .15s, border-color .15s; }
+        .tab-btn.active     { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
+        .tab-panel          { display: none; }
+        .tab-panel.active   { display: block; }
+
+        /* ── State badges ── */
+        .badge--submitted   { background: #f1f5f9; color: #475569; }
+        .badge--inProgress  { background: #fef3c7; color: #92400e; }
+        .badge--pending     { background: #e0e7ff; color: #3730a3; }
+        .badge--resolved    { background: #dcfce7; color: #166534; }
+        .badge--closed      { background: #f1f5f9; color: #64748b; }
+        .badge--confirmed   { background: #dbeafe; color: #1e40af; }
+        .badge--active      { background: #dcfce7; color: #166534; }
+        .badge--rejected    { background: #fee2e2; color: #991b1b; }
+
+        /* ── Severity / impact badges ── */
+        .badge--critical           { background: #7f1d1d; color: #fef2f2; }
+        .badge--major              { background: #fee2e2; color: #991b1b; }
+        .badge--minor              { background: #fef3c7; color: #92400e; }
+        .badge--warning            { background: #fefce8; color: #713f12; }
+        .badge--criticalSystemImpact { background: #7f1d1d; color: #fef2f2; }
+        .badge--serviceImpact      { background: #fee2e2; color: #991b1b; }
+        .badge--localImpact        { background: #fef3c7; color: #92400e; }
+        .badge--noImpact           { background: #f1f5f9; color: #475569; }
+
+        .id-cell            { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell       { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+
+        /* ── Notes list ── */
+        .notes-list         { list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
+        .notes-list li      { background: var(--colour-surface-alt); border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-xs); font-size: var(--font-size-sm); }
+        .notes-list .note-meta { color: var(--colour-text-muted); font-size: var(--font-size-xs); margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link active" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Problem Management</div>
+                <div class="topbar__subtitle">TMF621 Trouble Ticket Management · TMF656 Service Problem Management</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary" onclick="openModal('ticket-create-modal')">+ New Ticket</button>
+                <a href="problems-help.html" class="btn btn--ghost btn--sm" title="Step-by-step guide">
+                    &#x2753; Help
+                </a>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+
+        <!-- ── Tabs ── -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tickets', this)">🎫 Trouble Tickets</button>
+            <button class="tab-btn" onclick="switchTab('problems', this)">🔎 Service Problems</button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB: TROUBLE TICKETS (TMF621)
+             ════════════════════════════════════════════════════════ -->
+        <div id="tab-tickets" class="tab-panel active">
+            <div class="section-header">
+                <h2 class="section-title">Trouble Tickets</h2>
+                <div style="display:flex;gap:var(--space-sm);align-items:center">
+                    <select id="ticket-filter-state" class="form-control" style="width:160px" onchange="loadTickets()">
+                        <option value="">All states</option>
+                        <option value="submitted">submitted</option>
+                        <option value="inProgress">inProgress</option>
+                        <option value="pending">pending</option>
+                        <option value="resolved">resolved</option>
+                        <option value="closed">closed</option>
+                    </select>
+                    <select id="ticket-filter-severity" class="form-control" style="width:140px" onchange="loadTickets()">
+                        <option value="">All severities</option>
+                        <option value="critical">critical</option>
+                        <option value="major">major</option>
+                        <option value="minor">minor</option>
+                        <option value="warning">warning</option>
+                    </select>
+                    <button class="btn btn--secondary btn--sm" onclick="loadTickets()">🔄 Refresh</button>
+                </div>
+            </div>
+            <p class="section-description">Customer and operator trouble tickets linked to service alarms or degraded service instances.</p>
+
+            <div class="card">
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Severity</th>
+                                <th>State</th>
+                                <th>Service ID</th>
+                                <th>Alarm ID</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tickets-tbody">
+                            <tr><td colspan="8" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail panel (shown when a ticket is expanded) -->
+            <div id="ticket-detail-panel" style="display:none" class="card" style="margin-top:var(--space-lg)">
+                <div class="card__header">
+                    <h3 class="card__title" id="ticket-detail-title">Ticket Detail</h3>
+                    <button class="btn btn--ghost btn--sm" onclick="closeTicketDetail()">✕ Close</button>
+                </div>
+                <div class="card__body" id="ticket-detail-body"></div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB: SERVICE PROBLEMS (TMF656)
+             ════════════════════════════════════════════════════════ -->
+        <div id="tab-problems" class="tab-panel">
+            <div class="section-header">
+                <h2 class="section-title">Service Problems</h2>
+                <div style="display:flex;gap:var(--space-sm);align-items:center">
+                    <select id="problem-filter-state" class="form-control" style="width:160px" onchange="loadProblems()">
+                        <option value="">All states</option>
+                        <option value="submitted">submitted</option>
+                        <option value="confirmed">confirmed</option>
+                        <option value="active">active</option>
+                        <option value="rejected">rejected</option>
+                        <option value="resolved">resolved</option>
+                        <option value="closed">closed</option>
+                    </select>
+                    <select id="problem-filter-impact" class="form-control" style="width:200px" onchange="loadProblems()">
+                        <option value="">All impacts</option>
+                        <option value="criticalSystemImpact">criticalSystemImpact</option>
+                        <option value="serviceImpact">serviceImpact</option>
+                        <option value="localImpact">localImpact</option>
+                        <option value="noImpact">noImpact</option>
+                    </select>
+                    <button class="btn btn--primary btn--sm" onclick="openModal('problem-create-modal')">+ New Problem</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadProblems()">🔄 Refresh</button>
+                </div>
+            </div>
+            <p class="section-description">Service problem records aggregating root cause analysis for one or more trouble tickets.</p>
+
+            <div class="card">
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Impact</th>
+                                <th>State</th>
+                                <th>Category</th>
+                                <th>Service ID</th>
+                                <th>Linked Ticket</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="problems-tbody">
+                            <tr><td colspan="9" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        </div><!-- /page-body -->
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODALS
+     ════════════════════════════════════════════════════════ -->
+
+<!-- Create Trouble Ticket -->
+<div id="ticket-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('ticket-create-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">New Trouble Ticket</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('ticket-create-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="tt-name" class="form-control" placeholder="e.g. Internet Service Outage — Customer 12345">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="tt-description" class="form-control" rows="2" placeholder="Optional free-text description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Severity</label>
+                <select id="tt-severity" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="critical">critical</option>
+                    <option value="major">major</option>
+                    <option value="minor">minor</option>
+                    <option value="warning">warning</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority (1 = highest)</label>
+                <select id="tt-priority" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ticket Type</label>
+                <select id="tt-type" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="serviceFailure">serviceFailure</option>
+                    <option value="servicePerformanceDegradation">servicePerformanceDegradation</option>
+                    <option value="scheduledMaintenance">scheduledMaintenance</option>
+                    <option value="others">others</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service ID</label>
+                <input id="tt-service-id" class="form-control" placeholder="UUID of affected Service instance">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Alarm ID</label>
+                <input id="tt-alarm-id" class="form-control" placeholder="UUID of linked Alarm (optional)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Initial Note</label>
+                <textarea id="tt-note" class="form-control" rows="2" placeholder="Optionally add an initial note"></textarea>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('ticket-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createTicket()">Create Ticket</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note -->
+<div id="note-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('note-create-modal')">
+    <div class="modal" style="max-width:460px">
+        <div class="modal__header">
+            <h2 class="modal__title">Add Note</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('note-create-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Note Text <span class="required">*</span></label>
+                <textarea id="note-text" class="form-control" rows="3" placeholder="Note content..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Author</label>
+                <input id="note-author" class="form-control" placeholder="e.g. NOC Operator">
+            </div>
+            <input type="hidden" id="note-ticket-id">
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('note-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="addNote()">Add Note</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transition Ticket State -->
+<div id="ticket-transition-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('ticket-transition-modal')">
+    <div class="modal" style="max-width:420px">
+        <div class="modal__header">
+            <h2 class="modal__title">Change Ticket State</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('ticket-transition-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Target State <span class="required">*</span></label>
+                <select id="tt-transition-state" class="form-control">
+                    <option value="inProgress">inProgress</option>
+                    <option value="pending">pending</option>
+                    <option value="resolved">resolved</option>
+                    <option value="closed">closed</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Resolution (required when resolving)</label>
+                <textarea id="tt-transition-resolution" class="form-control" rows="2" placeholder="Describe the resolution..."></textarea>
+            </div>
+            <input type="hidden" id="tt-transition-id">
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('ticket-transition-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="transitionTicket()">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Service Problem -->
+<div id="problem-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('problem-create-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">New Service Problem</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('problem-create-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="sp-name" class="form-control" placeholder="e.g. Core Router BGP Flapping">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="sp-description" class="form-control" rows="2" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Impact</label>
+                <select id="sp-impact" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="criticalSystemImpact">criticalSystemImpact</option>
+                    <option value="serviceImpact">serviceImpact</option>
+                    <option value="localImpact">localImpact</option>
+                    <option value="noImpact">noImpact</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority (1 = highest)</label>
+                <select id="sp-priority" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <input id="sp-category" class="form-control" placeholder="e.g. networkFailure">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service ID</label>
+                <input id="sp-service-id" class="form-control" placeholder="UUID of affected Service instance">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Linked Ticket ID</label>
+                <input id="sp-ticket-id" class="form-control" placeholder="UUID of related TroubleTicket (optional)">
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('problem-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="createProblem()">Create Problem</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transition Problem State -->
+<div id="problem-transition-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('problem-transition-modal')">
+    <div class="modal" style="max-width:420px">
+        <div class="modal__header">
+            <h2 class="modal__title">Change Problem State</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('problem-transition-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Target State <span class="required">*</span></label>
+                <select id="sp-transition-state" class="form-control">
+                    <option value="confirmed">confirmed</option>
+                    <option value="active">active</option>
+                    <option value="rejected">rejected</option>
+                    <option value="resolved">resolved</option>
+                    <option value="closed">closed</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Resolution (when resolving)</label>
+                <textarea id="sp-transition-resolution" class="form-control" rows="2" placeholder="Describe the resolution..."></textarea>
+            </div>
+            <input type="hidden" id="sp-transition-id">
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--secondary" onclick="closeModal('problem-transition-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="transitionProblem()">Apply</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const TICKET_BASE = '/tmf-api/troubleTicketManagement/v4/troubleTicket';
+const PROBLEM_BASE = '/tmf-api/serviceProblemManagement/v4/problem';
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'tickets') loadTickets();
+    else loadProblems();
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+function stateBadge(state) {
+    return `<span class="badge badge--${state}">${state}</span>`;
+}
+function severityBadge(s) {
+    return s ? `<span class="badge badge--${s}">${s}</span>` : '<span class="text-muted">—</span>';
+}
+function impactBadge(i) {
+    return i ? `<span class="badge badge--${i}" style="font-size:var(--font-size-xs)">${i}</span>` : '<span class="text-muted">—</span>';
+}
+function shortId(id) {
+    return id ? `<span class="id-cell" title="${id}">${id.slice(0, 8)}…</span>` : '<span class="text-muted">—</span>';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TROUBLE TICKETS
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadTickets() {
+    const state    = document.getElementById('ticket-filter-state').value;
+    const severity = document.getElementById('ticket-filter-severity').value;
+    const tbody    = document.getElementById('tickets-tbody');
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Loading…</td></tr>';
+    try {
+        const params = {};
+        if (state) params.state = state;
+        if (severity) params.severity = severity;
+        const { data } = await apiGet(TICKET_BASE, params);
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No trouble tickets found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(t => `
+            <tr>
+                <td>${shortId(t.id)}</td>
+                <td>${t.name}</td>
+                <td>${severityBadge(t.severity)}</td>
+                <td>${stateBadge(t.state)}</td>
+                <td>${shortId(t.related_service_id)}</td>
+                <td>${shortId(t.related_alarm_id)}</td>
+                <td style="font-size:var(--font-size-xs);color:var(--colour-text-muted)">${t.created_at ? new Date(t.created_at).toLocaleDateString() : '—'}</td>
+                <td class="actions-cell">
+                    <button class="btn btn--secondary btn--sm" onclick="showTicketDetail('${t.id}')">Detail</button>
+                    <button class="btn btn--ghost btn--sm" onclick="openTransitionTicket('${t.id}')">State →</button>
+                    <button class="btn btn--danger btn--sm" onclick="deleteTicket('${t.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state text-danger">${err.message}</td></tr>`;
+    }
+}
+
+async function createTicket() {
+    const name      = document.getElementById('tt-name').value.trim();
+    const severity  = document.getElementById('tt-severity').value;
+    const priority  = document.getElementById('tt-priority').value;
+    const type      = document.getElementById('tt-type').value;
+    const serviceId = document.getElementById('tt-service-id').value.trim();
+    const alarmId   = document.getElementById('tt-alarm-id').value.trim();
+    const noteText  = document.getElementById('tt-note').value.trim();
+    const desc      = document.getElementById('tt-description').value.trim();
+
+    if (!name) { showToast('Name is required.', 'error'); return; }
+
+    const body = { name };
+    if (desc)      body.description = desc;
+    if (severity)  body.severity = severity;
+    if (priority)  body.priority = parseInt(priority);
+    if (type)      body.ticket_type = type;
+    if (serviceId) body.related_service_id = serviceId;
+    if (alarmId)   body.related_alarm_id = alarmId;
+    if (noteText)  body.notes = [{ text: noteText }];
+
+    try {
+        await apiPost(TICKET_BASE, body);
+        closeModal('ticket-create-modal');
+        document.getElementById('tt-name').value = '';
+        document.getElementById('tt-description').value = '';
+        document.getElementById('tt-severity').value = '';
+        document.getElementById('tt-priority').value = '';
+        document.getElementById('tt-type').value = '';
+        document.getElementById('tt-service-id').value = '';
+        document.getElementById('tt-alarm-id').value = '';
+        document.getElementById('tt-note').value = '';
+        showToast('Trouble ticket created.', 'success');
+        loadTickets();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function showTicketDetail(ticketId) {
+    const panel = document.getElementById('ticket-detail-panel');
+    const body  = document.getElementById('ticket-detail-body');
+    const title = document.getElementById('ticket-detail-title');
+    body.innerHTML = 'Loading…';
+    panel.style.display = 'block';
+    try {
+        const { data: t } = await apiGet(`${TICKET_BASE}/${ticketId}`);
+        title.textContent = t.name;
+        const notesHtml = t.notes && t.notes.length
+            ? `<ul class="notes-list">${t.notes.map(n => `
+                <li>
+                    <div>${n.text}</div>
+                    <div class="note-meta">${n.author || 'Anonymous'} — ${new Date(n.note_date).toLocaleString()}
+                        <button class="btn btn--danger btn--sm" style="margin-left:8px" onclick="deleteNote('${ticketId}','${n.id}')">Remove</button>
+                    </div>
+                </li>`).join('')}
+              </ul>`
+            : '<p class="text-muted">No notes yet.</p>';
+
+        body.innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-md)">
+                <div><strong>State:</strong> ${stateBadge(t.state)}</div>
+                <div><strong>Severity:</strong> ${severityBadge(t.severity)}</div>
+                <div><strong>Priority:</strong> ${t.priority || '—'}</div>
+                <div><strong>Type:</strong> ${t.ticket_type || '—'}</div>
+                <div><strong>Service ID:</strong> <span class="id-cell">${t.related_service_id || '—'}</span></div>
+                <div><strong>Alarm ID:</strong> <span class="id-cell">${t.related_alarm_id || '—'}</span></div>
+                <div><strong>Resolution date:</strong> ${t.resolution_date ? new Date(t.resolution_date).toLocaleString() : '—'}</div>
+                <div><strong>Expected resolution:</strong> ${t.expected_resolution_date ? new Date(t.expected_resolution_date).toLocaleString() : '—'}</div>
+            </div>
+            ${t.description ? `<p class="text-muted">${t.description}</p>` : ''}
+            ${t.resolution ? `<div style="margin-bottom:var(--space-sm)"><strong>Resolution:</strong> ${t.resolution}</div>` : ''}
+            <div style="margin-top:var(--space-md)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm)">
+                    <strong>Notes</strong>
+                    <button class="btn btn--secondary btn--sm" onclick="openAddNote('${ticketId}')">+ Add Note</button>
+                </div>
+                ${notesHtml}
+            </div>
+        `;
+        panel.scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+        body.innerHTML = `<p class="text-danger">${err.message}</p>`;
+    }
+}
+
+function closeTicketDetail() {
+    document.getElementById('ticket-detail-panel').style.display = 'none';
+}
+
+function openAddNote(ticketId) {
+    document.getElementById('note-ticket-id').value = ticketId;
+    document.getElementById('note-text').value = '';
+    document.getElementById('note-author').value = '';
+    openModal('note-create-modal');
+}
+
+async function addNote() {
+    const ticketId = document.getElementById('note-ticket-id').value;
+    const text     = document.getElementById('note-text').value.trim();
+    const author   = document.getElementById('note-author').value.trim();
+    if (!text) { showToast('Note text is required.', 'error'); return; }
+    try {
+        await apiPost(`${TICKET_BASE}/${ticketId}/note`, { text, author: author || undefined });
+        closeModal('note-create-modal');
+        showToast('Note added.', 'success');
+        showTicketDetail(ticketId);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteNote(ticketId, noteId) {
+    if (!confirm('Delete this note?')) return;
+    try {
+        await apiDelete(`${TICKET_BASE}/${ticketId}/note/${noteId}`);
+        showToast('Note deleted.', 'success');
+        showTicketDetail(ticketId);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function openTransitionTicket(ticketId) {
+    document.getElementById('tt-transition-id').value = ticketId;
+    document.getElementById('tt-transition-resolution').value = '';
+    openModal('ticket-transition-modal');
+}
+
+async function transitionTicket() {
+    const ticketId   = document.getElementById('tt-transition-id').value;
+    const newState   = document.getElementById('tt-transition-state').value;
+    const resolution = document.getElementById('tt-transition-resolution').value.trim();
+    const body = { state: newState };
+    if (resolution) body.resolution = resolution;
+    try {
+        await apiPatch(`${TICKET_BASE}/${ticketId}`, body);
+        closeModal('ticket-transition-modal');
+        showToast(`Ticket transitioned to ${newState}.`, 'success');
+        loadTickets();
+        if (document.getElementById('ticket-detail-panel').style.display !== 'none') {
+            showTicketDetail(ticketId);
+        }
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteTicket(ticketId) {
+    if (!confirm('Delete this trouble ticket and all its notes?')) return;
+    try {
+        await apiDelete(`${TICKET_BASE}/${ticketId}`);
+        showToast('Ticket deleted.', 'success');
+        loadTickets();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICE PROBLEMS
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadProblems() {
+    const state  = document.getElementById('problem-filter-state').value;
+    const impact = document.getElementById('problem-filter-impact').value;
+    const tbody  = document.getElementById('problems-tbody');
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Loading…</td></tr>';
+    try {
+        const params = {};
+        if (state)  params.state = state;
+        if (impact) params.impact = impact;
+        const { data } = await apiGet(PROBLEM_BASE, params);
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No service problems found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.map(p => `
+            <tr>
+                <td>${shortId(p.id)}</td>
+                <td>${p.name}</td>
+                <td>${impactBadge(p.impact)}</td>
+                <td>${stateBadge(p.state)}</td>
+                <td>${p.category || '<span class="text-muted">—</span>'}</td>
+                <td>${shortId(p.related_service_id)}</td>
+                <td>${shortId(p.related_ticket_id)}</td>
+                <td style="font-size:var(--font-size-xs);color:var(--colour-text-muted)">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</td>
+                <td class="actions-cell">
+                    <button class="btn btn--ghost btn--sm" onclick="openTransitionProblem('${p.id}')">State →</button>
+                    <button class="btn btn--danger btn--sm" onclick="deleteProblem('${p.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state text-danger">${err.message}</td></tr>`;
+    }
+}
+
+async function createProblem() {
+    const name     = document.getElementById('sp-name').value.trim();
+    const impact   = document.getElementById('sp-impact').value;
+    const priority = document.getElementById('sp-priority').value;
+    const category = document.getElementById('sp-category').value.trim();
+    const serviceId = document.getElementById('sp-service-id').value.trim();
+    const ticketId  = document.getElementById('sp-ticket-id').value.trim();
+    const desc      = document.getElementById('sp-description').value.trim();
+
+    if (!name) { showToast('Name is required.', 'error'); return; }
+
+    const body = { name };
+    if (desc)      body.description = desc;
+    if (impact)    body.impact = impact;
+    if (priority)  body.priority = parseInt(priority);
+    if (category)  body.category = category;
+    if (serviceId) body.related_service_id = serviceId;
+    if (ticketId)  body.related_ticket_id = ticketId;
+
+    try {
+        await apiPost(PROBLEM_BASE, body);
+        closeModal('problem-create-modal');
+        showToast('Service problem created.', 'success');
+        loadProblems();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function openTransitionProblem(problemId) {
+    document.getElementById('sp-transition-id').value = problemId;
+    document.getElementById('sp-transition-resolution').value = '';
+    openModal('problem-transition-modal');
+}
+
+async function transitionProblem() {
+    const problemId  = document.getElementById('sp-transition-id').value;
+    const newState   = document.getElementById('sp-transition-state').value;
+    const resolution = document.getElementById('sp-transition-resolution').value.trim();
+    const body = { state: newState };
+    if (resolution) body.resolution = resolution;
+    try {
+        await apiPatch(`${PROBLEM_BASE}/${problemId}`, body);
+        closeModal('problem-transition-modal');
+        showToast(`Problem transitioned to ${newState}.`, 'success');
+        loadProblems();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteProblem(problemId) {
+    if (!confirm('Delete this service problem record?')) return;
+    try {
+        await apiDelete(`${PROBLEM_BASE}/${problemId}`);
+        showToast('Problem deleted.', 'success');
+        loadProblems();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadTickets();
+
+// Pre-fill alarm ID from URL param (e.g. ?alarm_id=xxx from assurance.html shortcut)
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const alarmId = params.get('alarm_id');
+    if (alarmId) {
+        document.getElementById('tt-alarm-id').value = alarmId;
+        openModal('ticket-create-modal');
+    }
+})();
+</script>
+</body>
+</html>

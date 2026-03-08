@@ -2,7 +2,7 @@
 name: plan
 description: Research and plan with the Plan agent
 agent: Plan
-argument-hint: Describe what you want to plan or research
+argument-hint: Describe what you want to plan or research about. For example, "Plan the implementation of feature X" or "Research the best practices for Y".
 ---
 
 # Plan

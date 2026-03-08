@@ -803,3 +803,125 @@ const ServiceRelationshipClient = {
         return apiDelete(`${INVENTORY_BASE}/${serviceId}/serviceRelationship/${relId}`);
     },
 };
+
+/* ── TroubleTicketClient (TMF621) ────────────────────────────────────────── */
+
+const TICKET_BASE = '/tmf-api/troubleTicketManagement/v4/troubleTicket';
+
+const TroubleTicketClient = {
+    /**
+     * List trouble tickets with optional filters.
+     * @param {{ state?: string, severity?: string, related_service_id?: string, offset?: number, limit?: number }} params
+     */
+    list(params = {}) {
+        return apiGet(TICKET_BASE, params);
+    },
+
+    /**
+     * Get a single trouble ticket by ID (includes notes).
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${TICKET_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new trouble ticket.
+     * @param {{ name: string, description?: string, severity?: string, priority?: number, ticket_type?: string, related_service_id?: string, related_alarm_id?: string, notes?: Array<{text: string, author?: string}> }} body
+     */
+    create(body) {
+        return apiPost(TICKET_BASE, body);
+    },
+
+    /**
+     * Patch a trouble ticket (e.g. state transition or field updates).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${TICKET_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a trouble ticket.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${TICKET_BASE}/${id}`);
+    },
+
+    notes: {
+        /**
+         * List notes for a ticket.
+         * @param {string} ticketId
+         */
+        list(ticketId) {
+            return apiGet(`${TICKET_BASE}/${ticketId}/note`);
+        },
+
+        /**
+         * Add a note to a ticket.
+         * @param {string} ticketId
+         * @param {{ text: string, author?: string }} body
+         */
+        create(ticketId, body) {
+            return apiPost(`${TICKET_BASE}/${ticketId}/note`, body);
+        },
+
+        /**
+         * Delete a note from a ticket.
+         * @param {string} ticketId
+         * @param {string} noteId
+         */
+        delete(ticketId, noteId) {
+            return apiDelete(`${TICKET_BASE}/${ticketId}/note/${noteId}`);
+        },
+    },
+};
+
+/* ── ServiceProblemClient (TMF656) ───────────────────────────────────────── */
+
+const PROBLEM_BASE = '/tmf-api/serviceProblemManagement/v4/problem';
+
+const ServiceProblemClient = {
+    /**
+     * List service problems with optional filters.
+     * @param {{ state?: string, impact?: string, related_service_id?: string, offset?: number, limit?: number }} params
+     */
+    list(params = {}) {
+        return apiGet(PROBLEM_BASE, params);
+    },
+
+    /**
+     * Get a single service problem by ID.
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${PROBLEM_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new service problem.
+     * @param {{ name: string, description?: string, impact?: string, priority?: number, category?: string, related_service_id?: string, related_ticket_id?: string }} body
+     */
+    create(body) {
+        return apiPost(PROBLEM_BASE, body);
+    },
+
+    /**
+     * Patch a service problem (e.g. state transition or field updates).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${PROBLEM_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a service problem.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${PROBLEM_BASE}/${id}`);
+    },
+};

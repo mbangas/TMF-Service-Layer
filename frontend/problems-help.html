@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem Management – Help – TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .step-card          { background: var(--colour-surface); border: 1px solid var(--colour-border); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+        .step-card__header  { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md); }
+        .step-number        { width: 36px; height: 36px; border-radius: 50%; background: var(--colour-primary); color:#fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0; }
+        .step-card__title   { font-size: var(--font-size-md); font-weight: 600; }
+        .step-card__body    { font-size: var(--font-size-sm); color: var(--colour-text-muted); }
+        .step-card__body p  { margin-bottom: var(--space-sm); }
+        .step-card__body pre { background: var(--colour-surface-alt); border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); overflow-x: auto; font-size: var(--font-size-xs); line-height: 1.5; margin: var(--space-sm) 0; }
+        .step-card__body code { background: var(--colour-surface-alt); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: var(--font-size-xs); }
+        .info-box           { background: color-mix(in srgb, var(--colour-primary) 10%, transparent); border-left: 3px solid var(--colour-primary); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-md); font-size: var(--font-size-sm); }
+        .state-table        { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .state-table th,
+        .state-table td     { border: 1px solid var(--colour-border); padding: 6px 10px; text-align: left; }
+        .state-table th     { background: var(--colour-surface-alt); font-weight: 600; }
+        .badge              { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
+        .badge--submitted   { background: #f1f5f9; color: #475569; }
+        .badge--inProgress  { background: #fef3c7; color: #92400e; }
+        .badge--pending     { background: #e0e7ff; color: #3730a3; }
+        .badge--resolved    { background: #dcfce7; color: #166534; }
+        .badge--closed      { background: #f1f5f9; color: #64748b; }
+        .badge--confirmed   { background: #dbeafe; color: #1e40af; }
+        .badge--active      { background: #dcfce7; color: #166534; }
+        .badge--rejected    { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+            <a class="sidebar__nav-link active" href="problems.html"><span class="nav-icon">🚨</span> Problems</a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html"><span class="nav-icon">🔌</span> APIs</a>
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Problem Management — Help</div>
+                <div class="topbar__subtitle">Step-by-step guide for TMF621 Trouble Tickets and TMF656 Service Problems</div>
+            </div>
+            <a href="problems.html" class="btn btn--secondary">← Back to Problems</a>
+        </div>
+
+        <div class="page-body">
+
+            <div class="info-box">
+                This guide covers the full lifecycle for <strong>Trouble Tickets (TMF621)</strong> and <strong>Service Problems (TMF656)</strong>.
+                Both entities follow a structured state machine and can be linked to Service Inventory instances
+                and/or Service Assurance Alarms.
+            </div>
+
+            <!-- ── Step 1 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div class="step-card__title">Create a Trouble Ticket</div>
+                </div>
+                <div class="step-card__body">
+                    <p>A <strong>Trouble Ticket</strong> captures a reported service problem from a customer or operator. It can be linked to a Service Inventory instance (<code>related_service_id</code>) and/or an active Alarm (<code>related_alarm_id</code>).</p>
+                    <p>Click <strong>+ New Ticket</strong> on the Problems page and complete the form. Only <em>name</em> is mandatory. A new ticket always starts in state <span class="badge badge--submitted">submitted</span>.</p>
+                    <pre>POST /tmf-api/troubleTicketManagement/v4/troubleTicket
+{
+  "name": "Customer 12345 – Internet Down",
+  "description": "Customer reports no connectivity since 08:00 UTC",
+  "severity": "critical",
+  "priority": 1,
+  "ticket_type": "serviceFailure",
+  "related_service_id": "&lt;uuid&gt;",
+  "related_alarm_id": "&lt;uuid or omit&gt;",
+  "notes": [{ "text": "Opened by NOC shift B", "author": "NOC-B" }]
+}</pre>
+                </div>
+            </div>
+
+            <!-- ── Step 2 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div class="step-card__title">Trouble Ticket State Machine</div>
+                </div>
+                <div class="step-card__body">
+                    <p>Use the <strong>State →</strong> button on any ticket row to advance the state. Invalid transitions are rejected with HTTP 422.</p>
+                    <table class="state-table">
+                        <thead>
+                            <tr><th>From</th><th>Allowed transitions to</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><span class="badge badge--submitted">submitted</span></td><td><span class="badge badge--inProgress">inProgress</span></td></tr>
+                            <tr><td><span class="badge badge--inProgress">inProgress</span></td><td><span class="badge badge--pending">pending</span> &nbsp; <span class="badge badge--resolved">resolved</span></td></tr>
+                            <tr><td><span class="badge badge--pending">pending</span></td><td><span class="badge badge--inProgress">inProgress</span> &nbsp; <span class="badge badge--resolved">resolved</span></td></tr>
+                            <tr><td><span class="badge badge--resolved">resolved</span></td><td><span class="badge badge--closed">closed</span></td></tr>
+                            <tr><td><span class="badge badge--closed">closed</span></td><td><em>terminal — no further transitions</em></td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top:var(--space-sm)">When transitioning to <span class="badge badge--resolved">resolved</span>, an optional <code>resolution</code> text can be provided. The server automatically sets <code>resolution_date</code>.</p>
+                    <pre>PATCH /tmf-api/troubleTicketManagement/v4/troubleTicket/{id}
+{ "state": "resolved", "resolution": "Faulty ONT replaced on-site" }</pre>
+                </div>
+            </div>
+
+            <!-- ── Step 3 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div class="step-card__title">Manage Notes on a Ticket</div>
+                </div>
+                <div class="step-card__body">
+                    <p>Notes are append-only work-log entries. Open a ticket's <strong>Detail</strong> panel and use <strong>+ Add Note</strong>. Notes can also be deleted if incorrect.</p>
+                    <pre># Add a note
+POST /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note
+{ "text": "Customer confirmed service restored.", "author": "NOC-A" }
+
+# List notes
+GET /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note
+
+# Delete a note
+DELETE /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note/{note_id}</pre>
+                </div>
+            </div>
+
+            <!-- ── Step 4 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div class="step-card__title">Create a Service Problem</div>
+                </div>
+                <div class="step-card__body">
+                    <p>A <strong>Service Problem</strong> (TMF656) is a higher-level record tracking root cause analysis for one or more trouble tickets. Switch to the <em>Service Problems</em> tab and click <strong>+ New Problem</strong>.</p>
+                    <p>A Service Problem can be linked to a <code>related_service_id</code> and an optional <code>related_ticket_id</code>. It always starts in state <span class="badge badge--submitted">submitted</span>.</p>
+                    <pre>POST /tmf-api/serviceProblemManagement/v4/problem
+{
+  "name": "Core Router BGP Flapping — Datacenter A",
+  "impact": "criticalSystemImpact",
+  "priority": 1,
+  "category": "networkFailure",
+  "related_service_id": "&lt;uuid&gt;",
+  "related_ticket_id": "&lt;uuid or omit&gt;"
+}</pre>
+                </div>
+            </div>
+
+            <!-- ── Step 5 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">5</div>
+                    <div class="step-card__title">Service Problem State Machine</div>
+                </div>
+                <div class="step-card__body">
+                    <p>Service Problems follow a slightly different lifecycle that includes a <em>confirmation</em> step and a <em>rejection</em> terminal state.</p>
+                    <table class="state-table">
+                        <thead>
+                            <tr><th>From</th><th>Allowed transitions to</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><span class="badge badge--submitted">submitted</span></td><td><span class="badge badge--confirmed">confirmed</span> &nbsp; <span class="badge badge--rejected">rejected</span></td></tr>
+                            <tr><td><span class="badge badge--confirmed">confirmed</span></td><td><span class="badge badge--active">active</span> &nbsp; <span class="badge badge--rejected">rejected</span></td></tr>
+                            <tr><td><span class="badge badge--active">active</span></td><td><span class="badge badge--resolved">resolved</span></td></tr>
+                            <tr><td><span class="badge badge--resolved">resolved</span></td><td><span class="badge badge--closed">closed</span></td></tr>
+                            <tr><td><span class="badge badge--rejected">rejected</span></td><td><em>terminal</em></td></tr>
+                            <tr><td><span class="badge badge--closed">closed</span></td><td><em>terminal</em></td></tr>
+                        </tbody>
+                    </table>
+                    <pre>PATCH /tmf-api/serviceProblemManagement/v4/problem/{id}
+{ "state": "confirmed" }
+
+PATCH /tmf-api/serviceProblemManagement/v4/problem/{id}
+{ "state": "resolved", "resolution": "BGP route reflector reconfigured" }</pre>
+                </div>
+            </div>
+
+            <!-- ── Step 6 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">6</div>
+                    <div class="step-card__title">Filtering and Querying</div>
+                </div>
+                <div class="step-card__body">
+                    <p>Both resources support query parameter filtering. Use the filter dropdowns on the Problems page or query directly.</p>
+                    <pre># Trouble Tickets
+GET /tmf-api/troubleTicketManagement/v4/troubleTicket?state=inProgress&amp;severity=critical
+GET /tmf-api/troubleTicketManagement/v4/troubleTicket?related_service_id=&lt;uuid&gt;
+
+# Service Problems
+GET /tmf-api/serviceProblemManagement/v4/problem?state=active&amp;impact=criticalSystemImpact
+GET /tmf-api/serviceProblemManagement/v4/problem?related_service_id=&lt;uuid&gt;</pre>
+                    <p>Pagination is supported with <code>offset</code> and <code>limit</code> query parameters (default limit: 100).</p>
+                </div>
+            </div>
+
+            <!-- ── Step 7 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">7</div>
+                    <div class="step-card__title">Referential Integrity Rules</div>
+                </div>
+                <div class="step-card__body">
+                    <p>The following FK constraints are enforced by the API:</p>
+                    <table class="state-table">
+                        <thead>
+                            <tr><th>Field</th><th>Entity</th><th>Constraint</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>related_service_id</code></td><td>TroubleTicket</td><td>Service must exist (RESTRICT on delete)</td></tr>
+                            <tr><td><code>related_alarm_id</code></td><td>TroubleTicket</td><td>Alarm must exist; set to NULL if alarm deleted</td></tr>
+                            <tr><td><code>related_service_id</code></td><td>ServiceProblem</td><td>Service must exist (RESTRICT on delete)</td></tr>
+                            <tr><td><code>related_ticket_id</code></td><td>ServiceProblem</td><td>TroubleTicket must exist; set to NULL if ticket deleted</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top:var(--space-sm)">If a referenced entity does not exist, the API returns <strong>HTTP 404</strong>.</p>
+                </div>
+            </div>
+
+            <!-- ── Step 8 ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">8</div>
+                    <div class="step-card__title">Integration with Assurance Alarms</div>
+                </div>
+                <div class="step-card__body">
+                    <p>From the <a href="assurance.html">Assurance</a> page you can navigate directly to the Problems page with a pre-filled alarm ID. Use the deep-link shortcut from any alarm row to open the "New Ticket" modal with the alarm already populated:</p>
+                    <pre>problems.html?alarm_id=&lt;alarm-uuid&gt;</pre>
+                    <p>This creates a direct Alarm → Trouble Ticket relationship, enabling end-to-end incident tracing from the first alert to final resolution and closure.</p>
+                </div>
+            </div>
+
+        </div><!-- /page-body -->
+    </main>
+</div>
+
+</body>
+</html>
