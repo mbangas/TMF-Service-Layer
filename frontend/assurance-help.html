@@ -1304,8 +1304,8 @@
                         <li>Reconhece o alarme (acknowledged)</li>
                         <li>Cria um segundo alarme <code>major</code> e deixa-o em <code>raised</code> (para demonstração)</li>
                         <li>Cria uma medição de latência (scheduled → completed com valor de 12.4 ms)</li>
-                        <li>Cria um SLO de latência (active, threshold 50 ms)</li>
-                        <li>Verifica violações com um valor alto (78 ms) — SLO passa a <code>violated</code></li>
+                        <li>Cria um SLO de latência (active, threshold 50 ms, direction: above)</li>
+                        <li>Verifica violações com latência de 78 ms (acima do threshold) — SLO passa a <code>violated</code></li>
                     </ol>
 
                     <div class="callout callout--warning">
@@ -1439,6 +1439,11 @@
             const targetName = 'vm-alpha-001' + sfx;
             let svc = services.find(s => s.name && s.name.toLowerCase() === targetName.toLowerCase());
 
+            if (svc && svc.state !== 'active') {
+                log('⚠ Serviço encontrado mas não está active (state:' + svc.state + ') — a criar um novo.', 'gen-log-info');
+                svc = null;
+            }
+
             if (!svc) {
                 log('→ POST ' + INV_BASE + '  [name: ' + targetName + ']');
                 svc = await apiPost(INV_BASE, {
@@ -1494,7 +1499,7 @@
             progress('A criar medição de latência (scheduled)…');
             log('→ POST ' + MEAS_BASE + '  [metric: latency_ms, granularity: hourly]');
             const meas = await apiPost(MEAS_BASE, {
-                name:            'Latência horária — ' + targetName + sfx,
+                name:            'Latência horária — ' + targetName,
                 description:     'Medição de latência RTT média do serviço em produção',
                 service_id:      serviceId,
                 metric_name:     'latency_ms',
@@ -1515,15 +1520,15 @@
             log('✓ Medição → completed  metric_value:' + measC.metric_value + ' ms', 'gen-log-ok');
 
             // ── 7. Criar SLO de latência (active) ─────────────────────────
-            progress('A criar SLO de latência < 50ms (active)…');
-            log('→ POST ' + SLO_BASE + '  [metric: latency_ms, threshold: 50, direction: below]');
+            progress('A criar SLO de latência > 50ms (active)…');
+            log('→ POST ' + SLO_BASE + '  [metric: latency_ms, threshold: 50, direction: above]');
             const slo = await apiPost(SLO_BASE, {
-                name:            'Latência SLO < 50ms — ' + targetName,
-                description:     'Latência RTT não deve exceder 50ms (tolerância: ±5ms)',
+                name:            'Latência SLO > 50ms — ' + targetName,
+                description:     'Latência RTT não deve exceder 50ms — violado quando latência > 50ms',
                 service_id:      serviceId,
                 metric_name:     'latency_ms',
                 threshold_value: 50.0,
-                direction:       'below',
+                direction:       'above',
                 tolerance:       5.0
             });
             log('✓ SLO criado  id:' + slo.id + '  state:' + slo.state, 'gen-log-ok');
@@ -1536,9 +1541,13 @@
                 metric_name:  'latency_ms',
                 metric_value: 78.0
             });
-            const violatedCount = Array.isArray(cvResult) ? cvResult.length : (cvResult.violated_count || '?');
+            const violatedCount = Array.isArray(cvResult) ? cvResult.length : (cvResult.violated ?? '?');
             log('✓ check_violations concluído — SLOs violados: ' + violatedCount, 'gen-log-ok');
-            log('✓ SLO de latência transitou para state: violated', 'gen-log-ok');
+            if (violatedCount > 0) {
+                log('✓ SLO de latência transitou para state: violated', 'gen-log-ok');
+            } else {
+                log('ℹ SLO avaliado mas sem violação detectada.', 'gen-log-info');
+            }
 
             // ── Concluído ─────────────────────────────────────────────────
             fill.style.width = '100%';
@@ -1550,7 +1559,7 @@
             log('  Alarme 1:   Alto CPU' + sfx + '          → acknowledged', 'gen-log-ok');
             log('  Alarme 2:   Memória elevada' + sfx + '    → raised (activo)', 'gen-log-ok');
             log('  Medição:    Latência horária' + sfx + '  → completed (12.4ms)', 'gen-log-ok');
-            log('  SLO:        Latência < 50ms' + sfx + '   → violated (78ms)', 'gen-log-ok');
+            log('  SLO:        Latência > 50ms' + sfx + '   → violated (78ms)', 'gen-log-ok');
             log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
             log('Navegue para Assurance para ver os recursos criados.', 'gen-log-info');
 
