@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda — Aprovisionamento de Serviços | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Help page specific ── */
+        .help-content {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p {
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+            line-height: 1.8;
+        }
+
+        .step-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .step-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--colour-surface-alt);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--colour-primary);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            flex-shrink: 0;
+        }
+        .step-card__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .step-card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-top: 2px;
+        }
+        .step-card__body {
+            padding: var(--space-xl);
+        }
+        .step-card__body p,
+        .step-card__body li {
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+        }
+        .step-card__body ul,
+        .step-card__body ol {
+            padding-left: var(--space-xl);
+            margin-top: var(--space-sm);
+        }
+        .step-card__body li {
+            margin-bottom: var(--space-xs);
+        }
+        .step-card__body h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--colour-text);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ── API call blocks ── */
+        .api-block {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-left: 3px solid var(--colour-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #a5d6a7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .api-block .method { color: #82b1ff; font-weight: 700; }
+        .api-block .url    { color: #80cbc4; }
+        .api-block .key    { color: #ce93d8; }
+        .api-block .val    { color: #a5d6a7; }
+        .api-block .comment{ color: #546e7a; }
+
+        /* ── Info / Warning callouts ── */
+        .callout {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin: var(--space-md) 0;
+        }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Summary checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--colour-primary-dim);
+            color: var(--colour-primary);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Field reference table ── */
+        .field-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .field-table th { padding: 8px 12px; text-align: left; color: var(--colour-text-muted); border-bottom: 1px solid var(--colour-border); }
+        .field-table td { padding: 8px 12px; border-bottom: 1px solid var(--colour-border); color: var(--colour-text-muted); }
+        .field-table td:first-child { font-family: var(--font-mono); font-size: 11px; color: var(--colour-text); }
+        .field-table .req  { color: var(--colour-success); font-weight: 600; }
+        .field-table .opt  { color: var(--colour-text-muted); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-lg);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--colour-border);
+            margin: var(--space-xl) 0;
+        }
+
+        /* TMF reference pills */
+        .tmf-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: rgba(79,126,248,0.15);
+            color: var(--colour-primary);
+            border: 1px solid rgba(79,126,248,0.3);
+            margin-left: var(--space-xs);
+        }
+
+        /* ── Job type badges ── */
+        .job-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+        }
+        .job-badge--provision  { background: rgba(79,126,248,0.15); color: #4f7ef8; border: 1px solid rgba(79,126,248,0.3); }
+        .job-badge--activate   { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+        .job-badge--modify     { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+        .job-badge--deactivate { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+        .job-badge--terminate  { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+
+        /* ── Generate example data section ── */
+        .gen-progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--colour-surface-alt);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        .gen-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--colour-primary), #34d399);
+            border-radius: var(--radius-full);
+            transition: width 0.35s ease;
+        }
+        .gen-progress-label {
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-md);
+        }
+        .gen-log {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #94a3b8;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.9;
+        }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            :root {
+                --colour-bg:           #ffffff;
+                --colour-surface:      #f8f9fc;
+                --colour-surface-alt:  #eef0f6;
+                --colour-border:       #d1d5db;
+                --colour-border-light: #e5e7eb;
+                --colour-text:         #111827;
+                --colour-text-muted:   #4b5563;
+                --colour-primary:      #2563eb;
+                --colour-success:      #059669;
+                --colour-warning:      #d97706;
+                --colour-danger:       #dc2626;
+                --colour-info:         #2563eb;
+            }
+            body { background: #fff; color: #111; }
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-prov, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; color: #111; }
+            .step-card { border: 1px solid #d1d5db; border-radius: 6px; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .callout--info    { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .callout--success { background: #ecfdf5; border-color: #10b981; }
+            .api-block { background: #1e293b; border-color: #334155; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+            .diagram-wrapper { background: #f8fafc; border-color: #d1d5db; break-inside: avoid; }
+            .tmf-pill { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .job-badge--provision  { background: #dbeafe; color: #1e40af; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .job-badge--activate   { background: #dcfce7; color: #166534; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .job-badge--modify     { background: #fef9c3; color: #92400e; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .job-badge--deactivate { background: #ffedd5; color: #c2410c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .job-badge--terminate  { background: #fee2e2; color: #991b1b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .step-card { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link active" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">&#x2753; Guia de Aprovisionamento de Serviços</div>
+                <div class="topbar__subtitle">Como criar e gerir jobs de activação — TMF640 Service Activation &amp; Configuration</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
+                <a href="provisioning.html" class="btn btn--ghost btn--sm">&#8592; Voltar ao Aprovisionamento</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica como usar o módulo de <strong style="color:var(--colour-text)">Aprovisionamento</strong>
+                    da TMF Service Layer (TMF640 — Service Activation &amp; Configuration). O módulo
+                    gere o ciclo de vida activo dos serviços através de <strong style="color:var(--colour-text)">jobs de activação</strong>
+                    (<code>ServiceActivationJob</code>), que operam sobre instâncias de serviço existentes no inventário (TMF638).
+                </p>
+                <p style="margin-top:var(--space-sm);">
+                    Existem cinco tipos de job: <code>provision</code>, <code>activate</code>,
+                    <code>modify</code>, <code>deactivate</code> e <code>terminate</code>.
+                    Cada tipo aplica uma acção diferente sobre o serviço alvo e modifica o seu estado no inventário.
+                </p>
+                <p style="margin-top:var(--space-sm);">
+                    O inventário deve ter uma instância de serviço antes de se poder criar um job.
+                    Consulte o <a href="orders-help.html" style="color:var(--colour-primary);">Guia de Ordens</a>
+                    para perceber como as ordens criam entradas no inventário, ou crie um serviço directamente
+                    via <a href="inventory.html" style="color:var(--colour-primary);">Inventário</a>.
+                </p>
+            </div>
+
+            <!-- ══ PRÉ-REQUISITO ════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x26A0;</div>
+                    <div>
+                        <div class="step-card__title">Pré-requisito — Serviço no Inventário</div>
+                        <div class="step-card__subtitle">O serviço alvo deve existir no inventário (TMF638) antes de criar um job</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Para criar um <code>ServiceActivationJob</code> é necessário que exista
+                        uma instância de <strong>Service</strong> no inventário com o estado adequado
+                        ao tipo de job que se pretende executar:
+                    </p>
+
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Job</th>
+                                <th>Estado do Serviço Exigido</th>
+                                <th>Estado após Sucesso</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="job-badge job-badge--provision">provision</span></td>
+                                <td style="color:var(--colour-info)">inactive</td>
+                                <td style="color:var(--colour-success)">active</td>
+                                <td>Aprovisionamento inicial do serviço</td>
+                            </tr>
+                            <tr>
+                                <td><span class="job-badge job-badge--activate">activate</span></td>
+                                <td style="color:var(--colour-info)">inactive</td>
+                                <td style="color:var(--colour-success)">active</td>
+                                <td>Re-activação de serviço previamente desactivado</td>
+                            </tr>
+                            <tr>
+                                <td><span class="job-badge job-badge--modify">modify</span></td>
+                                <td style="color:var(--colour-success)">active</td>
+                                <td style="color:var(--colour-success)">active</td>
+                                <td>Modificação de parâmetros de configuração</td>
+                            </tr>
+                            <tr>
+                                <td><span class="job-badge job-badge--deactivate">deactivate</span></td>
+                                <td style="color:var(--colour-success)">active</td>
+                                <td style="color:var(--colour-info)">inactive</td>
+                                <td>Suspensão temporária do serviço</td>
+                            </tr>
+                            <tr>
+                                <td><span class="job-badge job-badge--terminate">terminate</span></td>
+                                <td style="color:var(--colour-text-muted)">active <em>ou</em> inactive</td>
+                                <td style="color:var(--colour-danger)">terminated</td>
+                                <td>Encerramento definitivo — irreversível</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <!-- Prerequisite flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 130" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-pre" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                                <marker id="arr-pre-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                            </defs>
+                            <!-- Inventory -->
+                            <rect x="10" y="35" width="170" height="55" rx="8"
+                                  fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="95" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Inventory</text>
+                            <text x="95" y="75" text-anchor="middle" font-size="10" fill="#94a3b8">Service (TMF638)</text>
+                            <text x="95" y="88" text-anchor="middle" font-size="9" fill="#94a3b8">state: inactive / active</text>
+
+                            <line x1="180" y1="62" x2="218" y2="62" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-pre)"/>
+                            <text x="199" y="54" text-anchor="middle" font-size="9" fill="#94a3b8">tem</text>
+
+                            <!-- Service ID -->
+                            <rect x="220" y="35" width="155" height="55" rx="8"
+                                  fill="rgba(79,126,248,0.10)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="297" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#4f7ef8">service_id</text>
+                            <text x="297" y="75" text-anchor="middle" font-size="10" fill="#94a3b8">"uuid-do-serviço"</text>
+                            <text x="297" y="88" text-anchor="middle" font-size="9" fill="#94a3b8">(obrigatório)</text>
+
+                            <line x1="375" y1="62" x2="413" y2="62" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-pre)"/>
+                            <text x="394" y="54" text-anchor="middle" font-size="9" fill="#94a3b8">referencia</text>
+
+                            <!-- Job -->
+                            <rect x="415" y="25" width="175" height="80" rx="8"
+                                  fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="502" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24">ServiceActivation</text>
+                            <text x="502" y="66" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24">Job</text>
+                            <text x="502" y="83" text-anchor="middle" font-size="10" fill="#94a3b8">TMF640</text>
+                            <text x="502" y="96" text-anchor="middle" font-size="9" fill="#94a3b8">state: accepted</text>
+
+                            <line x1="590" y1="65" x2="628" y2="65" stroke="#34d399" stroke-width="2" marker-end="url(#arr-pre-g)"/>
+                            <text x="609" y="57" text-anchor="middle" font-size="9" fill="#34d399">actualiza</text>
+
+                            <!-- Result -->
+                            <rect x="630" y="25" width="140" height="80" rx="8"
+                                  fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="2"/>
+                            <text x="700" y="52" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">&#x2714; Serviço</text>
+                            <text x="700" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">estado actualizado</text>
+                            <text x="700" y="86" text-anchor="middle" font-size="9" fill="#94a3b8">quando succeeded</text>
+                        </svg>
+                        <figcaption>Fluxo base: o job referencia um serviço do inventário e actualiza o seu estado ao completar com sucesso</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Ainda não tem serviços no inventário? Use a secção
+                            <strong>Gerar Dados de Exemplo</strong> no final desta página
+                            para criar automaticamente um serviço de teste e os respectivos jobs.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ VISÃO GERAL ═══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x1F5FA;</div>
+                    <div>
+                        <div class="step-card__title">Estrutura de um ServiceActivationJob</div>
+                        <div class="step-card__subtitle">Campos, parâmetros de configuração e relacionamento com o inventário</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Um <code>ServiceActivationJob</code> encapsula uma operação de activação sobre
+                        um serviço. Além dos campos de controlo, pode conter uma lista de
+                        <strong>parâmetros de configuração</strong> (<code>ServiceConfigurationParam</code>)
+                        que são aplicados ao serviço quando o job termina com sucesso.
+                    </p>
+
+                    <!-- Job structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 310" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Outer box -->
+                            <rect x="10" y="10" width="760" height="288" rx="12"
+                                  fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#fbbf24">ServiceActivationJob</text>
+                            <text x="200" y="34" font-size="11" fill="#94a3b8">(TMF640)</text>
+
+                            <!-- Header fields -->
+                            <rect x="30" y="48" width="230" height="165" rx="8"
+                                  fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="145" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Campos de Controlo</text>
+                            <text x="45"  y="90"  font-size="10" fill="#94a3b8">name         <tspan fill="#34d399" font-weight="600">*</tspan>  "Provision VM Alpha"</text>
+                            <text x="45"  y="108" font-size="10" fill="#94a3b8">job_type     <tspan fill="#34d399" font-weight="600">*</tspan>  provision | activate | …</text>
+                            <text x="45"  y="126" font-size="10" fill="#94a3b8">service_id   <tspan fill="#34d399" font-weight="600">*</tspan>  "uuid-do-serviço"</text>
+                            <text x="45"  y="144" font-size="10" fill="#94a3b8">description      "Aprovisionamento inicial"</text>
+                            <text x="45"  y="162" font-size="10" fill="#94a3b8">mode             immediate | deferred</text>
+                            <text x="45"  y="180" font-size="10" fill="#94a3b8">start_mode       automatic | manual</text>
+                            <text x="45"  y="198" font-size="10" fill="#94a3b8">scheduled_start_date  (opcional)</text>
+
+                            <!-- State box -->
+                            <rect x="275" y="48" width="195" height="165" rx="8"
+                                  fill="rgba(96,165,250,0.07)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="372" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Estado (auto)</text>
+                            <text x="290" y="90"  font-size="10" fill="#94a3b8">state  <tspan fill="#4f7ef8">accepted</tspan></text>
+                            <text x="290" y="108" font-size="10" fill="#94a3b8">       → <tspan fill="#fbbf24">running</tspan></text>
+                            <text x="290" y="126" font-size="10" fill="#94a3b8">       → <tspan fill="#34d399">succeeded</tspan></text>
+                            <text x="290" y="144" font-size="10" fill="#94a3b8">       → <tspan fill="#f87171">failed</tspan></text>
+                            <text x="290" y="162" font-size="10" fill="#94a3b8">       → <tspan fill="#64748b">cancelled</tspan></text>
+                            <text x="290" y="190" font-size="10" fill="#94a3b8">actual_start_date</text>
+                            <text x="290" y="208" font-size="10" fill="#94a3b8">actual_completion_date</text>
+
+                            <!-- Params box -->
+                            <rect x="485" y="48" width="280" height="165" rx="8"
+                                  fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1"/>
+                            <text x="625" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">params [ ] — Configuração</text>
+                            <text x="500" y="90"  font-size="10" fill="#94a3b8">aplicados ao serviço após succeeded</text>
+
+                            <rect x="502" y="100" width="246" height="36" rx="6"
+                                  fill="rgba(52,211,153,0.10)" stroke="rgba(52,211,153,0.3)"/>
+                            <text x="625" y="115" text-anchor="middle" font-size="10" fill="#34d399">param 1</text>
+                            <text x="625" y="130" text-anchor="middle" font-size="9" fill="#94a3b8">name: "speed_mbps"  value: "1000"  value_type: "integer"</text>
+
+                            <rect x="502" y="144" width="246" height="36" rx="6"
+                                  fill="rgba(52,211,153,0.07)" stroke="rgba(52,211,153,0.2)"/>
+                            <text x="625" y="159" text-anchor="middle" font-size="10" fill="#34d399">param 2</text>
+                            <text x="625" y="174" text-anchor="middle" font-size="9" fill="#94a3b8">name: "technology"  value: "FTTP"  value_type: "string"</text>
+
+                            <text x="625" y="202" text-anchor="middle" font-size="10" fill="#94a3b8">error_message (em caso de failed)</text>
+
+                            <!-- Inventory link -->
+                            <rect x="30" y="232" width="720" height="54" rx="8"
+                                  fill="rgba(96,165,250,0.05)" stroke="#60a5fa" stroke-width="1" stroke-dasharray="5,3"/>
+                            <text x="390" y="254" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Ligação ao Inventário (TMF638)</text>
+                            <text x="390" y="274" text-anchor="middle" font-size="10" fill="#94a3b8">
+                                Quando o job passa a <tspan fill="#34d399">succeeded</tspan>, o estado do Service no inventário é actualizado automaticamente
+                            </text>
+                        </svg>
+                        <figcaption>Diagrama 1 — Estrutura de um ServiceActivationJob: campos de controlo, estado e parâmetros de configuração</figcaption>
+                    </figure>
+
+                    <h4>Campos do ServiceActivationJob</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Obrigatório</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo do job (ex: "Provision VM Alpha")</td></tr>
+                            <tr><td>job_type</td><td class="req">sim</td><td>enum</td><td>provision | activate | modify | deactivate | terminate</td></tr>
+                            <tr><td>service_id</td><td class="req">sim</td><td>uuid</td><td>ID do serviço alvo no inventário (TMF638)</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre do job</td></tr>
+                            <tr><td>mode</td><td class="opt">não</td><td>string</td><td>Modo de execução: immediate ou deferred</td></tr>
+                            <tr><td>start_mode</td><td class="opt">não</td><td>string</td><td>Início automático ou manual: automatic | manual</td></tr>
+                            <tr><td>scheduled_start_date</td><td class="opt">não</td><td>datetime</td><td>Data/hora de início programado (modo deferred)</td></tr>
+                            <tr><td>scheduled_completion_date</td><td class="opt">não</td><td>datetime</td><td>Data/hora limite de conclusão pretendida</td></tr>
+                            <tr><td>params</td><td class="opt">não</td><td>array</td><td>Lista de parâmetros de configuração (ver abaixo)</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Campos de cada ServiceConfigurationParam</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead>
+                            <tr>
+                                <th>Campo</th>
+                                <th>Obrigatório</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome do parâmetro (ex: "speed_mbps", "vcpu_count")</td></tr>
+                            <tr><td>value</td><td class="opt">não</td><td>string</td><td>Valor do parâmetro (sempre serializado como string)</td></tr>
+                            <tr><td>value_type</td><td class="opt">não</td><td>string</td><td>Tipo de dados: "string", "integer", "boolean", etc.</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CICLO DE VIDA DO JOB ══════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x1F504;</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida do Job — Transições de Estado</div>
+                        <div class="step-card__subtitle">accepted → running → succeeded / failed / cancelled</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Após a criação, o job encontra-se no estado <code>accepted</code>.
+                        As transições de estado são efectuadas via <code>PATCH</code> na API
+                        ou pelos botões de acção na interface.
+                    </p>
+
+                    <!-- State machine diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 360" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-sm-b"    markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/></marker>
+                                <marker id="arr-sm-ok"   markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                                <marker id="arr-sm-warn" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                                <marker id="arr-sm-err"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                                <marker id="arr-sm-grey" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#64748b"/></marker>
+                            </defs>
+
+                            <!-- accepted -->
+                            <rect x="280" y="18" width="220" height="56" rx="28"
+                                  fill="rgba(79,126,248,0.12)" stroke="#4f7ef8" stroke-width="2"/>
+                            <text x="390" y="43" text-anchor="middle" font-size="13" font-weight="700" fill="#4f7ef8">accepted</text>
+                            <text x="390" y="62" text-anchor="middle" font-size="10" fill="#94a3b8">job criado e aceite</text>
+
+                            <!-- accepted → running -->
+                            <line x1="390" y1="74" x2="390" y2="132" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-sm-warn)"/>
+                            <rect x="400" y="90" width="80" height="20" rx="4" fill="rgba(251,191,36,0.12)"/>
+                            <text x="440" y="104" text-anchor="middle" font-size="9" font-weight="600" fill="#fbbf24">▶ Run</text>
+
+                            <!-- accepted → cancelled -->
+                            <path d="M 280 46 Q 160 46 130 150 Q 120 195 130 228" stroke="#64748b" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-sm-grey)"/>
+                            <text x="102" y="146" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-80,105,140)">Cancel</text>
+
+                            <!-- running -->
+                            <rect x="255" y="134" width="270" height="56" rx="28"
+                                  fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="390" y="159" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">running</text>
+                            <text x="390" y="177" text-anchor="middle" font-size="10" fill="#94a3b8">job em execução no motor</text>
+
+                            <!-- running → succeeded -->
+                            <path d="M 525 162 Q 650 162 650 240" stroke="#34d399" stroke-width="2" fill="none" marker-end="url(#arr-sm-ok)"/>
+                            <rect x="558" y="175" width="80" height="20" rx="4" fill="rgba(52,211,153,0.12)"/>
+                            <text x="598" y="189" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">&#x2714; Succeed</text>
+
+                            <!-- running → failed -->
+                            <path d="M 255 162 Q 130 162 130 240" stroke="#f87171" stroke-width="2" fill="none" marker-end="url(#arr-sm-err)"/>
+                            <rect x="140" y="175" width="60" height="20" rx="4" fill="rgba(248,113,113,0.12)"/>
+                            <text x="170" y="189" text-anchor="middle" font-size="9" font-weight="600" fill="#f87171">&#x2715; Fail</text>
+
+                            <!-- running → cancelled -->
+                            <line x1="390" y1="190" x2="390" y2="252" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr-sm-grey)" stroke-dasharray="5,3"/>
+                            <rect x="400" y="207" width="70" height="20" rx="4" fill="rgba(100,116,139,0.10)"/>
+                            <text x="435" y="221" text-anchor="middle" font-size="9" fill="#64748b">&#x2715; Cancel</text>
+
+                            <!-- succeeded -->
+                            <rect x="520" y="240" width="240" height="60" rx="12"
+                                  fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+                            <text x="640" y="264" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">succeeded</text>
+                            <text x="640" y="282" text-anchor="middle" font-size="10" fill="#94a3b8">&#x2714; serviço actualizado no inventário</text>
+
+                            <!-- Arrow to inventory update -->
+                            <line x1="640" y1="300" x2="640" y2="326" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-sm-ok)" stroke-dasharray="4,2"/>
+                            <rect x="570" y="328" width="140" height="22" rx="6" fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1"/>
+                            <text x="640" y="343" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">Service.state actualizado</text>
+
+                            <!-- failed -->
+                            <rect x="20" y="240" width="220" height="60" rx="12"
+                                  fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="2"/>
+                            <text x="130" y="264" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">failed</text>
+                            <text x="130" y="282" text-anchor="middle" font-size="10" fill="#94a3b8">erro — ver error_message</text>
+
+                            <!-- cancelled -->
+                            <rect x="255" y="254" width="270" height="56" rx="28"
+                                  fill="rgba(100,116,139,0.12)" stroke="#64748b" stroke-width="2"/>
+                            <text x="390" y="279" text-anchor="middle" font-size="13" font-weight="700" fill="#64748b">cancelled</text>
+                            <text x="390" y="297" text-anchor="middle" font-size="10" fill="#94a3b8">job cancelado — sem efeito</text>
+
+                            <!-- Terminal states note -->
+                            <text x="390" y="348" text-anchor="middle" font-size="10" fill="#94a3b8">
+                                Estados terminais (succeeded, failed, cancelled) — sem transições; só failed e cancelled podem ser eliminados
+                            </text>
+                        </svg>
+                        <figcaption>Diagrama 2 — Máquina de estados TMF640: transições possíveis de um ServiceActivationJob</figcaption>
+                    </figure>
+
+                    <h4>Transições via API</h4>
+                    <div class="api-block"><span class="comment">-- Iniciar execução do job --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"running"</span> <span class="key">}</span>
+
+<span class="comment">-- Marcar como sucesso (actualiza estado do serviço no inventário) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"succeeded"</span> <span class="key">}</span>
+
+<span class="comment">-- Marcar como falha (com mensagem de erro) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"failed"</span>, <span class="key">"error_message"</span>: <span class="val">"Timeout ao contactar vCenter"</span> <span class="key">}</span>
+
+<span class="comment">-- Cancelar (de accepted ou running) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"cancelled"</span> <span class="key">}</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: use os botões <strong>Run</strong>, <strong>Succeed</strong>,
+                            <strong>Fail</strong> e <strong>Cancel</strong> na linha de cada job.
+                            Os botões disponíveis mudam automaticamente conforme o estado actual.
+                        </div>
+                    </div>
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Apenas jobs nos estados <code>failed</code> ou <code>cancelled</code></strong>
+                            podem ser eliminados. Para apagar um job, coloque-o num estado terminal primeiro.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                Guia por Casos de Uso
+            </h2>
+
+            <!-- ══ CASO 1 — PROVISION ════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Caso 1 — Provision: Aprovisionamento Inicial
+                            <span class="job-badge job-badge--provision" style="margin-left:8px;">provision</span>
+                        </div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF640 POST /serviceActivationJob</span>
+                            &nbsp;Serviço: inactive → active
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O job do tipo <code>provision</code> é usado para o <strong>aprovisionamento inicial</strong>
+                        de um serviço: configura e activa um serviço que ainda não foi aprovisionado.
+                        O serviço alvo deve estar no estado <code>inactive</code>.
+                        Ao transitar para <code>succeeded</code>, o estado do serviço passa automaticamente a <code>active</code>.
+                    </p>
+
+                    <!-- Provision flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 160" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-p1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                                <marker id="arr-p1g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                            </defs>
+                            <text x="390" y="22" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Fluxo — provision</text>
+
+                            <!-- Service inactive -->
+                            <rect x="20" y="40" width="140" height="60" rx="10"
+                                  fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="90" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">Serviço</text>
+                            <text x="90" y="82" text-anchor="middle" font-size="10" fill="#94a3b8">state: inactive</text>
+                            <text x="90" y="96" text-anchor="middle" font-size="9" fill="#60a5fa">Inventário</text>
+
+                            <line x1="160" y1="70" x2="198" y2="70" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-p1)"/>
+
+                            <!-- Job accepted -->
+                            <rect x="200" y="33" width="130" height="74" rx="8"
+                                  fill="rgba(79,126,248,0.10)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="265" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#4f7ef8">Job created</text>
+                            <text x="265" y="76" text-anchor="middle" font-size="9" fill="#4f7ef8">accepted</text>
+                            <text x="265" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">job_type: provision</text>
+
+                            <line x1="330" y1="70" x2="368" y2="70" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-p1)"/>
+                            <text x="349" y="62" text-anchor="middle" font-size="9" fill="#fbbf24">▶ Run</text>
+
+                            <!-- running -->
+                            <rect x="370" y="33" width="120" height="74" rx="8"
+                                  fill="rgba(251,191,36,0.10)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="430" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">running</text>
+                            <text x="430" y="78" text-anchor="middle" font-size="9" fill="#94a3b8">a configurar VM</text>
+                            <text x="430" y="93" text-anchor="middle" font-size="9" fill="#94a3b8">no vCenter…</text>
+
+                            <line x1="490" y1="70" x2="528" y2="70" stroke="#34d399" stroke-width="2" marker-end="url(#arr-p1g)"/>
+                            <text x="509" y="62" text-anchor="middle" font-size="9" fill="#34d399">&#x2714; OK</text>
+
+                            <!-- succeeded -->
+                            <rect x="530" y="33" width="120" height="74" rx="8"
+                                  fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+                            <text x="590" y="60" text-anchor="middle" font-size="10" font-weight="600" fill="#34d399">succeeded</text>
+                            <text x="590" y="78" text-anchor="middle" font-size="9" fill="#94a3b8">Serviço actualizado:</text>
+                            <text x="590" y="93" text-anchor="middle" font-size="9" fill="#34d399">state: active</text>
+
+                            <!-- Side box: service active -->
+                            <rect x="660" y="40" width="110" height="60" rx="8"
+                                  fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="715" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#34d399">Serviço</text>
+                            <text x="715" y="78" text-anchor="middle" font-size="9" fill="#34d399">state: active</text>
+                            <text x="715" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">Inventário</text>
+                            <line x1="650" y1="70" x2="658" y2="70" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-p1g)"/>
+                        </svg>
+                        <figcaption>Diagrama 3 — Fluxo do tipo provision: serviço inactive → accepted → running → succeeded → active</figcaption>
+                    </figure>
+
+                    <h4>Criar um job de provision</h4>
+                    <div class="api-block"><span class="comment">-- 1. Verificar que o serviço existe e está inactive --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceInventory/v4/service/&lt;service_id&gt;</span>
+<span class="comment">→ { "id": "uuid", "state": "inactive", "name": "vm-alpha-001" }</span>
+
+<span class="comment">-- 2. Criar o job de provision --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Provision VM Alpha"</span>,
+  <span class="key">"description"</span>: <span class="val">"Aprovisionamento inicial da VM vm-alpha-001 no vCenter DC-Lisboa"</span>,
+  <span class="key">"job_type"</span>:    <span class="val">"provision"</span>,
+  <span class="key">"service_id"</span>:  <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"params"</span>: [
+    <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"vcpu_count"</span>,       <span class="key">"value"</span>: <span class="val">"4"</span>,           <span class="key">"value_type"</span>: <span class="val">"integer"</span> <span class="key">}</span>,
+    <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"ram_gb"</span>,           <span class="key">"value"</span>: <span class="val">"8"</span>,           <span class="key">"value_type"</span>: <span class="val">"integer"</span> <span class="key">}</span>,
+    <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"os_template"</span>,      <span class="key">"value"</span>: <span class="val">"ubuntu-22.04"</span>, <span class="key">"value_type"</span>: <span class="val">"string"</span>  <span class="key">}</span>,
+    <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"vcenter_datacenter"</span>,<span class="key">"value"</span>: <span class="val">"DC-Lisboa"</span>,   <span class="key">"value_type"</span>: <span class="val">"string"</span>  <span class="key">}</span>
+  ]
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid-job", "state": "accepted", "job_type": "provision", … }</span>
+
+<span class="comment">-- 3. Iniciar a execução --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"running"</span> <span class="key">}</span>
+
+<span class="comment">-- 4. Marcar como sucesso (serviço passa a active) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"succeeded"</span> <span class="key">}</span>
+<span class="comment">→ Serviço no inventário actualizado: state: "active"</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: <strong>Provisioning → botão "+ New Job"</strong>.
+                            Seleccione o serviço alvo, escolha tipo <strong>provision</strong>,
+                            e adicione os parâmetros de configuração. O job é criado no estado <code>accepted</code>.
+                            Use os botões <strong>Run</strong> e <strong>Succeed</strong> para avançar no ciclo de vida.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CASO 2 — ACTIVATE ═════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Caso 2 — Activate: Re-activação de Serviço
+                            <span class="job-badge job-badge--activate" style="margin-left:8px;">activate</span>
+                        </div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF640 POST /serviceActivationJob</span>
+                            &nbsp;Serviço: inactive → active
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O job do tipo <code>activate</code> é usado para <strong>re-activar um serviço</strong>
+                        que foi previamente desactivado (sem ser terminado). É semelhante ao <code>provision</code>
+                        no que respeita à pré-condição e ao resultado, mas o significado operacional é diferente:
+                        o serviço já existe e foi apenas suspenso.
+                    </p>
+                    <p>
+                        Pré-condição: serviço no estado <code>inactive</code> (tipicamente após um <code>deactivate</code> bem sucedido).
+                    </p>
+
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Activar VM Alpha — Retorno ao Serviço"</span>,
+  <span class="key">"description"</span>: <span class="val">"Reactivação após janela de manutenção"</span>,
+  <span class="key">"job_type"</span>:    <span class="val">"activate"</span>,
+  <span class="key">"service_id"</span>:  <span class="val">"&lt;uuid-do-serviço&gt;"</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "state": "accepted", "job_type": "activate" }</span>
+
+<span class="comment">-- Progressão: accepted → running → succeeded (serviço volta a active) --</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            <strong>Diferença entre activate e provision:</strong>
+                            O <code>provision</code> configura o serviço de raiz (instala, cria recursos).
+                            O <code>activate</code> apenas retoma um serviço já configurado que estava suspenso
+                            (ex: ligar novamente uma VM que foi desligada).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CASO 3 — MODIFY ═══════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Caso 3 — Modify: Modificação de Configuração
+                            <span class="job-badge job-badge--modify" style="margin-left:8px;">modify</span>
+                        </div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF640 POST /serviceActivationJob</span>
+                            &nbsp;Serviço: active → active (com nova configuração)
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O job do tipo <code>modify</code> permite <strong>alterar parâmetros de configuração</strong>
+                        de um serviço que já está activo — sem o desactivar. Típico quando se precisa de
+                        aumentar recursos de uma VM (ex: mais vCPUs ou RAM) em hot-add, ou alterar uma política de backup.
+                    </p>
+                    <p>
+                        Pré-condição: serviço no estado <code>active</code>. O estado permanece <code>active</code> após o sucesso.
+                    </p>
+
+                    <!-- Modify flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 140" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-m1"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                                <marker id="arr-m1g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                            </defs>
+                            <text x="390" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Fluxo — modify (hot-change)</text>
+
+                            <rect x="20" y="35" width="120" height="60" rx="8" fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="80" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#34d399">Serviço</text>
+                            <text x="80" y="73" text-anchor="middle" font-size="9" fill="#34d399">state: active</text>
+                            <text x="80" y="87" text-anchor="middle" font-size="9" fill="#94a3b8">(em produção)</text>
+
+                            <line x1="140" y1="65" x2="170" y2="65" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-m1)"/>
+
+                            <rect x="172" y="28" width="150" height="75" rx="8" fill="rgba(251,191,36,0.10)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="247" y="50" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">job modify</text>
+                            <text x="247" y="66" text-anchor="middle" font-size="9" fill="#94a3b8">accepted → running</text>
+                            <text x="247" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">params novos:</text>
+                            <text x="247" y="95" text-anchor="middle" font-size="9" fill="#fbbf24">vcpu_count: 8</text>
+
+                            <line x1="322" y1="65" x2="355" y2="65" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-m1g)"/>
+                            <text x="338" y="57" text-anchor="middle" font-size="9" fill="#34d399">succeeded</text>
+
+                            <rect x="357" y="28" width="180" height="75" rx="8" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="2"/>
+                            <text x="447" y="50" text-anchor="middle" font-size="10" font-weight="700" fill="#34d399">Serviço</text>
+                            <text x="447" y="66" text-anchor="middle" font-size="9" fill="#34d399">state: active</text>
+                            <text x="447" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">Configuração actualizada:</text>
+                            <text x="447" y="96" text-anchor="middle" font-size="9" fill="#34d399">vcpu_count: 8 (era 4)</text>
+
+                            <!-- Aside: no downtime -->
+                            <rect x="560" y="35" width="200" height="60" rx="8" fill="rgba(52,211,153,0.06)" stroke="rgba(52,211,153,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+                            <text x="660" y="55" text-anchor="middle" font-size="9" fill="#34d399">&#x2714; Sem downtime</text>
+                            <text x="660" y="71" text-anchor="middle" font-size="9" fill="#94a3b8">serviço mantém-se active</text>
+                            <text x="660" y="85" text-anchor="middle" font-size="9" fill="#94a3b8">durante toda a operação</text>
+                        </svg>
+                        <figcaption>Diagrama 4 — Fluxo modify: serviço permanece active, apenas os parâmetros de configuração são actualizados</figcaption>
+                    </figure>
+
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Upgrade VM Alpha — 4 vCPU para 8 vCPU"</span>,
+  <span class="key">"description"</span>: <span class="val">"Expansão de recursos para pico de carga Q1"</span>,
+  <span class="key">"job_type"</span>:    <span class="val">"modify"</span>,
+  <span class="key">"service_id"</span>:  <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"params"</span>: [
+    <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"vcpu_count"</span>, <span class="key">"value"</span>: <span class="val">"8"</span>, <span class="key">"value_type"</span>: <span class="val">"integer"</span> <span class="key">}</span>,
+    <span class="key">{</span> <span class="key">"name"</span>: <span class="val">"ram_gb"</span>,     <span class="key">"value"</span>: <span class="val">"16"</span>, <span class="key">"value_type"</span>: <span class="val">"integer"</span> <span class="key">}</span>
+  ]
+<span class="key">}</span></div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            O job <code>modify</code> <strong>requer que o serviço esteja active</strong>.
+                            Se tentar criar um job modify sobre um serviço inactive, a API devolve um erro 422.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CASO 4 — DEACTIVATE ═══════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-card__title">Caso 4 — Deactivate: Suspensão Temporária
+                            <span class="job-badge job-badge--deactivate" style="margin-left:8px;">deactivate</span>
+                        </div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF640 POST /serviceActivationJob</span>
+                            &nbsp;Serviço: active → inactive
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O job do tipo <code>deactivate</code> <strong>suspende temporariamente</strong> um
+                        serviço activo, colocando-o no estado <code>inactive</code>. É uma operação reversível:
+                        o serviço pode ser re-activado posteriormente com um job <code>activate</code>.
+                    </p>
+                    <p>
+                        Casos de uso típicos: janelas de manutenção, suspensão de serviços de clientes em incumprimento,
+                        poupança de recursos em períodos de baixo tráfego.
+                    </p>
+
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Desactivar VM Alpha — Janela de Manutenção"</span>,
+  <span class="key">"description"</span>: <span class="val">"Suspensão durante janela de manutenção 03:00-05:00"</span>,
+  <span class="key">"job_type"</span>:    <span class="val">"deactivate"</span>,
+  <span class="key">"service_id"</span>:  <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"scheduled_start_date"</span>:      <span class="val">"2026-03-15T03:00:00Z"</span>,
+  <span class="key">"scheduled_completion_date"</span>: <span class="val">"2026-03-15T05:00:00Z"</span>
+<span class="key">}</span>
+<span class="comment">→ Após succeeded: serviço no inventário com state: "inactive"</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Após o <code>deactivate</code> bem sucedido, o serviço fica <code>inactive</code>
+                            no inventário. Para o voltar a activar, crie um job <code>activate</code>
+                            (não é necessário um novo <code>provision</code>).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CASO 5 — TERMINATE ════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">5</div>
+                    <div>
+                        <div class="step-card__title">Caso 5 — Terminate: Encerramento Definitivo
+                            <span class="job-badge job-badge--terminate" style="margin-left:8px;">terminate</span>
+                        </div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF640 POST /serviceActivationJob</span>
+                            &nbsp;Serviço: active ou inactive → terminated
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O job do tipo <code>terminate</code> procede ao <strong>encerramento definitivo e irreversível</strong>
+                        do serviço — destrói os recursos associados (apaga a VM, os volumes, as configurações de utilizadores).
+                        O serviço passa para o estado <code>terminated</code> no inventário.
+                    </p>
+                    <p>
+                        Ao contrário do <code>deactivate</code>, o <code>terminate</code> <strong>não pode ser desfeito</strong>.
+                        É aceite tanto a partir de um serviço <code>active</code> como <code>inactive</code>.
+                    </p>
+
+                    <!-- Terminate flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-t1"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                                <marker id="arr-t1y" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                            </defs>
+                            <text x="390" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Fluxo — terminate (irreversível)</text>
+
+                            <!-- active or inactive -->
+                            <rect x="12" y="40" width="130" height="70" rx="8" fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="77" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#60a5fa">Serviço</text>
+                            <text x="77" y="78" text-anchor="middle" font-size="9" fill="#34d399">active</text>
+                            <text x="77" y="93" text-anchor="middle" font-size="9" fill="#94a3b8">ou</text>
+                            <text x="77" y="105" text-anchor="middle" font-size="9" fill="#60a5fa">inactive</text>
+
+                            <line x1="142" y1="75" x2="178" y2="75" stroke="#f87171" stroke-width="1.5" marker-end="url(#arr-t1)"/>
+
+                            <!-- Job terminate -->
+                            <rect x="180" y="33" width="145" height="84" rx="8" fill="rgba(248,113,113,0.10)" stroke="#f87171" stroke-width="1.5"/>
+                            <text x="252" y="57" text-anchor="middle" font-size="10" font-weight="600" fill="#f87171">job terminate</text>
+                            <text x="252" y="73" text-anchor="middle" font-size="9" fill="#94a3b8">accepted → running</text>
+                            <text x="252" y="89" text-anchor="middle" font-size="9" fill="#94a3b8">a destruir recursos:</text>
+                            <text x="252" y="104" text-anchor="middle" font-size="9" fill="#f87171">VM, discos, users…</text>
+
+                            <line x1="325" y1="75" x2="360" y2="75" stroke="#f87171" stroke-width="2" marker-end="url(#arr-t1)"/>
+                            <text x="342" y="67" text-anchor="middle" font-size="9" fill="#f87171">succeeded</text>
+
+                            <!-- Result -->
+                            <rect x="362" y="33" width="190" height="84" rx="8" fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="2"/>
+                            <text x="457" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#f87171">Serviço</text>
+                            <text x="457" y="73" text-anchor="middle" font-size="9" fill="#f87171">state: terminated</text>
+                            <text x="457" y="89" text-anchor="middle" font-size="9" fill="#94a3b8">Recursos destruídos</text>
+                            <text x="457" y="104" text-anchor="middle" font-size="9" fill="#94a3b8">Inventário (TMF638)</text>
+
+                            <!-- Warning: irreversible -->
+                            <rect x="572" y="40" width="195" height="70" rx="8" fill="rgba(248,113,113,0.07)" stroke="rgba(248,113,113,0.4)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                            <text x="669" y="60" text-anchor="middle" font-size="10" fill="#f87171">&#x26D4; IRREVERSÍVEL</text>
+                            <text x="669" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Não é possível re-activar</text>
+                            <text x="669" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">um serviço terminated.</text>
+                            <text x="669" y="106" text-anchor="middle" font-size="9" fill="#94a3b8">(necessário novo provision)</text>
+                        </svg>
+                        <figcaption>Diagrama 5 — Fluxo terminate: serviço destroyed, passo irreversível</figcaption>
+                    </figure>
+
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Terminar VM Alpha — Projecto Encerrado"</span>,
+  <span class="key">"description"</span>: <span class="val">"Encerramento definitivo e remoção de todos os recursos do projecto Alpha"</span>,
+  <span class="key">"job_type"</span>:    <span class="val">"terminate"</span>,
+  <span class="key">"service_id"</span>:  <span class="val">"&lt;uuid-do-serviço&gt;"</span>
+<span class="key">}</span>
+<span class="comment">→ Após succeeded: serviço no inventário com state: "terminated"</span></div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Atenção: operação irreversível.</strong> Um serviço no estado <code>terminated</code>
+                            não pode ser re-activado. Para voltar a ter o serviço disponível,
+                            seria necessário criar um novo serviço no inventário e executar um novo <code>provision</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CASO 6 — FILTROS E LISTAGEM ═══════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">6</div>
+                    <div>
+                        <div class="step-card__title">Listar e Filtrar Jobs</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF640 GET /serviceActivationJob</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        A API suporta filtragem e paginação na listagem de jobs. Use os parâmetros de query
+                        para encontrar jobs por estado, tipo ou serviço alvo.
+                    </p>
+
+                    <div class="api-block"><span class="comment">-- Listar todos os jobs (paginação por omissão: offset=0, limit=20) --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob</span>
+
+<span class="comment">-- Filtrar por estado --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob?state=accepted</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob?state=running</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob?state=succeeded</span>
+
+<span class="comment">-- Filtrar por tipo de job --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob?job_type=provision</span>
+
+<span class="comment">-- Filtrar por serviço alvo --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob?service_id=&lt;uuid&gt;</span>
+
+<span class="comment">-- Paginação --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob?offset=20&limit=10</span>
+<span class="comment">→ Headers de resposta: X-Total-Count (total), X-Result-Count (nesta página)</span>
+
+<span class="comment">-- Obter um job específico --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span>
+
+<span class="comment">-- Eliminar job (só failed ou cancelled) --</span>
+<span class="method">DELETE</span> <span class="url">/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob/&lt;job_id&gt;</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: use os dropdowns de filtro no topo da tabela de jobs
+                            para filtrar por <strong>estado</strong> (<code>All states</code>, <code>accepted</code>,
+                            <code>running</code>, etc.) e por <strong>tipo</strong> (<code>job type</code>).
+                            A paginação é gerida automaticamente pela interface.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ RESUMO FINAL ═══════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-success);color:white;">&#x2714;</div>
+                    <div>
+                        <div class="step-card__title">Resumo — Fluxo Completo de Aprovisionamento</div>
+                        <div class="step-card__subtitle">Todos os tipos de job e o seu impacto no estado do serviço</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+
+                    <!-- E2E lifecycle diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 420" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-e2e"   markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/></marker>
+                                <marker id="arr-e2e-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                                <marker id="arr-e2e-o" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fb923c"/></marker>
+                                <marker id="arr-e2e-r" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                                <marker id="arr-e2e-y" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                            </defs>
+
+                            <text x="390" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#e2e8f0">Ciclo de Vida do Serviço via Jobs de Aprovisionamento</text>
+
+                            <!-- Service Created (inactive) -->
+                            <rect x="300" y="40" width="180" height="52" rx="26"
+                                  fill="rgba(96,165,250,0.12)" stroke="#60a5fa" stroke-width="2"/>
+                            <text x="390" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">inactive</text>
+                            <text x="390" y="80" text-anchor="middle" font-size="9" fill="#94a3b8">serviço criado no inventário</text>
+
+                            <!-- provision / activate arrows down to active -->
+                            <path d="M 330 92 Q 330 136 355 150" stroke="#4f7ef8" stroke-width="2" fill="none" marker-end="url(#arr-e2e)"/>
+                            <rect x="222" y="113" width="100" height="20" rx="6" fill="rgba(79,126,248,0.12)"/>
+                            <text x="272" y="127" text-anchor="middle" font-size="9" font-weight="700" fill="#4f7ef8">provision</text>
+                            <path d="M 450 92 Q 450 118 430 148" stroke="#34d399" stroke-width="2" fill="none" marker-end="url(#arr-e2e-g)"/>
+                            <rect x="456" y="113" width="90" height="20" rx="6" fill="rgba(52,211,153,0.12)"/>
+                            <text x="501" y="127" text-anchor="middle" font-size="9" font-weight="700" fill="#34d399">activate</text>
+
+                            <!-- active -->
+                            <rect x="280" y="152" width="220" height="56" rx="28"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2.5"/>
+                            <text x="390" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">active</text>
+                            <text x="390" y="196" text-anchor="middle" font-size="9" fill="#94a3b8">serviço em produção</text>
+
+                            <!-- active → modify (loop) -->
+                            <path d="M 500 173 Q 620 165 625 210 Q 630 255 510 258" stroke="#fbbf24" stroke-width="2" fill="none" marker-end="url(#arr-e2e-y)" stroke-dasharray="5,3"/>
+                            <rect x="612" y="200" width="72" height="20" rx="6" fill="rgba(251,191,36,0.12)"/>
+                            <text x="648" y="214" text-anchor="middle" font-size="9" font-weight="700" fill="#fbbf24">modify</text>
+                            <text x="648" y="235" text-anchor="middle" font-size="9" fill="#94a3b8">mantém-se active</text>
+
+                            <!-- active → deactivate → inactive -->
+                            <path d="M 300 208 Q 200 225 210 270 Q 215 310 295 318" stroke="#fb923c" stroke-width="2" fill="none" marker-end="url(#arr-e2e-o)"/>
+                            <rect x="145" y="247" width="90" height="20" rx="6" fill="rgba(251,146,60,0.12)"/>
+                            <text x="190" y="261" text-anchor="middle" font-size="9" font-weight="700" fill="#fb923c">deactivate</text>
+
+                            <!-- inactive (revisit) -->
+                            <rect x="295" y="308" width="190" height="50" rx="25"
+                                  fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="390" y="330" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">inactive</text>
+                            <text x="390" y="346" text-anchor="middle" font-size="9" fill="#94a3b8">suspenso (reversível)</text>
+
+                            <!-- inactive → activate (back) -->
+                            <path d="M 295 332 Q 215 332 200 275 Q 190 240 280 215" stroke="#34d399" stroke-width="1.5" fill="none" marker-end="url(#arr-e2e-g)" stroke-dasharray="6,3"/>
+                            <text x="155" y="290" text-anchor="middle" font-size="9" fill="#34d399">activate</text>
+
+                            <!-- active → terminate -->
+                            <path d="M 500 180 Q 680 188 700 260 Q 710 320 660 356" stroke="#f87171" stroke-width="2" fill="none" marker-end="url(#arr-e2e-r)"/>
+                            <rect x="690" y="256" width="82" height="20" rx="6" fill="rgba(248,113,113,0.12)"/>
+                            <text x="731" y="270" text-anchor="middle" font-size="9" font-weight="700" fill="#f87171">terminate</text>
+
+                            <!-- inactive → terminate -->
+                            <path d="M 485 340 Q 570 354 618 370" stroke="#f87171" stroke-width="1.5" fill="none" marker-end="url(#arr-e2e-r)" stroke-dasharray="5,3"/>
+                            <text x="560" y="346" text-anchor="middle" font-size="9" fill="#f87171">terminate</text>
+
+                            <!-- terminated -->
+                            <rect x="520" y="366" width="220" height="46" rx="23"
+                                  fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="2"/>
+                            <text x="630" y="388" text-anchor="middle" font-size="12" font-weight="700" fill="#f87171">terminated</text>
+                            <text x="630" y="403" text-anchor="middle" font-size="9" fill="#94a3b8">&#x26D4; encerrado — sem retorno</text>
+                        </svg>
+                        <figcaption>Diagrama 6 — Ciclo de vida completo do serviço via jobs TMF640: todos os tipos e transições possíveis</figcaption>
+                    </figure>
+
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> Verificar que existe um <strong>Service</strong> no Inventário (TMF638) com o estado adequado ao job</li>
+                        <li><span class="checklist__num">2</span> Navegar a <strong>Provisioning → + New Job</strong></li>
+                        <li><span class="checklist__num">3</span> Seleccionar o <strong>service_id</strong> do serviço alvo</li>
+                        <li><span class="checklist__num">4</span> Escolher o <strong>job_type</strong>: provision / activate / modify / deactivate / terminate</li>
+                        <li><span class="checklist__num">5</span> Adicionar os <strong>parâmetros de configuração</strong> relevantes (<code>params</code>)</li>
+                        <li><span class="checklist__num">6</span> Clicar <strong>"Create Job"</strong> — job criado no estado <code>accepted</code></li>
+                        <li><span class="checklist__num">7</span> Clicar <strong>Run</strong> para transitar para <code>running</code></li>
+                        <li><span class="checklist__num">8</span> Após execução bem sucedida, clicar <strong>Succeed</strong> → <code>succeeded</code></li>
+                        <li><span class="checklist__num">9</span> O estado do serviço no Inventário é <strong>actualizado automaticamente</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ══ GERAR DADOS DE EXEMPLO ════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Teste</div>
+                        <div class="step-card__subtitle">Recria automaticamente o cenário de aprovisionamento da VM Alpha — mesmo caso de teste utilizado nos testes de integração</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Clique no botão abaixo para gerar automaticamente os dados de teste de aprovisionamento
+                        usados nos testes de integração TMF640. O script executa os seguintes passos:
+                    </p>
+                    <ol style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                        <li>Procura um serviço <strong>vm-alpha-001</strong> no inventário; se não existir, cria-o no estado <code>inactive</code></li>
+                        <li>Cria um job <code>provision</code> — "Provision VM Alpha" — com parâmetros de configuração (vcpu, ram, os_template, datacenter)</li>
+                        <li>Avança o job para <code>running</code></li>
+                        <li>Marca o job como <code>succeeded</code> → o serviço passa a <code>active</code></li>
+                        <li>Cria um job <code>modify</code> — "Upgrade VM Alpha" — para aumentar vCPUs de 4 para 8</li>
+                        <li>Cria um job <code>deactivate</code> — em estado <code>accepted</code> (para demonstração do ciclo)</li>
+                    </ol>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">&#x26A0;&#xFE0F;</span>
+                        <div class="callout__text">
+                            <strong>Execuções repetidas:</strong> Se clicar mais do que uma vez, os serviços são criados
+                            com sufixo numérico (ex: <strong>"vm-alpha-001-2"</strong>).
+                            Cada execução cria um conjunto de dados independente.
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-prov" onclick="generateProvisioningExamples()">
+                        &#x1F680; Gerar Dados de Teste
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="provisioning.html" class="back-link">&#8592; Voltar ao Aprovisionamento</a>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=6"></script>
+<script>
+    function printToPDF() {
+        const btn = document.querySelector('.topbar__actions button');
+        btn.disabled = true; btn.textContent = 'A preparar…';
+        setTimeout(function () { window.print(); btn.disabled = false; btn.innerHTML = '&#x1F4E5; Gerar PDF'; }, 120);
+    }
+
+    async function generateProvisioningExamples() {
+        const btn   = document.getElementById('btn-gen-prov');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_prov_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : '-' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        // Steps:
+        // 1  — procurar serviço vm-alpha-001 no inventário
+        // 2  — criar serviço se não existir
+        // 3  — criar job provision (com params)
+        // 4  — avançar para running
+        // 5  — marcar como succeeded
+        // 6  — criar job modify (upgrade vCPUs)
+        // 7  — criar job deactivate (accepted — para demonstração)
+        const TOTAL = 7;
+        let step = 0;
+
+        const PROV_BASE = '/tmf-api/serviceActivationConfiguration/v4/serviceActivationJob';
+        const INV_BASE  = '/tmf-api/serviceInventory/v4/service';
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' — ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function apiGet(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('GET ' + url + ' → HTTP ' + r.status);
+            return r.json();
+        }
+
+        async function apiPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        async function apiPatch(url, body) {
+            const r = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('PATCH ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        try {
+            // ── 1. Procurar serviço vm-alpha-001 no inventário ─────────────
+            progress('A procurar serviço vm-alpha-001 no inventário…');
+            log('→ GET ' + INV_BASE + '?limit=100');
+            const services = await apiGet(INV_BASE + '?limit=100');
+            const targetName = 'vm-alpha-001' + sfx;
+            let svc = services.find(s => s.name && s.name.toLowerCase() === targetName.toLowerCase());
+
+            // ── 2. Criar serviço se não existir ────────────────────────────
+            progress('A verificar / criar serviço no inventário…');
+            if (svc) {
+                log('✓ Serviço encontrado: ' + svc.name + '  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+                // ensure it is in inactive state for provision
+                if (svc.state !== 'inactive') {
+                    log('⚠ Serviço não está inactive (state:' + svc.state + ') — a criar um novo.', 'gen-log-info');
+                    svc = null;
+                }
+            }
+            if (!svc) {
+                log('→ POST ' + INV_BASE + '  [name: ' + targetName + ', state: inactive]');
+                svc = await apiPost(INV_BASE, {
+                    name:        targetName,
+                    description: 'VM Completa para projecto Alpha — instância de teste',
+                    state:       'inactive',
+                    service_type: 'VM Completa'
+                });
+                log('✓ Serviço criado  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+            }
+
+            const serviceId = svc.id;
+
+            // ── 3. Criar job provision ─────────────────────────────────────
+            progress('A criar job provision — "Provision VM Alpha"…');
+            log('→ POST ' + PROV_BASE + '  [job_type: provision]');
+            const job1 = await apiPost(PROV_BASE, {
+                name:        'Provision VM Alpha' + sfx,
+                description: 'Aprovisionamento inicial da VM vm-alpha-001 no vCenter DC-Lisboa',
+                job_type:    'provision',
+                service_id:  serviceId,
+                params: [
+                    { name: 'vcpu_count',        value: '4',           value_type: 'integer' },
+                    { name: 'ram_gb',            value: '8',           value_type: 'integer' },
+                    { name: 'os_template',       value: 'ubuntu-22.04',value_type: 'string'  },
+                    { name: 'vcenter_datacenter',value: 'DC-Lisboa',   value_type: 'string'  },
+                    { name: 'vcenter_cluster',   value: 'Cluster-Prod',value_type: 'string'  }
+                ]
+            });
+            log('✓ Job provision criado  id:' + job1.id + '  state:' + job1.state, 'gen-log-ok');
+
+            // ── 4. Avançar job1 para running ───────────────────────────────
+            progress('A avançar job provision para running…');
+            log('→ PATCH ' + PROV_BASE + '/' + job1.id + '  { state: "running" }');
+            const job1r = await apiPatch(PROV_BASE + '/' + job1.id, { state: 'running' });
+            log('✓ Job provision → running  state:' + job1r.state, 'gen-log-ok');
+
+            // ── 5. Marcar job1 como succeeded ──────────────────────────────
+            progress('A marcar job provision como succeeded (serviço passa a active)…');
+            log('→ PATCH ' + PROV_BASE + '/' + job1.id + '  { state: "succeeded" }');
+            const job1s = await apiPatch(PROV_BASE + '/' + job1.id, { state: 'succeeded' });
+            log('✓ Job provision → succeeded  state:' + job1s.state, 'gen-log-ok');
+            log('✓ Serviço no inventário actualizado para state: active', 'gen-log-ok');
+
+            // ── 6. Criar job modify ────────────────────────────────────────
+            progress('A criar job modify — "Upgrade VM Alpha"…');
+            log('→ POST ' + PROV_BASE + '  [job_type: modify]');
+            const job2 = await apiPost(PROV_BASE, {
+                name:        'Upgrade VM Alpha' + sfx + ' — 4 vCPU para 8 vCPU',
+                description: 'Expansão de recursos para pico de carga Q2 2026',
+                job_type:    'modify',
+                service_id:  serviceId,
+                params: [
+                    { name: 'vcpu_count', value: '8',  value_type: 'integer' },
+                    { name: 'ram_gb',     value: '16', value_type: 'integer' }
+                ]
+            });
+            log('✓ Job modify criado  id:' + job2.id + '  state:' + job2.state, 'gen-log-ok');
+
+            // ── 7. Criar job deactivate (accepted — demonstração) ──────────
+            progress('A criar job deactivate — janela de manutenção (accepted)…');
+            log('→ POST ' + PROV_BASE + '  [job_type: deactivate]');
+            const job3 = await apiPost(PROV_BASE, {
+                name:        'Desactivar VM Alpha' + sfx + ' — Janela de Manutenção',
+                description: 'Suspensão durante janela de manutenção — para demonstração do ciclo de vida',
+                job_type:    'deactivate',
+                service_id:  serviceId
+            });
+            log('✓ Job deactivate criado  id:' + job3.id + '  state:' + job3.state, 'gen-log-ok');
+
+            // ── Concluído ─────────────────────────────────────────────────
+            fill.style.width = '100%';
+            lbl.textContent  = 'Concluído!';
+            log('', '');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('✓ Dados de teste criados com sucesso:', 'gen-log-ok');
+            log('  Serviço:  ' + targetName + '  (state: active)', 'gen-log-ok');
+            log('  Job 1:    Provision VM Alpha' + sfx + '  → succeeded', 'gen-log-ok');
+            log('  Job 2:    Upgrade VM Alpha' + sfx + '    → accepted', 'gen-log-ok');
+            log('  Job 3:    Desactivar VM Alpha' + sfx + ' → accepted', 'gen-log-ok');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('Navegue para Provisioning para ver os jobs criados.', 'gen-log-info');
+
+        } catch (err) {
+            fill.style.width = '100%';
+            lbl.textContent  = 'Erro';
+            log('✗ Erro: ' + err.message, 'gen-log-err');
+        } finally {
+            btn.disabled    = false;
+            btn.innerHTML   = '&#x1F680; Gerar Dados de Teste';
+        }
+    }
+</script>
+
+</body>
+</html>

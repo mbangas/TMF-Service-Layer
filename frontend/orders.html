@@ -165,7 +165,13 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="field-priority">Priority</label>
-                    <input type="text" id="field-priority" class="form-control" placeholder="e.g. 1 or high">
+                    <select id="field-priority" class="form-control">
+                        <option value="">— none —</option>
+                        <option value="1">1 — Critical</option>
+                        <option value="2">2 — High</option>
+                        <option value="3">3 — Medium</option>
+                        <option value="4">4 — Low</option>
+                    </select>
                 </div>
             </div>
             <div class="form-group">
@@ -188,7 +194,9 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="item-spec-name">Service Spec Name</label>
-                        <input type="text" id="item-spec-name" class="form-control" placeholder="e.g. Broadband Internet">
+                        <select id="item-spec-name" class="form-control">
+                            <option value="">— select spec —</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -499,6 +507,21 @@ async function loadCategoriesForOrder() {
     }
 }
 
+async function loadSpecsForOrder() {
+    itemSpecName.innerHTML = '<option value="">Loading\u2026</option>';
+    itemSpecName.disabled = true;
+    try {
+        const { data } = await CatalogClient.list({ limit: 200 });
+        const specs = Array.isArray(data) ? data : [];
+        const opts = specs.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+        itemSpecName.innerHTML = `<option value="">\u2014 select spec \u2014</option>${opts}`;
+    } catch {
+        itemSpecName.innerHTML = '<option value="">\u2014 unavailable \u2014</option>';
+    } finally {
+        itemSpecName.disabled = false;
+    }
+}
+
 btnNew.addEventListener('click', async () => {
     fieldName.value = '';
     fieldDesc.value = '';
@@ -510,7 +533,7 @@ btnNew.addEventListener('click', async () => {
     formError.style.display = 'none';
     modalBackdrop.classList.add('open');
     fieldName.focus();
-    await loadCategoriesForOrder();
+    await Promise.all([loadCategoriesForOrder(), loadSpecsForOrder()]);
 });
 
 modalClose.addEventListener('click',   () => modalBackdrop.classList.remove('open'));
