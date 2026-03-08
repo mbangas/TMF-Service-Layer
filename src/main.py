@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -65,6 +65,22 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Total-Count", "X-Result-Count"],
 )
+
+
+# ── No-cache middleware for frontend static files ─────────────────────────────
+@app.middleware("http")
+async def no_cache_frontend(request: Request, call_next):
+    """Disable browser caching for all /ui/ static files.
+
+    Prevents stale HTML/JS from being served after deployments.
+    In production, replace with versioned asset hashes and long-lived caching.
+    """
+    response = await call_next(request)
+    if request.url.path.startswith("/ui/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 # ── Domain routers ─────────────────────────────────────────────────────────────
 app.include_router(catalog_router)

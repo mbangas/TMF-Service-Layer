@@ -450,11 +450,10 @@
     </div>
 </div>
 
-<script src="js/api-client.js?v=2"></script>
+<script src="js/api-client.js?v=7"></script>
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
-const TICKET_BASE = '/tmf-api/troubleTicketManagement/v4/troubleTicket';
-const PROBLEM_BASE = '/tmf-api/serviceProblemManagement/v4/problem';
+// TICKET_BASE and PROBLEM_BASE are provided by api-client.js
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 function switchTab(name, btn) {
@@ -784,22 +783,12 @@ async function deleteProblem(problemId) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
-    // Reset filters (prevent browser from restoring stale selections)
-    document.getElementById('ticket-filter-state').value    = '';
-    document.getElementById('ticket-filter-severity').value = '';
-    document.getElementById('problem-filter-state').value   = '';
-    document.getElementById('problem-filter-impact').value  = '';
-    loadTickets();
-});
-// Fallback: also call immediately in case DOMContentLoaded already fired
-if (document.readyState !== 'loading') {
-    document.getElementById('ticket-filter-state').value    = '';
-    document.getElementById('ticket-filter-severity').value = '';
-    document.getElementById('problem-filter-state').value   = '';
-    document.getElementById('problem-filter-impact').value  = '';
-    loadTickets();
-}
+// Script is at bottom of <body> so DOM is ready; reset filters then load.
+document.getElementById('ticket-filter-state').value    = '';
+document.getElementById('ticket-filter-severity').value = '';
+document.getElementById('problem-filter-state').value   = '';
+document.getElementById('problem-filter-impact').value  = '';
+loadTickets();
 
 // Pre-fill alarm ID from URL param (e.g. ?alarm_id=xxx from assurance.html shortcut)
 (function() {
