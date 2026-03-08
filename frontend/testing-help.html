@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda — Gestão de Testing | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Help page specific ── */
+        .help-content {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p {
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+            line-height: 1.8;
+        }
+
+        .step-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .step-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--colour-surface-alt);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--colour-primary);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-md);
+            flex-shrink: 0;
+        }
+        .step-card__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .step-card__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-top: 2px;
+        }
+        .step-card__body {
+            padding: var(--space-xl);
+        }
+        .step-card__body p,
+        .step-card__body li {
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+        }
+        .step-card__body ul,
+        .step-card__body ol {
+            padding-left: var(--space-xl);
+            margin-top: var(--space-sm);
+        }
+        .step-card__body li {
+            margin-bottom: var(--space-xs);
+        }
+        .step-card__body h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--colour-text);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ── API call blocks ── */
+        .api-block {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-left: 3px solid var(--colour-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #a5d6a7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .api-block .method { color: #82b1ff; font-weight: 700; }
+        .api-block .url    { color: #80cbc4; }
+        .api-block .key    { color: #ce93d8; }
+        .api-block .val    { color: #a5d6a7; }
+        .api-block .comment{ color: #546e7a; }
+
+        /* ── Info / Warning callouts ── */
+        .callout {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin: var(--space-md) 0;
+        }
+        .callout--info    { background: rgba(96,165,250,0.10);  border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);   border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);   border-left: 3px solid var(--colour-success); }
+        .callout--danger  { background: rgba(248,113,113,0.10);  border-left: 3px solid var(--colour-danger); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Summary checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--colour-primary-dim);
+            color: var(--colour-primary);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Field reference table ── */
+        .field-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .field-table th { padding: 8px 12px; text-align: left; color: var(--colour-text-muted); border-bottom: 1px solid var(--colour-border); }
+        .field-table td { padding: 8px 12px; border-bottom: 1px solid var(--colour-border); color: var(--colour-text-muted); }
+        .field-table td:first-child { font-family: var(--font-mono); font-size: 11px; color: var(--colour-text); }
+        .field-table .req  { color: var(--colour-success); font-weight: 600; }
+        .field-table .opt  { color: var(--colour-text-muted); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-lg);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--colour-border);
+            margin: var(--space-xl) 0;
+        }
+
+        /* TMF reference pills */
+        .tmf-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: rgba(79,126,248,0.15);
+            color: var(--colour-primary);
+            border: 1px solid rgba(79,126,248,0.3);
+            margin-left: var(--space-xs);
+        }
+
+        /* ── Test lifecycle state badges ── */
+        .state-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+        }
+        .state-badge--planned      { background: rgba(96,165,250,0.18);   color: #60a5fa;  border: 1px solid rgba(96,165,250,0.4); }
+        .state-badge--inprogress   { background: rgba(251,191,36,0.18);   color: #fbbf24;  border: 1px solid rgba(251,191,36,0.4); }
+        .state-badge--completed    { background: rgba(52,211,153,0.15);   color: #34d399;  border: 1px solid rgba(52,211,153,0.3); }
+        .state-badge--failed       { background: rgba(248,113,113,0.15);  color: #f87171;  border: 1px solid rgba(248,113,113,0.3); }
+        .state-badge--cancelled    { background: rgba(100,116,139,0.15);  color: #94a3b8;  border: 1px solid rgba(100,116,139,0.3); }
+
+        /* ── Spec lifecycle state badges ── */
+        .spec-badge--active        { background: rgba(52,211,153,0.15);   color: #34d399;  border: 1px solid rgba(52,211,153,0.3); }
+        .spec-badge--retired       { background: rgba(251,191,36,0.15);   color: #fbbf24;  border: 1px solid rgba(251,191,36,0.3); }
+        .spec-badge--obsolete      { background: rgba(100,116,139,0.15);  color: #94a3b8;  border: 1px solid rgba(100,116,139,0.3); }
+
+        /* ── Measure result badges ── */
+        .result-badge--pass        { background: rgba(52,211,153,0.15);   color: #34d399;  border: 1px solid rgba(52,211,153,0.3); }
+        .result-badge--fail        { background: rgba(248,113,113,0.15);  color: #f87171;  border: 1px solid rgba(248,113,113,0.3); }
+        .result-badge--inconclusive{ background: rgba(251,191,36,0.15);   color: #fbbf24;  border: 1px solid rgba(251,191,36,0.3); }
+
+        /* ── Generate example data section ── */
+        .gen-progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--colour-surface-alt);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        .gen-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--colour-primary), #34d399);
+            border-radius: var(--radius-full);
+            transition: width 0.35s ease;
+        }
+        .gen-progress-label {
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-bottom: var(--space-md);
+        }
+        .gen-log {
+            background: #0d1117;
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: var(--font-size-xs);
+            color: #94a3b8;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.9;
+        }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            :root {
+                --colour-bg:           #ffffff;
+                --colour-surface:      #f8f9fc;
+                --colour-surface-alt:  #eef0f6;
+                --colour-border:       #d1d5db;
+                --colour-text:         #111827;
+                --colour-text-muted:   #4b5563;
+                --colour-primary:      #2563eb;
+                --colour-success:      #059669;
+                --colour-warning:      #d97706;
+                --colour-danger:       #dc2626;
+                --colour-info:         #2563eb;
+            }
+            body { background: #fff; color: #111; }
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-testing, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; color: #111; }
+            .step-card { border: 1px solid #d1d5db; border-radius: 6px; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .callout--info    { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .callout--success { background: #ecfdf5; border-color: #10b981; }
+            .callout--danger  { background: #fef2f2; border-color: #ef4444; }
+            .api-block { background: #1e293b; border-color: #334155; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+            .diagram-wrapper { background: #f8fafc; border-color: #d1d5db; break-inside: avoid; }
+            .tmf-pill { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .state-badge--planned      { background: #dbeafe;  color: #1e40af;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .state-badge--inprogress   { background: #fef9c3;  color: #92400e;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .state-badge--completed    { background: #dcfce7;  color: #166534;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .state-badge--failed       { background: #fee2e2;  color: #991b1b;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .state-badge--cancelled    { background: #f1f5f9;  color: #475569;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .spec-badge--active        { background: #dcfce7;  color: #166534;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .spec-badge--retired       { background: #fef9c3;  color: #92400e;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .spec-badge--obsolete      { background: #f1f5f9;  color: #475569;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .result-badge--pass        { background: #dcfce7;  color: #166534;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .result-badge--fail        { background: #fee2e2;  color: #991b1b;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .result-badge--inconclusive{ background: #fef9c3;  color: #92400e;  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .step-card { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link active" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+            <a class="sidebar__nav-link" href="problems.html"><span class="nav-icon">🚨</span> Problems</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html"><span class="nav-icon">🔌</span> APIs</a>
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">&#x2753; Guia de Testing de Serviços</div>
+                <div class="topbar__subtitle">Como gerir especificações de teste, execuções e medidas — TMF653</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
+                <a href="testing.html" class="btn btn--ghost btn--sm">&#8592; Voltar ao Testing</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica como usar o módulo de <strong style="color:var(--colour-text)">Testing</strong>
+                    da TMF Service Layer, que implementa a API TMF:
+                </p>
+                <ul style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                    <li><strong style="color:var(--colour-text)">TMF653 — Service Test Management:</strong> especificações de teste reutilizáveis (<code>TestSpecification</code>) e execuções de testes sobre instâncias de serviço (<code>ServiceTest</code>), com registo de medidas (<code>TestMeasure</code>)</li>
+                </ul>
+                <p style="margin-top:var(--space-sm);">
+                    Uma <strong>TestSpecification</strong> é um template reutilizável que define o tipo e os parâmetros de um teste.
+                    Um <strong>ServiceTest</strong> é uma execução concreta desse template contra uma instância de serviço no
+                    Inventário (TMF638). As medidas registadas durante a execução determinam se o teste passou ou falhou.
+                    Consulte o <a href="provisioning-help.html" style="color:var(--colour-primary);">Guia de Aprovisionamento</a>
+                    para perceber como activar serviços.
+                </p>
+            </div>
+
+            <!-- ══ VISÃO GERAL ════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x1F4CB;</div>
+                    <div>
+                        <div class="step-card__title">Visão Geral — Relação entre Entidades</div>
+                        <div class="step-card__subtitle">TestSpecification → ServiceTest → TestMeasure · integração com o Inventário</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        O módulo de Testing organiza-se em três níveis: a especificação (template),
+                        a execução (teste concreto) e as medidas (resultados capturados).
+                        Um serviço activo no Inventário é o alvo de cada execução.
+                    </p>
+
+                    <!-- Overview diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-ov" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/>
+                                </marker>
+                                <marker id="arr-ov-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+                                </marker>
+                            </defs>
+
+                            <!-- Inventory -->
+                            <rect x="10" y="45" width="155" height="60" rx="8"
+                                  fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="87" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Inventory</text>
+                            <text x="87" y="84" text-anchor="middle" font-size="10" fill="#94a3b8">Service (TMF638)</text>
+                            <text x="87" y="98" text-anchor="middle" font-size="9" fill="#94a3b8">service_id (obrigatório)</text>
+
+                            <!-- TestSpecification -->
+                            <rect x="10" y="10" width="155" height="28" rx="6"
+                                  fill="rgba(79,126,248,0.10)" stroke="#4f7ef8" stroke-width="1.5"/>
+                            <text x="87" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#4f7ef8">TestSpecification</text>
+
+                            <!-- Arrow spec → test -->
+                            <line x1="165" y1="24" x2="233" y2="60" stroke="#4f7ef8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-ov)"/>
+                            <!-- Arrow service → test -->
+                            <line x1="165" y1="75" x2="233" y2="75" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arr-ov)"/>
+
+                            <!-- ServiceTest -->
+                            <rect x="235" y="44" width="185" height="62" rx="8"
+                                  fill="rgba(251,191,36,0.10)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="327" y="67" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24">ServiceTest</text>
+                            <text x="327" y="83" text-anchor="middle" font-size="9" fill="#94a3b8">planned → inProgress</text>
+                            <text x="327" y="97" text-anchor="middle" font-size="9" fill="#94a3b8">→ completed | failed | cancelled</text>
+
+                            <!-- Arrow test → measures -->
+                            <line x1="420" y1="75" x2="488" y2="75" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-ov-g)"/>
+
+                            <!-- TestMeasure -->
+                            <rect x="490" y="44" width="200" height="62" rx="8"
+                                  fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="590" y="67" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">TestMeasure</text>
+                            <text x="590" y="83" text-anchor="middle" font-size="9" fill="#94a3b8">metric_name · metric_value</text>
+                            <text x="590" y="97" text-anchor="middle" font-size="9" fill="#94a3b8">result: pass | fail | inconclusive</text>
+
+                            <!-- Note only when inProgress -->
+                            <text x="505" y="122" text-anchor="middle" font-size="9" fill="#546e7a">só adicionar quando inProgress</text>
+                            <line x1="505" y1="107" x2="540" y2="107" stroke="#546e7a" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-ov)"/>
+
+                            <!-- Labels at top -->
+                            <text x="87" y="7" text-anchor="middle" font-size="9" fill="#4f7ef8" font-weight="600">template (opcional)</text>
+                        </svg>
+                        <figcaption>Diagrama 1 — Relação entre TestSpecification, ServiceTest e TestMeasure</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            A <strong>TestSpecification</strong> é opcional — é possível criar um <code>ServiceTest</code>
+                            sem associar uma especificação. Quando associada, a especificação deve estar em estado
+                            <code>active</code> ou <code>retired</code> (não <code>obsolete</code>).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ SECÇÃO 1 — TEST SPECIFICATION ════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                TestSpecification — Especificações de Teste
+            </h2>
+
+            <!-- Estrutura da TestSpecification -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x1F4CB;</div>
+                    <div>
+                        <div class="step-card__title">Estrutura de uma TestSpecification</div>
+                        <div class="step-card__subtitle">Template reutilizável que define tipo, versão e parâmetros de teste</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma <code>TestSpecification</code> é um template reutilizável que descreve
+                        o tipo de teste e os seus parâmetros padrão. Pode ser associada a uma
+                        <code>ServiceSpecification</code> do catálogo para indicar que os testes
+                        são aplicáveis a serviços desse tipo.
+                    </p>
+
+                    <!-- TestSpecification structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Outer box -->
+                            <rect x="10" y="10" width="760" height="188" rx="12"
+                                  fill="rgba(79,126,248,0.04)" stroke="#4f7ef8" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#4f7ef8">TestSpecification</text>
+                            <text x="185" y="34" font-size="11" fill="#94a3b8">(TMF653)</text>
+
+                            <!-- Identity fields -->
+                            <rect x="30" y="48" width="240" height="128" rx="8"
+                                  fill="rgba(79,126,248,0.08)" stroke="#4f7ef8" stroke-width="1"/>
+                            <text x="150" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#4f7ef8">Identificação</text>
+                            <text x="45" y="90"  font-size="10" fill="#94a3b8">name           <tspan fill="#34d399" font-weight="600">*</tspan>  "Connectivity Test Spec v1"</text>
+                            <text x="45" y="108" font-size="10" fill="#94a3b8">test_type          "functional" | "performance"</text>
+                            <text x="45" y="126" font-size="10" fill="#94a3b8">version            "1.0" | "2.3" | …</text>
+                            <text x="45" y="144" font-size="10" fill="#94a3b8">description        texto livre</text>
+                            <text x="45" y="162" font-size="10" fill="#94a3b8">service_spec_id    uuid (catálogo TMF633)</text>
+
+                            <!-- Lifecycle box -->
+                            <rect x="285" y="48" width="215" height="128" rx="8"
+                                  fill="rgba(96,165,250,0.07)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="392" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Ciclo de Vida</text>
+                            <text x="300" y="90"  font-size="10" fill="#94a3b8">lifecycle_status</text>
+                            <text x="300" y="110" font-size="10" fill="#94a3b8">  <tspan fill="#34d399">active</tspan>  → em uso, aceita novos testes</text>
+                            <text x="300" y="128" font-size="10" fill="#94a3b8">  → <tspan fill="#fbbf24">retired</tspan>  testes existentes mantidos</text>
+                            <text x="300" y="146" font-size="10" fill="#94a3b8">  → <tspan fill="#94a3b8">obsolete</tspan>  não aceita novos testes</text>
+                            <text x="300" y="168" font-size="9"  fill="#546e7a">eliminação: só quando obsolete</text>
+
+                            <!-- Usage rules -->
+                            <rect x="515" y="48" width="248" height="128" rx="8"
+                                  fill="rgba(251,191,36,0.06)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="639" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Regras de Utilização</text>
+                            <text x="530" y="90"  font-size="10" fill="#94a3b8">active  → pode ser usada em</text>
+                            <text x="530" y="106" font-size="10" fill="#94a3b8">         novos ServiceTests</text>
+                            <text x="530" y="126" font-size="10" fill="#94a3b8">retired → não pode ser usada</text>
+                            <text x="530" y="142" font-size="10" fill="#94a3b8">         em novos ServiceTests</text>
+                            <text x="530" y="162" font-size="10" fill="#94a3b8">obsolete → eliminável (DELETE)</text>
+                        </svg>
+                        <figcaption>Diagrama 2 — Estrutura de uma TestSpecification TMF653: identificação, ciclo de vida e regras</figcaption>
+                    </figure>
+
+                    <h4>Campos da TestSpecification</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Tipo</th><th>Descrição</th></tr></thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo da especificação (ex: "Connectivity Test Spec v1")</td></tr>
+                            <tr><td>test_type</td><td class="opt">não</td><td>string</td><td>Tipo de teste: "functional", "performance", "regression", "smoke", etc.</td></tr>
+                            <tr><td>version</td><td class="opt">não</td><td>string</td><td>Versão da especificação (ex: "1.0", "2.3")</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre dos objectivos e parâmetros do teste</td></tr>
+                            <tr><td>service_spec_id</td><td class="opt">não</td><td>uuid</td><td>UUID de uma ServiceSpecification do catálogo (TMF633) a que esta especificação se aplica</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ciclo de vida da TestSpecification -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x21BB;</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida da TestSpecification</div>
+                        <div class="step-card__subtitle">active → retired → obsolete · eliminação só quando obsolete</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Uma <code>TestSpecification</code> começa sempre no estado <code>active</code>.
+                        A progressão é unidireccional: <code>active</code> → <code>retired</code> → <code>obsolete</code>.
+                        Apenas especificações <code>active</code> podem ser usadas para criar novos testes.
+                        Apenas especificações <code>obsolete</code> podem ser eliminadas.
+                    </p>
+
+                    <!-- TestSpecification lifecycle diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 130" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-sp1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/>
+                                </marker>
+                                <marker id="arr-sp2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#94a3b8"/>
+                                </marker>
+                                <marker id="arr-sp-del" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0,10 3.5,0 7" fill="#64748b"/>
+                                </marker>
+                            </defs>
+
+                            <!-- active -->
+                            <rect x="10" y="38" width="185" height="52" rx="8"
+                                  fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2"/>
+                            <text x="102" y="61" text-anchor="middle" font-size="13" font-weight="700" fill="#34d399">active</text>
+                            <text x="102" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">aceita novos ServiceTests</text>
+
+                            <!-- → retired -->
+                            <line x1="195" y1="64" x2="243" y2="64" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-sp1)"/>
+                            <text x="219" y="56" text-anchor="middle" font-size="9" font-weight="600" fill="#fbbf24">PATCH</text>
+
+                            <!-- retired -->
+                            <rect x="245" y="38" width="200" height="52" rx="8"
+                                  fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="345" y="61" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">retired</text>
+                            <text x="345" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">sem novos testes</text>
+
+                            <!-- → obsolete -->
+                            <line x1="445" y1="64" x2="493" y2="64" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr-sp2)"/>
+                            <text x="469" y="56" text-anchor="middle" font-size="9" font-weight="600" fill="#94a3b8">PATCH</text>
+
+                            <!-- obsolete -->
+                            <rect x="495" y="38" width="200" height="52" rx="8"
+                                  fill="rgba(100,116,139,0.12)" stroke="#94a3b8" stroke-width="2"/>
+                            <text x="595" y="61" text-anchor="middle" font-size="13" font-weight="700" fill="#94a3b8">obsolete</text>
+                            <text x="595" y="81" text-anchor="middle" font-size="9" fill="#94a3b8">pode ser eliminada ✓</text>
+
+                            <!-- DELETE -->
+                            <line x1="595" y1="90" x2="595" y2="118" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr-sp-del)" stroke-dasharray="4,3"/>
+                            <text x="625" y="112" font-size="9" fill="#64748b">DELETE</text>
+
+                            <!-- Note -->
+                            <text x="102" y="115" text-anchor="middle" font-size="9" fill="#546e7a">fluxo unidireccional — sem retorno</text>
+                        </svg>
+                        <figcaption>Diagrama 3 — Ciclo de vida de uma TestSpecification TMF653</figcaption>
+                    </figure>
+
+                    <h4>Caso de uso: criar e gerir uma especificação de connectividade</h4>
+                    <div class="api-block"><span class="comment">-- 1. Criar a especificação --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTestSpecification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Connectivity Test Spec v1"</span>,
+  <span class="key">"description"</span>: <span class="val">"Testa conectividade de rede end-to-end do serviço"</span>,
+  <span class="key">"test_type"</span>:   <span class="val">"functional"</span>,
+  <span class="key">"version"</span>:     <span class="val">"1.0"</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "lifecycle_status": "active", … }</span>
+
+<span class="comment">-- 2. Retirar a especificação (quando substituída por nova versão) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTestSpecification/&lt;spec_id&gt;</span>
+<span class="key">{</span> <span class="key">"lifecycle_status"</span>: <span class="val">"retired"</span> <span class="key">}</span>
+
+<span class="comment">-- 3. Tornar obsoleta (arquivar definitivamente) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTestSpecification/&lt;spec_id&gt;</span>
+<span class="key">{</span> <span class="key">"lifecycle_status"</span>: <span class="val">"obsolete"</span> <span class="key">}</span>
+
+<span class="comment">-- 4. Eliminar (só quando obsolete) --</span>
+<span class="method">DELETE</span> <span class="url">/tmf-api/serviceTest/v4/serviceTestSpecification/&lt;spec_id&gt;</span>
+<span class="comment">→ 204 No Content</span>
+
+<span class="comment">-- Listar especificações --</span>
+<span class="method">GET</span>    <span class="url">/tmf-api/serviceTest/v4/serviceTestSpecification</span></div>
+
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead><tr><th>Estado</th><th>Transições Permitidas</th><th>Aceita Novos Testes?</th><th>Pode ser Eliminada?</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="spec-badge spec-badge--active">active</span></td>
+                                <td>retired</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td><span class="spec-badge spec-badge--retired">retired</span></td>
+                                <td>obsolete</td>
+                                <td style="color:var(--colour-danger)">não</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td><span class="spec-badge spec-badge--obsolete">obsolete</span></td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-danger)">não</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ SECÇÃO 2 — SERVICE TEST ════════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                ServiceTest — Execuções de Teste
+            </h2>
+
+            <!-- Estrutura do ServiceTest -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x1F9EA;</div>
+                    <div>
+                        <div class="step-card__title">Estrutura de um ServiceTest</div>
+                        <div class="step-card__subtitle">Execução concreta de um teste sobre uma instância de serviço</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Um <code>ServiceTest</code> representa a execução de um teste sobre um serviço
+                        específico do inventário. Começa no estado <code>planned</code>, passa a
+                        <code>inProgress</code> quando arranca, e termina em <code>completed</code>,
+                        <code>failed</code> ou <code>cancelled</code>. As <strong>TestMeasures</strong>
+                        — as medições individuais capturadas durante o teste — só podem ser adicionadas
+                        enquanto o teste está <code>inProgress</code>.
+                    </p>
+
+                    <!-- ServiceTest structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 230" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+
+                            <!-- Outer box -->
+                            <rect x="10" y="10" width="760" height="210" rx="12"
+                                  fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#fbbf24">ServiceTest</text>
+                            <text x="130" y="34" font-size="11" fill="#94a3b8">(TMF653)</text>
+
+                            <!-- Identity fields -->
+                            <rect x="30" y="46" width="240" height="155" rx="8"
+                                  fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="150" y="66" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Identificação</text>
+                            <text x="45" y="88"  font-size="10" fill="#94a3b8">name           <tspan fill="#34d399" font-weight="600">*</tspan>  "Connectivity Test — vm-01"</text>
+                            <text x="45" y="106" font-size="10" fill="#94a3b8">service_id     <tspan fill="#34d399" font-weight="600">*</tspan>  uuid do inventário</text>
+                            <text x="45" y="124" font-size="10" fill="#94a3b8">mode               automated | manual | hybrid</text>
+                            <text x="45" y="142" font-size="10" fill="#94a3b8">description        texto livre</text>
+                            <text x="45" y="160" font-size="10" fill="#94a3b8">test_specification  uuid (opcional)</text>
+                            <text x="45" y="178" font-size="10" fill="#94a3b8">start_date_time    timestamp início</text>
+                            <text x="45" y="196" font-size="10" fill="#94a3b8">end_date_time      timestamp fim</text>
+
+                            <!-- State box -->
+                            <rect x="285" y="46" width="215" height="155" rx="8"
+                                  fill="rgba(96,165,250,0.07)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="392" y="66" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Estado</text>
+                            <text x="300" y="88"  font-size="10" fill="#94a3b8">state  <tspan fill="#60a5fa">planned</tspan></text>
+                            <text x="300" y="106" font-size="10" fill="#94a3b8">       → <tspan fill="#fbbf24">inProgress</tspan></text>
+                            <text x="300" y="124" font-size="10" fill="#94a3b8">       → <tspan fill="#34d399">completed</tspan></text>
+                            <text x="300" y="142" font-size="10" fill="#94a3b8">       → <tspan fill="#f87171">failed</tspan></text>
+                            <text x="300" y="160" font-size="10" fill="#94a3b8">       → <tspan fill="#94a3b8">cancelled</tspan></text>
+                            <text x="300" y="184" font-size="9"  fill="#546e7a">eliminação: só em estado terminal</text>
+                            <text x="300" y="196" font-size="9"  fill="#546e7a">(completed / failed / cancelled)</text>
+
+                            <!-- Measures box -->
+                            <rect x="515" y="46" width="248" height="155" rx="8"
+                                  fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1"/>
+                            <text x="639" y="66" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">TestMeasures (embutidas)</text>
+                            <text x="530" y="88"  font-size="10" fill="#94a3b8">metric_name  <tspan fill="#34d399" font-weight="600">*</tspan>  "latency_ms"</text>
+                            <text x="530" y="106" font-size="10" fill="#94a3b8">metric_value     42.5</text>
+                            <text x="530" y="124" font-size="10" fill="#94a3b8">unit             "ms" | "%%" | "Mbps"</text>
+                            <text x="530" y="142" font-size="10" fill="#94a3b8">result  <tspan fill="#34d399">pass</tspan> | <tspan fill="#f87171">fail</tspan> | <tspan fill="#fbbf24">inconclusive</tspan></text>
+                            <text x="530" y="162" font-size="10" fill="#94a3b8">captured_at      timestamp</text>
+                            <text x="530" y="184" font-size="9"  fill="#546e7a">POST …/serviceTest/{id}/testMeasure</text>
+                            <text x="530" y="196" font-size="9"  fill="#546e7a">só quando state = inProgress</text>
+                        </svg>
+                        <figcaption>Diagrama 4 — Estrutura de um ServiceTest TMF653: identificação, estados e medidas</figcaption>
+                    </figure>
+
+                    <h4>Campos do ServiceTest</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Tipo</th><th>Descrição</th></tr></thead>
+                        <tbody>
+                            <tr><td>name</td><td class="req">sim</td><td>string</td><td>Nome descritivo do teste (ex: "Connectivity Test — vm-01")</td></tr>
+                            <tr><td>service_id</td><td class="req">sim</td><td>uuid</td><td>UUID do serviço alvo no inventário (TMF638)</td></tr>
+                            <tr><td>mode</td><td class="opt">não</td><td>enum</td><td>automated | manual | hybrid</td></tr>
+                            <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre do objectivo desta execução</td></tr>
+                            <tr><td>test_specification</td><td class="opt">não</td><td>uuid</td><td>UUID de uma TestSpecification não-obsolete</td></tr>
+                            <tr><td>start_date_time</td><td class="opt">não</td><td>datetime</td><td>Momento de início efectivo do teste</td></tr>
+                            <tr><td>end_date_time</td><td class="opt">não</td><td>datetime</td><td>Momento de conclusão do teste</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Campos de uma TestMeasure</h4>
+                    <div style="overflow-x:auto">
+                    <table class="field-table">
+                        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Tipo</th><th>Descrição</th></tr></thead>
+                        <tbody>
+                            <tr><td>metric_name</td><td class="req">sim</td><td>string</td><td>Identificador da métrica medida (ex: "latency_ms", "packet_loss_pct")</td></tr>
+                            <tr><td>metric_value</td><td class="opt">não</td><td>float</td><td>Valor numérico capturado (ex: 42.5)</td></tr>
+                            <tr><td>unit</td><td class="opt">não</td><td>string</td><td>Unidade de medida (ex: "ms", "%", "Mbps")</td></tr>
+                            <tr><td>result</td><td class="req">sim</td><td>enum</td><td>pass | fail | inconclusive</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h4>Resultados de medida disponíveis</h4>
+                    <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-sm);">
+                        <span class="result-badge result-badge--pass">pass</span>
+                        <span class="result-badge result-badge--fail">fail</span>
+                        <span class="result-badge result-badge--inconclusive">inconclusive</span>
+                    </div>
+
+                    <h4>Modos de execução disponíveis</h4>
+                    <div style="margin-top:var(--space-sm);padding-left:var(--space-md);">
+                        <p><strong style="color:var(--colour-text)">automated</strong> — teste executado por sistema automatizado sem intervenção humana</p>
+                        <p><strong style="color:var(--colour-text)">manual</strong> — teste executado manualmente por um operador</p>
+                        <p><strong style="color:var(--colour-text)">hybrid</strong> — combinação de execução automática com validação humana</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ciclo de vida do ServiceTest -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x21BB;</div>
+                    <div>
+                        <div class="step-card__title">Ciclo de Vida do ServiceTest</div>
+                        <div class="step-card__subtitle">planned → inProgress → completed | failed | cancelled · eliminação só em estado terminal</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Um <code>ServiceTest</code> começa no estado <code>planned</code>.
+                        Ao ser iniciado, transita para <code>inProgress</code> — único estado
+                        em que podem ser adicionadas medidas (<code>TestMeasure</code>).
+                        A conclusão pode ser <code>completed</code> (sucesso), <code>failed</code>
+                        (falha) ou <code>cancelled</code> (cancelado). Todos os estados terminais
+                        permitem a eliminação do registo.
+                    </p>
+
+                    <!-- ServiceTest lifecycle diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-t1"  markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                                <marker id="arr-t-ok" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                                <marker id="arr-t-er" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                                <marker id="arr-t-cx" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#94a3b8"/></marker>
+                                <marker id="arr-t-del" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#64748b"/></marker>
+                            </defs>
+
+                            <!-- planned -->
+                            <rect x="10" y="55" width="150" height="52" rx="8"
+                                  fill="rgba(96,165,250,0.15)" stroke="#60a5fa" stroke-width="2"/>
+                            <text x="85" y="78" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">planned</text>
+                            <text x="85" y="97" text-anchor="middle" font-size="9" fill="#94a3b8">teste criado</text>
+
+                            <!-- → inProgress -->
+                            <line x1="160" y1="81" x2="208" y2="81" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-t1)"/>
+                            <text x="184" y="73" text-anchor="middle" font-size="9" font-weight="600" fill="#fbbf24">PATCH</text>
+
+                            <!-- inProgress -->
+                            <rect x="210" y="55" width="175" height="52" rx="8"
+                                  fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="2.5"/>
+                            <text x="297" y="78" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">inProgress</text>
+                            <text x="297" y="97" text-anchor="middle" font-size="9" fill="#94a3b8">adicionar medidas ✎</text>
+
+                            <!-- → completed -->
+                            <path d="M 385 70 Q 460 38 510 55" stroke="#34d399" stroke-width="2" fill="none" marker-end="url(#arr-t-ok)"/>
+                            <text x="458" y="36" text-anchor="middle" font-size="9" font-weight="600" fill="#34d399">PATCH completed</text>
+
+                            <!-- → failed -->
+                            <line x1="385" y1="81" x2="510" y2="81" stroke="#f87171" stroke-width="2" marker-end="url(#arr-t-er)"/>
+                            <text x="448" y="73" text-anchor="middle" font-size="9" font-weight="600" fill="#f87171">PATCH failed</text>
+
+                            <!-- → cancelled (from planned or inProgress) -->
+                            <path d="M 385 96 Q 460 122 510 108" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#arr-t-cx)" stroke-dasharray="5,3"/>
+                            <text x="447" y="125" text-anchor="middle" font-size="9" fill="#94a3b8">PATCH cancelled</text>
+                            <!-- planned → cancelled -->
+                            <path d="M 85 107 Q 85 140 510 118" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#arr-t-cx)" stroke-dasharray="4,3"/>
+
+                            <!-- Terminal state box -->
+                            <rect x="512" y="28" width="230" height="118" rx="8"
+                                  fill="rgba(100,116,139,0.06)" stroke="var(--colour-border)" stroke-width="1" stroke-dasharray="5,3"/>
+                            <text x="627" y="46" text-anchor="middle" font-size="10" fill="#94a3b8">estados terminais</text>
+
+                            <!-- completed -->
+                            <rect x="522" y="52" width="105" height="40" rx="6"
+                                  fill="rgba(52,211,153,0.14)" stroke="#34d399" stroke-width="2"/>
+                            <text x="574" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">completed</text>
+
+                            <!-- failed -->
+                            <rect x="522" y="97" width="105" height="38" rx="6"
+                                  fill="rgba(248,113,113,0.14)" stroke="#f87171" stroke-width="2"/>
+                            <text x="574" y="120" text-anchor="middle" font-size="12" font-weight="700" fill="#f87171">failed</text>
+
+                            <!-- cancelled -->
+                            <rect x="632" y="74" width="100" height="38" rx="6"
+                                  fill="rgba(100,116,139,0.12)" stroke="#94a3b8" stroke-width="1.5"/>
+                            <text x="682" y="97" text-anchor="middle" font-size="12" font-weight="700" fill="#94a3b8">cancelled</text>
+
+                            <!-- DELETE arrows -->
+                            <line x1="574" y1="135" x2="574" y2="162" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr-t-del)" stroke-dasharray="4,3"/>
+                            <text x="604" y="158" font-size="9" fill="#64748b">DELETE</text>
+                        </svg>
+                        <figcaption>Diagrama 5 — Ciclo de vida de um ServiceTest TMF653: transições e estados terminais</figcaption>
+                    </figure>
+
+                    <h4>Caso de uso: executar um teste de conectividade</h4>
+                    <div class="api-block"><span class="comment">-- 1. Criar o teste (planned) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Connectivity Test — vm-alpha-001"</span>,
+  <span class="key">"description"</span>: <span class="val">"Verificação de conectividade de rede end-to-end"</span>,
+  <span class="key">"service_id"</span>:  <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"mode"</span>:        <span class="val">"automated"</span>
+<span class="key">}</span>
+<span class="comment">→ Resposta: { "id": "uuid", "state": "planned", … }</span>
+
+<span class="comment">-- 2. Iniciar o teste → inProgress --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test_id&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:           <span class="val">"inProgress"</span>,
+  <span class="key">"start_date_time"</span>: <span class="val">"2026-03-08T10:00:00Z"</span>
+<span class="key">}</span>
+
+<span class="comment">-- 3. Adicionar medidas (só possível quando inProgress) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test_id&gt;/testMeasure</span>
+<span class="key">{</span>
+  <span class="key">"metric_name"</span>:  <span class="val">"latency_ms"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">18.4</span>,
+  <span class="key">"unit"</span>:         <span class="val">"ms"</span>,
+  <span class="key">"result"</span>:       <span class="val">"pass"</span>
+<span class="key">}</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test_id&gt;/testMeasure</span>
+<span class="key">{</span>
+  <span class="key">"metric_name"</span>:  <span class="val">"packet_loss_pct"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">0.1</span>,
+  <span class="key">"unit"</span>:         <span class="val">"%"</span>,
+  <span class="key">"result"</span>:       <span class="val">"pass"</span>
+<span class="key">}</span>
+
+<span class="comment">-- 4. Concluir o teste → completed --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test_id&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:         <span class="val">"completed"</span>,
+  <span class="key">"end_date_time"</span>: <span class="val">"2026-03-08T10:05:00Z"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Alternativa: marcar como falha --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test_id&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"failed"</span>, <span class="key">"end_date_time"</span>: <span class="val">"2026-03-08T10:05:00Z"</span> <span class="key">}</span>
+
+<span class="comment">-- Eliminar o teste (só em estado terminal) --</span>
+<span class="method">DELETE</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test_id&gt;</span>
+<span class="comment">→ 204 No Content</span></div>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            Medidas (<code>TestMeasure</code>) só podem ser adicionadas enquanto o teste
+                            está em <code>inProgress</code>. Tentativas de adicionar medidas em testes
+                            <code>planned</code>, <code>completed</code>, <code>failed</code> ou
+                            <code>cancelled</code> devolvem HTTP 409 Conflict.
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;margin-top:var(--space-md);">
+                    <table class="field-table">
+                        <thead><tr><th>Estado</th><th>Transições Permitidas</th><th>Aceita Medidas?</th><th>Pode ser Eliminado?</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="state-badge state-badge--planned">planned</span></td>
+                                <td>inProgress, cancelled</td>
+                                <td style="color:var(--colour-danger)">não</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td><span class="state-badge state-badge--inprogress">inProgress</span></td>
+                                <td>completed, failed, cancelled</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                                <td style="color:var(--colour-text-muted)">não</td>
+                            </tr>
+                            <tr>
+                                <td><span class="state-badge state-badge--completed">completed</span></td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-danger)">não</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                            <tr>
+                                <td><span class="state-badge state-badge--failed">failed</span></td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-danger)">não</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                            <tr>
+                                <td><span class="state-badge state-badge--cancelled">cancelled</span></td>
+                                <td>— (terminal)</td>
+                                <td style="color:var(--colour-danger)">não</td>
+                                <td style="color:var(--colour-success)">sim</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ GUIA PASSO A PASSO ════════════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                Guia Passo a Passo — Cenário Completo
+            </h2>
+
+            <!-- Passo 1 — Criar especificação -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Criar uma TestSpecification</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF653 POST /serviceTestSpecification</span>
+                            &nbsp;estado inicial: active
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Cenário: criar uma especificação reutilizável para testes de conectividade
+                        que serão executados periodicamente sobre serviços de rede.
+                    </p>
+
+                    <div class="api-block"><span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTestSpecification</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:        <span class="val">"Network Connectivity Test Spec"</span>,
+  <span class="key">"description"</span>: <span class="val">"Testa conectividade end-to-end: latência, perda de pacotes e throughput"</span>,
+  <span class="key">"test_type"</span>:   <span class="val">"functional"</span>,
+  <span class="key">"version"</span>:     <span class="val">"1.0"</span>
+<span class="key">}</span>
+<span class="comment">→ { "id": "spec-uuid", "lifecycle_status": "active", … }</span></div>
+
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            Na interface: use o separador <strong>Test Specifications</strong> e clique em
+                            <strong>+ Create Specification</strong>. A especificação fica disponível imediatamente
+                            para associação a novos testes.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passo 2 — Criar ServiceTest -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Criar e Iniciar um ServiceTest</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF653 POST /serviceTest</span>
+                            &nbsp;planned → inProgress
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Cenário: executar a especificação de conectividade sobre o serviço
+                        <strong>vm-alpha-001</strong> do inventário.
+                    </p>
+
+                    <!-- ServiceTest flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 760 100" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-f1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+                                <marker id="arr-f2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                            </defs>
+                            <text x="380" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Fluxo — criar e iniciar teste</text>
+
+                            <rect x="10" y="25" width="145" height="52" rx="8" fill="rgba(96,165,250,0.14)" stroke="#60a5fa" stroke-width="2"/>
+                            <text x="82"  y="49" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">planned</text>
+                            <text x="82"  y="66" text-anchor="middle" font-size="9" fill="#94a3b8">POST /serviceTest</text>
+
+                            <line x1="155" y1="51" x2="203" y2="51" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-f1)"/>
+                            <text x="179" y="43" text-anchor="middle" font-size="9" fill="#fbbf24">PATCH</text>
+
+                            <rect x="205" y="25" width="175" height="52" rx="8" fill="rgba(251,191,36,0.14)" stroke="#fbbf24" stroke-width="2.5"/>
+                            <text x="293" y="47" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">inProgress</text>
+                            <text x="293" y="63" text-anchor="middle" font-size="9" fill="#94a3b8">adicionar medidas ✎</text>
+                            <text x="293" y="74" text-anchor="middle" font-size="9" fill="#fbbf24">state: "inProgress"</text>
+
+                            <line x1="380" y1="51" x2="428" y2="51" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-f2)"/>
+                            <text x="404" y="43" text-anchor="middle" font-size="9" fill="#34d399">PATCH</text>
+
+                            <rect x="430" y="25" width="165" height="52" rx="8" fill="rgba(52,211,153,0.14)" stroke="#34d399" stroke-width="2"/>
+                            <text x="512" y="47" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">completed</text>
+                            <text x="512" y="66" text-anchor="middle" font-size="9" fill="#94a3b8">eliminável ✓</text>
+
+                            <rect x="608" y="32" width="140" height="38" rx="6" fill="rgba(52,211,153,0.06)" stroke="rgba(52,211,153,0.3)" stroke-dasharray="4,3"/>
+                            <text x="678" y="49" text-anchor="middle" font-size="9" fill="#34d399">2 medidas pass</text>
+                            <text x="678" y="62" text-anchor="middle" font-size="9" fill="#94a3b8">latência 18ms ✓</text>
+                        </svg>
+                        <figcaption>Fluxo completo: criação, início, medidas e conclusão do teste</figcaption>
+                    </figure>
+
+                    <div class="api-block"><span class="comment">-- 1. Criar o teste (planned) associado à especificação --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest</span>
+<span class="key">{</span>
+  <span class="key">"name"</span>:               <span class="val">"Connectivity Test — vm-alpha-001"</span>,
+  <span class="key">"service_id"</span>:        <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
+  <span class="key">"mode"</span>:              <span class="val">"automated"</span>,
+  <span class="key">"test_specification"</span>: <span class="val">"&lt;spec-uuid&gt;"</span>
+<span class="key">}</span>
+<span class="comment">→ { "id": "test-uuid", "state": "planned", … }</span>
+
+<span class="comment">-- 2. Iniciar o teste --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:           <span class="val">"inProgress"</span>,
+  <span class="key">"start_date_time"</span>: <span class="val">"2026-03-08T10:00:00Z"</span>
+<span class="key">}</span>
+<span class="comment">→ { "state": "inProgress", "start_date_time": "2026-03-08T10:00:00Z", … }</span></div>
+                </div>
+            </div>
+
+            <!-- Passo 3 — Adicionar medidas -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Adicionar TestMeasures ao Teste em Execução</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF653 POST /serviceTest/{id}/testMeasure</span>
+                            &nbsp;apenas quando inProgress
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Com o teste em <code>inProgress</code>, registam-se as medidas individuais capturadas
+                        durante a execução. Cada medida representa uma métrica verificada e o seu resultado.
+                        É possível adicionar múltiplas medidas para cobrir diferentes aspectos do teste.
+                    </p>
+
+                    <div class="api-block"><span class="comment">-- Medida 1: latência (pass) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;/testMeasure</span>
+<span class="key">{</span>
+  <span class="key">"metric_name"</span>:  <span class="val">"latency_ms"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">18.4</span>,
+  <span class="key">"unit"</span>:         <span class="val">"ms"</span>,
+  <span class="key">"result"</span>:       <span class="val">"pass"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Medida 2: perda de pacotes (pass) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;/testMeasure</span>
+<span class="key">{</span>
+  <span class="key">"metric_name"</span>:  <span class="val">"packet_loss_pct"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">0.1</span>,
+  <span class="key">"unit"</span>:         <span class="val">"%"</span>,
+  <span class="key">"result"</span>:       <span class="val">"pass"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Medida 3: throughput (fail — abaixo do mínimo esperado) --</span>
+<span class="method">POST</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;/testMeasure</span>
+<span class="key">{</span>
+  <span class="key">"metric_name"</span>:  <span class="val">"throughput_mbps"</span>,
+  <span class="key">"metric_value"</span>: <span class="val">42.0</span>,
+  <span class="key">"unit"</span>:         <span class="val">"Mbps"</span>,
+  <span class="key">"result"</span>:       <span class="val">"fail"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Listar medidas do teste --</span>
+<span class="method">GET</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;/testMeasure</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Na interface, as medidas aparecem numa linha expansível abaixo de cada teste.
+                            Clique em <strong>▶ Measures</strong> para expandir e no botão
+                            <strong>+ Add Measure</strong> para adicionar uma nova medida enquanto o teste
+                            está <code>inProgress</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passo 4 — Concluir e consultar -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-card__title">Concluir o Teste e Consultar Resultados</div>
+                        <div class="step-card__subtitle">
+                            <span class="tmf-pill">TMF653 PATCH + GET</span>
+                            &nbsp;inProgress → completed | failed | cancelled
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Após recolher todas as medidas, transitar o teste para o estado final adequado.
+                        Utilize <code>completed</code> quando o teste correu conforme esperado,
+                        <code>failed</code> se foram detectadas falhas críticas ou
+                        <code>cancelled</code> se o teste foi interrompido antes de concluir.
+                    </p>
+
+                    <div class="api-block"><span class="comment">-- Concluir com sucesso --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:         <span class="val">"completed"</span>,
+  <span class="key">"end_date_time"</span>: <span class="val">"2026-03-08T10:08:00Z"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Concluir com falha --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;</span>
+<span class="key">{</span>
+  <span class="key">"state"</span>:         <span class="val">"failed"</span>,
+  <span class="key">"end_date_time"</span>: <span class="val">"2026-03-08T10:08:00Z"</span>
+<span class="key">}</span>
+
+<span class="comment">-- Cancelar o teste (de planned ou inProgress) --</span>
+<span class="method">PATCH</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;</span>
+<span class="key">{</span> <span class="key">"state"</span>: <span class="val">"cancelled"</span> <span class="key">}</span>
+
+<span class="comment">-- Listar todos os testes --</span>
+<span class="method">GET</span>    <span class="url">/tmf-api/serviceTest/v4/serviceTest</span>
+<span class="method">GET</span>    <span class="url">/tmf-api/serviceTest/v4/serviceTest?state=inProgress</span>
+<span class="method">GET</span>    <span class="url">/tmf-api/serviceTest/v4/serviceTest?state=failed</span>
+<span class="method">GET</span>    <span class="url">/tmf-api/serviceTest/v4/serviceTest?service_id=&lt;uuid&gt;</span>
+
+<span class="comment">-- Eliminar teste (só em estado terminal) --</span>
+<span class="method">DELETE</span> <span class="url">/tmf-api/serviceTest/v4/serviceTest/&lt;test-uuid&gt;</span>
+<span class="comment">→ 204 No Content</span></div>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Todos os endpoints de listagem suportam paginação via <code>limit</code> e <code>offset</code>.
+                            Os cabeçalhos <strong>X-Total-Count</strong> e <strong>X-Result-Count</strong>
+                            são devolvidos em conformidade com o padrão TMF.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ RESUMO ══════════════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-success);color:white;">&#x2714;</div>
+                    <div>
+                        <div class="step-card__title">Resumo — Fluxo Completo de Testing</div>
+                        <div class="step-card__subtitle">Caso de uso típico — testar conectividade de um serviço em produção</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> Verificar que existe um <strong>Service</strong> activo no Inventário (TMF638) — obter o <code>service_id</code></li>
+                        <li><span class="checklist__num">2</span> (Opcional) Criar uma <strong>TestSpecification</strong> reutilizável via <code>POST /serviceTestSpecification</code> com o tipo e versão do teste</li>
+                        <li><span class="checklist__num">3</span> Criar um <strong>ServiceTest</strong> via <code>POST /serviceTest</code> com <code>service_id</code> e, opcionalmente, o ID da especificação</li>
+                        <li><span class="checklist__num">4</span> Iniciar o teste via <code>PATCH state: "inProgress"</code> — a partir deste momento é possível adicionar medidas</li>
+                        <li><span class="checklist__num">5</span> Adicionar <strong>TestMeasures</strong> via <code>POST /serviceTest/{id}/testMeasure</code> para cada métrica capturada</li>
+                        <li><span class="checklist__num">6</span> Concluir o teste via <code>PATCH state: "completed"</code> (ou <code>"failed"</code> se relevante)</li>
+                        <li><span class="checklist__num">7</span> Quando uma especificação for substituída por nova versão, movê-la para <code>retired</code> e depois <code>obsolete</code></li>
+                        <li><span class="checklist__num">8</span> Eliminar testes em estado terminal para manter o dashboard limpo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ══ GERAR DADOS DE EXEMPLO ════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Teste</div>
+                        <div class="step-card__subtitle">Cria automaticamente uma especificação, um teste e medidas de exemplo</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Clique no botão abaixo para gerar automaticamente dados de exemplo de Testing.
+                        O script executa os seguintes passos:
+                    </p>
+                    <ol style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                        <li>Procura ou cria um serviço <strong>vm-alpha-001</strong> no inventário</li>
+                        <li>Cria uma <strong>TestSpecification</strong> <code>active</code> — "Network Connectivity Test Spec"</li>
+                        <li>Cria um <strong>ServiceTest</strong> <code>planned</code> associado à especificação</li>
+                        <li>Inicia o teste → <code>inProgress</code></li>
+                        <li>Adiciona duas <strong>TestMeasures</strong>: latência (pass) e perda de pacotes (pass)</li>
+                        <li>Conclui o teste → <code>completed</code></li>
+                        <li>Cria um segundo teste que fica em <code>inProgress</code> com uma medida <code>fail</code> (para demonstração)</li>
+                    </ol>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Execuções repetidas:</strong> cada execução cria conjuntos de recursos independentes
+                            com sufixo numérico (ex: <strong>"vm-alpha-001-2"</strong>).
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-testing" onclick="generateTestingExamples()">
+                        &#x1F680; Gerar Dados de Teste
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="testing.html" class="back-link">&#8592; Voltar ao Testing</a>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=6"></script>
+<script>
+    function printToPDF() {
+        const btn = document.querySelector('.topbar__actions button');
+        btn.disabled = true; btn.textContent = 'A preparar…';
+        setTimeout(function () { window.print(); btn.disabled = false; btn.innerHTML = '&#x1F4E5; Gerar PDF'; }, 120);
+    }
+
+    async function generateTestingExamples() {
+        const btn   = document.getElementById('btn-gen-testing');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_testing_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : '-' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        // Steps:
+        // 1  — procurar / criar serviço vm-alpha-001
+        // 2  — criar TestSpecification
+        // 3  — criar ServiceTest 1 (planned)
+        // 4  — iniciar ServiceTest 1 (inProgress)
+        // 5  — adicionar medida 1: latência (pass)
+        // 6  — adicionar medida 2: perda de pacotes (pass)
+        // 7  — completar ServiceTest 1 (completed)
+        // 8  — criar ServiceTest 2 (planned)
+        // 9  — iniciar ServiceTest 2 (inProgress)
+        // 10 — adicionar medida fail (throughput abaixo do mínimo)
+        const TOTAL = 10;
+        let step = 0;
+
+        const INV_BASE  = '/tmf-api/serviceInventory/v4/service';
+        const SPEC_BASE = '/tmf-api/serviceTest/v4/serviceTestSpecification';
+        const TEST_BASE = '/tmf-api/serviceTest/v4/serviceTest';
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' — ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function apiGet(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('GET ' + url + ' → HTTP ' + r.status);
+            return r.json();
+        }
+
+        async function apiPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        async function apiPatch(url, body) {
+            const r = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('PATCH ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        try {
+            // ── 1. Procurar / criar serviço vm-alpha-001 ───────────────────
+            progress('A procurar serviço vm-alpha-001 no inventário…');
+            log('→ GET ' + INV_BASE + '?limit=100');
+            const services = await apiGet(INV_BASE + '?limit=100');
+            const targetName = 'vm-alpha-001' + sfx;
+            let svc = services.find(s => s.name && s.name.toLowerCase() === targetName.toLowerCase());
+
+            if (svc && svc.state !== 'active') {
+                log('⚠ Serviço encontrado mas não está active (state:' + svc.state + ') — a criar um novo.', 'gen-log-info');
+                svc = null;
+            }
+
+            if (!svc) {
+                log('→ POST ' + INV_BASE + '  [name: ' + targetName + ']');
+                svc = await apiPost(INV_BASE, {
+                    name:         targetName,
+                    description:  'VM de serviço para demonstração de Testing',
+                    state:        'active',
+                    service_type: 'VM Completa'
+                });
+                log('✓ Serviço criado  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+            } else {
+                log('✓ Serviço encontrado: ' + svc.name + '  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+            }
+
+            const serviceId = svc.id;
+
+            // ── 2. Criar TestSpecification ─────────────────────────────────
+            progress('A criar TestSpecification…');
+            log('→ POST ' + SPEC_BASE + '  [name: Network Connectivity Test Spec' + sfx + ']');
+            const spec = await apiPost(SPEC_BASE, {
+                name:        'Network Connectivity Test Spec' + sfx,
+                description: 'Testa conectividade end-to-end: latência, perda de pacotes e throughput',
+                test_type:   'functional',
+                version:     '1.0'
+            });
+            log('✓ TestSpecification criada  id:' + spec.id + '  lifecycle_status:' + spec.lifecycle_status, 'gen-log-ok');
+
+            // ── 3. Criar ServiceTest 1 (planned) ───────────────────────────
+            progress('A criar ServiceTest 1 (planned)…');
+            log('→ POST ' + TEST_BASE + '  [name: Connectivity Test — ' + targetName + ']');
+            const test1 = await apiPost(TEST_BASE, {
+                name:               'Connectivity Test — ' + targetName,
+                description:        'Teste de conectividade de rede end-to-end automatizado',
+                service_id:         serviceId,
+                mode:               'automated',
+                test_specification: spec.id
+            });
+            log('✓ ServiceTest 1 criado  id:' + test1.id + '  state:' + test1.state, 'gen-log-ok');
+
+            // ── 4. Iniciar ServiceTest 1 → inProgress ─────────────────────
+            progress('A iniciar ServiceTest 1 → inProgress…');
+            log('→ PATCH ' + TEST_BASE + '/' + test1.id + '  { state: "inProgress" }');
+            const test1ip = await apiPatch(TEST_BASE + '/' + test1.id, {
+                state:           'inProgress',
+                start_date_time: new Date().toISOString()
+            });
+            log('✓ ServiceTest 1 → inProgress  state:' + test1ip.state, 'gen-log-ok');
+
+            // ── 5. Adicionar medida 1: latência (pass) ────────────────────
+            progress('A adicionar medida: latência (pass)…');
+            log('→ POST ' + TEST_BASE + '/' + test1.id + '/testMeasure  [latency_ms: 18.4 ms → pass]');
+            await apiPost(TEST_BASE + '/' + test1.id + '/testMeasure', {
+                metric_name:  'latency_ms',
+                metric_value: 18.4,
+                unit:         'ms',
+                result:       'pass'
+            });
+            log('✓ Medida 1 registada: latency_ms = 18.4 ms → pass', 'gen-log-ok');
+
+            // ── 6. Adicionar medida 2: perda de pacotes (pass) ────────────
+            progress('A adicionar medida: perda de pacotes (pass)…');
+            log('→ POST ' + TEST_BASE + '/' + test1.id + '/testMeasure  [packet_loss_pct: 0.1 % → pass]');
+            await apiPost(TEST_BASE + '/' + test1.id + '/testMeasure', {
+                metric_name:  'packet_loss_pct',
+                metric_value: 0.1,
+                unit:         '%',
+                result:       'pass'
+            });
+            log('✓ Medida 2 registada: packet_loss_pct = 0.1 %% → pass', 'gen-log-ok');
+
+            // ── 7. Completar ServiceTest 1 ────────────────────────────────
+            progress('A completar ServiceTest 1 → completed…');
+            log('→ PATCH ' + TEST_BASE + '/' + test1.id + '  { state: "completed" }');
+            const test1c = await apiPatch(TEST_BASE + '/' + test1.id, {
+                state:          'completed',
+                end_date_time:  new Date().toISOString()
+            });
+            log('✓ ServiceTest 1 → completed  state:' + test1c.state, 'gen-log-ok');
+
+            // ── 8. Criar ServiceTest 2 (para demonstrar inProgress + fail) ─
+            progress('A criar ServiceTest 2 (em progresso com medida fail)…');
+            log('→ POST ' + TEST_BASE + '  [name: Performance Test — ' + targetName + ']');
+            const test2 = await apiPost(TEST_BASE, {
+                name:               'Performance Test — ' + targetName,
+                description:        'Teste de desempenho: throughput e latência sob carga',
+                service_id:         serviceId,
+                mode:               'manual',
+                test_specification: spec.id
+            });
+            log('✓ ServiceTest 2 criado  id:' + test2.id + '  state:' + test2.state, 'gen-log-ok');
+
+            // ── 9. Iniciar ServiceTest 2 → inProgress ─────────────────────
+            progress('A iniciar ServiceTest 2 → inProgress…');
+            log('→ PATCH ' + TEST_BASE + '/' + test2.id + '  { state: "inProgress" }');
+            const test2ip = await apiPatch(TEST_BASE + '/' + test2.id, {
+                state:           'inProgress',
+                start_date_time: new Date().toISOString()
+            });
+            log('✓ ServiceTest 2 → inProgress  state:' + test2ip.state, 'gen-log-ok');
+
+            // ── 10. Adicionar medida fail (throughput baixo) ──────────────
+            progress('A adicionar medida: throughput (fail)…');
+            log('→ POST ' + TEST_BASE + '/' + test2.id + '/testMeasure  [throughput_mbps: 42 Mbps → fail]');
+            await apiPost(TEST_BASE + '/' + test2.id + '/testMeasure', {
+                metric_name:  'throughput_mbps',
+                metric_value: 42.0,
+                unit:         'Mbps',
+                result:       'fail'
+            });
+            log('✓ Medida registada: throughput_mbps = 42 Mbps → fail  (abaixo do mínimo)', 'gen-log-ok');
+
+            // ── Concluído ─────────────────────────────────────────────────
+            fill.style.width = '100%';
+            lbl.textContent  = 'Concluído!';
+            log('', '');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('✓ Dados de teste criados com sucesso:', 'gen-log-ok');
+            log('  Serviço:      ' + targetName + '  (state: active)', 'gen-log-ok');
+            log('  Spec:         Network Connectivity Test Spec' + sfx + '  → active', 'gen-log-ok');
+            log('  ServiceTest 1: Connectivity Test   → completed  (2 medidas pass)', 'gen-log-ok');
+            log('  ServiceTest 2: Performance Test    → inProgress (1 medida fail)', 'gen-log-ok');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('Navegue para Testing para ver os recursos criados.', 'gen-log-info');
+
+        } catch (err) {
+            fill.style.width = '100%';
+            lbl.textContent  = 'Erro';
+            log('✗ Erro: ' + err.message, 'gen-log-err');
+        } finally {
+            btn.disabled    = false;
+            btn.innerHTML   = '&#x1F680; Gerar Dados de Teste';
+        }
+    }
+</script>
+
+</body>
+</html>
