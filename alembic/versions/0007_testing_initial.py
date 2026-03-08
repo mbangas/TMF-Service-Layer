@@ -33,8 +33,8 @@ def upgrade() -> None:
         sa.Column("valid_for_start", sa.DateTime(timezone=True), nullable=True),
         sa.Column("valid_for_end", sa.DateTime(timezone=True), nullable=True),
         sa.Column("service_spec_id", sa.String(36), nullable=True, index=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(
             ["service_spec_id"],
             ["service_specification.id"],
@@ -57,8 +57,8 @@ def upgrade() -> None:
         sa.Column("end_date_time", sa.DateTime(timezone=True), nullable=True),
         sa.Column("service_id", sa.String(36), nullable=False, index=True),
         sa.Column("test_spec_id", sa.String(36), nullable=True, index=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(
             ["service_id"], ["service.id"], ondelete="RESTRICT"
         ),

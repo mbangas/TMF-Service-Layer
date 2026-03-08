@@ -716,7 +716,7 @@
                             <text x="45" y="106" font-size="10" fill="#94a3b8">service_id     <tspan fill="#34d399" font-weight="600">*</tspan>  uuid do inventário</text>
                             <text x="45" y="124" font-size="10" fill="#94a3b8">mode               automated | manual | hybrid</text>
                             <text x="45" y="142" font-size="10" fill="#94a3b8">description        texto livre</text>
-                            <text x="45" y="160" font-size="10" fill="#94a3b8">test_specification  uuid (opcional)</text>
+                            <text x="45" y="160" font-size="10" fill="#94a3b8">test_spec_id        uuid (opcional)</text>
                             <text x="45" y="178" font-size="10" fill="#94a3b8">start_date_time    timestamp início</text>
                             <text x="45" y="196" font-size="10" fill="#94a3b8">end_date_time      timestamp fim</text>
 
@@ -756,7 +756,7 @@
                             <tr><td>service_id</td><td class="req">sim</td><td>uuid</td><td>UUID do serviço alvo no inventário (TMF638)</td></tr>
                             <tr><td>mode</td><td class="opt">não</td><td>enum</td><td>automated | manual | hybrid</td></tr>
                             <tr><td>description</td><td class="opt">não</td><td>string</td><td>Descrição livre do objectivo desta execução</td></tr>
-                            <tr><td>test_specification</td><td class="opt">não</td><td>uuid</td><td>UUID de uma TestSpecification não-obsolete</td></tr>
+                            <tr><td>test_spec_id</td><td class="opt">não</td><td>uuid</td><td>UUID de uma TestSpecification não-obsolete</td></tr>
                             <tr><td>start_date_time</td><td class="opt">não</td><td>datetime</td><td>Momento de início efectivo do teste</td></tr>
                             <tr><td>end_date_time</td><td class="opt">não</td><td>datetime</td><td>Momento de conclusão do teste</td></tr>
                         </tbody>
@@ -1083,7 +1083,7 @@
   <span class="key">"name"</span>:               <span class="val">"Connectivity Test — vm-alpha-001"</span>,
   <span class="key">"service_id"</span>:        <span class="val">"&lt;uuid-do-serviço&gt;"</span>,
   <span class="key">"mode"</span>:              <span class="val">"automated"</span>,
-  <span class="key">"test_specification"</span>: <span class="val">"&lt;spec-uuid&gt;"</span>
+  <span class="key">"test_spec_id"</span>:       <span class="val">"&lt;spec-uuid&gt;"</span>
 <span class="key">}</span>
 <span class="comment">→ { "id": "test-uuid", "state": "planned", … }</span>
 
@@ -1435,7 +1435,7 @@
                 description:        'Teste de conectividade de rede end-to-end automatizado',
                 service_id:         serviceId,
                 mode:               'automated',
-                test_specification: spec.id
+                test_spec_id:       spec.id
             });
             log('✓ ServiceTest 1 criado  id:' + test1.id + '  state:' + test1.state, 'gen-log-ok');
 
@@ -1487,7 +1487,7 @@
                 description:        'Teste de desempenho: throughput e latência sob carga',
                 service_id:         serviceId,
                 mode:               'manual',
-                test_specification: spec.id
+                test_spec_id:       spec.id
             });
             log('✓ ServiceTest 2 criado  id:' + test2.id + '  state:' + test2.state, 'gen-log-ok');
 
