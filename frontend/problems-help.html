@@ -1,24 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Problem Management – Help – TMF Service Layer</title>
+    <title>Ajuda — Problem Management | TMF Service Layer</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .step-card          { background: var(--colour-surface); border: 1px solid var(--colour-border); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
-        .step-card__header  { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md); }
-        .step-number        { width: 36px; height: 36px; border-radius: 50%; background: var(--colour-primary); color:#fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0; }
-        .step-card__title   { font-size: var(--font-size-md); font-weight: 600; }
-        .step-card__body    { font-size: var(--font-size-sm); color: var(--colour-text-muted); }
-        .step-card__body p  { margin-bottom: var(--space-sm); }
-        .step-card__body pre { background: var(--colour-surface-alt); border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); overflow-x: auto; font-size: var(--font-size-xs); line-height: 1.5; margin: var(--space-sm) 0; }
-        .step-card__body code { background: var(--colour-surface-alt); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: var(--font-size-xs); }
-        .info-box           { background: color-mix(in srgb, var(--colour-primary) 10%, transparent); border-left: 3px solid var(--colour-primary); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-md); font-size: var(--font-size-sm); }
-        .state-table        { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
-        .state-table th,
-        .state-table td     { border: 1px solid var(--colour-border); padding: 6px 10px; text-align: left; }
-        .state-table th     { background: var(--colour-surface-alt); font-weight: 600; }
+        /* ── Help page specific ── */
+        .help-content { max-width: 960px; margin: 0 auto; }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p { color: var(--colour-text-muted); margin-top: var(--space-sm); line-height: 1.8; }
+
+        .step-card { background: var(--colour-surface); border: 1px solid var(--colour-border); border-radius: var(--radius-lg); margin-bottom: var(--space-xl); overflow: hidden; }
+        .step-card__header { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-lg) var(--space-xl); background: var(--colour-surface-alt); border-bottom: 1px solid var(--colour-border); }
+        .step-number { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--colour-primary); color: white; font-weight: 700; font-size: var(--font-size-md); flex-shrink: 0; }
+        .step-card__title { font-size: var(--font-size-lg); font-weight: 700; color: var(--colour-text); }
+        .step-card__subtitle { font-size: var(--font-size-sm); color: var(--colour-text-muted); margin-top: 2px; }
+        .step-card__body { padding: var(--space-xl); }
+        .step-card__body p, .step-card__body li { color: var(--colour-text-muted); line-height: 1.8; }
+        .step-card__body ul, .step-card__body ol { padding-left: var(--space-xl); margin-top: var(--space-sm); }
+        .step-card__body li { margin-bottom: var(--space-xs); }
+        .step-card__body h4 { font-size: var(--font-size-base); font-weight: 600; color: var(--colour-text); margin-top: var(--space-lg); margin-bottom: var(--space-sm); }
+
+        /* ── Diagram wrappers ── */
+        .diagram-wrapper { background: var(--colour-bg); border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-xl); margin: var(--space-lg) 0; overflow-x: auto; }
+        .diagram-wrapper figcaption { text-align: center; font-size: var(--font-size-xs); color: var(--colour-text-muted); margin-top: var(--space-sm); }
+
+        /* ── API call blocks ── */
+        .api-block { background: #0d1117; border: 1px solid var(--colour-border); border-left: 3px solid var(--colour-primary); border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg); margin: var(--space-md) 0; font-family: var(--font-mono); font-size: var(--font-size-xs); color: #a5d6a7; overflow-x: auto; white-space: pre; line-height: 1.7; }
+
+        /* ── Callouts ── */
+        .callout { display: flex; gap: var(--space-md); padding: var(--space-md) var(--space-lg); border-radius: var(--radius-md); margin: var(--space-md) 0; }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout--danger  { background: rgba(248,113,113,0.10); border-left: 3px solid var(--colour-danger); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        /* ── Checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { display: flex; align-items: flex-start; gap: var(--space-sm); padding: var(--space-sm) 0; border-bottom: 1px solid var(--colour-border); font-size: var(--font-size-sm); color: var(--colour-text-muted); }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist__num { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 50%; background: var(--colour-primary-dim); color: var(--colour-primary); font-size: var(--font-size-xs); font-weight: 700; flex-shrink: 0; }
+
+        /* ── State table ── */
+        .state-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .state-table th, .state-table td { border: 1px solid var(--colour-border); padding: 7px 12px; text-align: left; }
+        .state-table th { background: var(--colour-surface-alt); font-weight: 600; color: var(--colour-text); }
+
+        /* ── Badges ── */
         .badge              { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: var(--font-size-xs); font-weight: 600; }
         .badge--submitted   { background: #f1f5f9; color: #475569; }
         .badge--inProgress  { background: #fef3c7; color: #92400e; }
@@ -28,6 +67,43 @@
         .badge--confirmed   { background: #dbeafe; color: #1e40af; }
         .badge--active      { background: #dcfce7; color: #166534; }
         .badge--rejected    { background: #fee2e2; color: #991b1b; }
+
+        /* ── TMF pill ── */
+        .tmf-pill { display: inline-block; padding: 2px 8px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; background: rgba(79,126,248,0.15); color: var(--colour-primary); border: 1px solid rgba(79,126,248,0.3); margin-left: var(--space-xs); }
+
+        /* ── Generate test data ── */
+        .gen-progress-bar-track { width: 100%; height: 6px; background: var(--colour-surface-alt); border-radius: var(--radius-full); overflow: hidden; margin-bottom: var(--space-sm); }
+        .gen-progress-bar-fill  { height: 100%; width: 0%; background: linear-gradient(90deg, var(--colour-primary), #34d399); border-radius: var(--radius-full); transition: width 0.35s ease; }
+        .gen-progress-label { font-size: var(--font-size-xs); color: var(--colour-text-muted); margin-bottom: var(--space-md); }
+        .gen-log { background: #0d1117; border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg); font-family: var(--font-mono); font-size: var(--font-size-xs); color: #94a3b8; max-height: 300px; overflow-y: auto; line-height: 1.9; }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        .back-link { display: inline-flex; align-items: center; gap: var(--space-xs); font-size: var(--font-size-sm); color: var(--colour-text-muted); margin-bottom: var(--space-lg); text-decoration: none; transition: color var(--transition); }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+        .divider { border: none; border-top: 1px solid var(--colour-border); margin: var(--space-xl) 0; }
+
+        /* ── Print ── */
+        @media print {
+            :root { --colour-bg:#ffffff; --colour-surface:#f8f9fc; --colour-surface-alt:#eef0f6; --colour-border:#d1d5db; --colour-text:#111827; --colour-text-muted:#4b5563; --colour-primary:#2563eb; --colour-success:#059669; --colour-warning:#d97706; --colour-danger:#dc2626; --colour-info:#2563eb; }
+            body { background: #fff; color: #111; }
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-problems, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; color: #111; }
+            .step-card { border: 1px solid #d1d5db; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .callout--info { background: #eff6ff; border-color: #3b82f6; }
+            .callout--warning { background: #fffbeb; border-color: #f59e0b; }
+            .api-block { background: #1e293b; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+            .diagram-wrapper { background: #f8fafc; break-inside: avoid; }
+            svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
@@ -65,122 +141,368 @@
 
         <div class="topbar">
             <div>
-                <div class="topbar__title">Problem Management — Help</div>
-                <div class="topbar__subtitle">Step-by-step guide for TMF621 Trouble Tickets and TMF656 Service Problems</div>
+                <div class="topbar__title">&#x2753; Guia de Problem Management</div>
+                <div class="topbar__subtitle">Trouble Tickets e Service Problems — TMF621 · TMF656</div>
             </div>
-            <a href="problems.html" class="btn btn--secondary">← Back to Problems</a>
+            <div class="topbar__actions">
+                <button class="btn btn--primary btn--sm" onclick="printToPDF()" title="Guardar como PDF">&#x1F4E5; Gerar PDF</button>
+                <a href="problems.html" class="btn btn--ghost btn--sm">&#8592; Voltar ao Problems</a>
+            </div>
         </div>
 
         <div class="page-body">
+        <div class="help-content">
 
-            <div class="info-box">
-                This guide covers the full lifecycle for <strong>Trouble Tickets (TMF621)</strong> and <strong>Service Problems (TMF656)</strong>.
-                Both entities follow a structured state machine and can be linked to Service Inventory instances
-                and/or Service Assurance Alarms.
+            <!-- ══ INTRODUÇÃO ════════════════════════════════════════════════════ -->
+            <div class="help-intro">
+                <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--colour-text);">Sobre este guia</h2>
+                <p>
+                    Este guia explica como usar o módulo de <strong style="color:var(--colour-text)">Problem Management</strong>
+                    da TMF Service Layer, que implementa duas APIs TMF:
+                </p>
+                <ul style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                    <li><strong style="color:var(--colour-text)">TMF621 — Trouble Ticket Management:</strong> tickets reportados por clientes ou operadores, ligados a serviços e/ou alarmes</li>
+                    <li><strong style="color:var(--colour-text)">TMF656 — Service Problem Management:</strong> problemas de serviço de nível superior, consolidando root cause analysis de um ou mais tickets</li>
+                </ul>
+                <p style="margin-top:var(--space-sm);">
+                    Ambos os recursos podem referenciar uma instância de serviço (<code>related_service_id</code>)
+                    do Inventário (TMF638). Os alarmes do módulo de
+                    <a href="assurance.html" style="color:var(--colour-primary);">Assurance</a>
+                    podem ser ligados directamente a Trouble Tickets via <code>related_alarm_id</code>.
+                </p>
             </div>
 
-            <!-- ── Step 1 ── -->
+            <!-- ══ PRÉ-REQUISITO ════════════════════════════════════════════════ -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-warning);color:var(--colour-warning);">&#x26A0;</div>
+                    <div>
+                        <div class="step-card__title">Pré-requisito — Serviço no Inventário</div>
+                        <div class="step-card__subtitle">Tickets e Problems podem ser associados a um service_id do Inventário (TMF638)</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>
+                        Embora <code>related_service_id</code> seja opcional nos formulários, é boa prática
+                        sempre associar um ticket ou problem a um serviço afectado do inventário,
+                        facilitando a rastreabilidade end-to-end.
+                    </p>
+
+                    <!-- Overview diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 820 140" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:820px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-p0" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#4f7ef8"/></marker>
+                                <marker id="arr-p1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#f87171"/></marker>
+                                <marker id="arr-p2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+                            </defs>
+                            <!-- Inventory -->
+                            <rect x="10" y="30" width="160" height="58" rx="8" fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="90" y="53" text-anchor="middle" font-size="12" font-weight="700" fill="#60a5fa">Inventory</text>
+                            <text x="90" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">Service (TMF638)</text>
+                            <text x="90" y="83" text-anchor="middle" font-size="9" fill="#94a3b8">related_service_id</text>
+                            <!-- Assurance -->
+                            <rect x="10" y="100" width="160" height="22" rx="6" fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="90" y="115" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">Alarm (TMF642) → related_alarm_id</text>
+                            <!-- Arrow to TroubleTicket -->
+                            <line x1="170" y1="55" x2="250" y2="55" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-p0)"/>
+                            <line x1="170" y1="111" x2="250" y2="74" stroke="#f87171" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arr-p1)"/>
+                            <rect x="252" y="14" width="215" height="78" rx="8" fill="rgba(248,113,113,0.08)" stroke="#f87171" stroke-width="1.5"/>
+                            <text x="359" y="37" text-anchor="middle" font-size="12" font-weight="700" fill="#f87171">TroubleTicket</text>
+                            <text x="359" y="54" text-anchor="middle" font-size="10" fill="#94a3b8">TMF621</text>
+                            <text x="359" y="70" text-anchor="middle" font-size="9" fill="#94a3b8">submitted → inProgress → resolved → closed</text>
+                            <text x="359" y="84" text-anchor="middle" font-size="9" fill="#94a3b8">notes (append-only)</text>
+                            <!-- Arrow to ServiceProblem -->
+                            <line x1="467" y1="50" x2="555" y2="50" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-p2)"/>
+                            <rect x="557" y="14" width="250" height="78" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="682" y="37" text-anchor="middle" font-size="12" font-weight="700" fill="#34d399">ServiceProblem</text>
+                            <text x="682" y="54" text-anchor="middle" font-size="10" fill="#94a3b8">TMF656</text>
+                            <text x="682" y="68" text-anchor="middle" font-size="9" fill="#94a3b8">submitted → confirmed → active → resolved → closed</text>
+                            <text x="682" y="84" text-anchor="middle" font-size="9" fill="#94a3b8">related_ticket_id (opcional)</text>
+                        </svg>
+                        <figcaption>Relações entre Inventário, Assurance e os dois recursos de Problem Management</figcaption>
+                    </figure>
+
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">
+                            Ainda não tem dados? Use a secção <strong>Gerar Dados de Teste</strong>
+                            no final desta página para criar automaticamente tickets e problems de exemplo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ TMF621 ════════════════════════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                TMF621 — Trouble Ticket Management
+            </h2>
+
+            <!-- ── Step 1 — Criar Ticket ── -->
             <div class="step-card">
                 <div class="step-card__header">
                     <div class="step-number">1</div>
-                    <div class="step-card__title">Create a Trouble Ticket</div>
+                    <div>
+                        <div class="step-card__title">Criar um Trouble Ticket</div>
+                        <div class="step-card__subtitle">Reportar uma falha ou degradação — clique em "+ New Ticket"</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>A <strong>Trouble Ticket</strong> captures a reported service problem from a customer or operator. It can be linked to a Service Inventory instance (<code>related_service_id</code>) and/or an active Alarm (<code>related_alarm_id</code>).</p>
-                    <p>Click <strong>+ New Ticket</strong> on the Problems page and complete the form. Only <em>name</em> is mandatory. A new ticket always starts in state <span class="badge badge--submitted">submitted</span>.</p>
-                    <pre>POST /tmf-api/troubleTicketManagement/v4/troubleTicket
+                    <p>
+                        Um <strong>Trouble Ticket</strong> captura um problema reportado por um cliente ou operador.
+                        Pode ser ligado a uma instância de serviço (<code>related_service_id</code>)
+                        e/ou a um alarme activo (<code>related_alarm_id</code>). Apenas <em>name</em> é obrigatório.
+                        O ticket inicia sempre no estado <span class="badge badge--submitted">submitted</span>.
+                    </p>
+
+                    <!-- Ticket structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <rect x="10" y="10" width="760" height="190" rx="12"
+                                  fill="rgba(248,113,113,0.04)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#f87171">TroubleTicket</text>
+                            <text x="142" y="34" font-size="11" fill="#94a3b8">(TMF621)</text>
+                            <!-- Identity -->
+                            <rect x="30" y="48" width="220" height="140" rx="8" fill="rgba(248,113,113,0.08)" stroke="#f87171" stroke-width="1"/>
+                            <text x="140" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#f87171">Identificação</text>
+                            <text x="45"  y="90"  font-size="10" fill="#94a3b8">name           <tspan fill="#34d399" font-weight="600">*</tspan></text>
+                            <text x="45"  y="108" font-size="10" fill="#94a3b8">description</text>
+                            <text x="45"  y="126" font-size="10" fill="#94a3b8">ticket_type    serviceFailure | …</text>
+                            <text x="45"  y="144" font-size="10" fill="#94a3b8">severity       critical | major | minor | warning</text>
+                            <text x="45"  y="162" font-size="10" fill="#94a3b8">priority       1 (highest) – 4</text>
+                            <text x="45"  y="180" font-size="10" fill="#94a3b8">state          <tspan fill="#fbbf24">auto-gerido</tspan></text>
+                            <!-- Relations -->
+                            <rect x="270" y="48" width="220" height="100" rx="8" fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="380" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Referências</text>
+                            <text x="285" y="90"  font-size="10" fill="#94a3b8">related_service_id  UUID → Inventário</text>
+                            <text x="285" y="108" font-size="10" fill="#94a3b8">related_alarm_id    UUID → Alarme</text>
+                            <text x="285" y="126" font-size="10" fill="#94a3b8">notes[]             append-only work-log</text>
+                            <text x="285" y="144" font-size="10" fill="#94a3b8">resolution          texto de resolução</text>
+                            <!-- Dates -->
+                            <rect x="510" y="48" width="240" height="100" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1"/>
+                            <text x="630" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">Datas</text>
+                            <text x="525" y="90"  font-size="10" fill="#94a3b8">created_at                 auto</text>
+                            <text x="525" y="108" font-size="10" fill="#94a3b8">expected_resolution_date   opcional</text>
+                            <text x="525" y="126" font-size="10" fill="#94a3b8">resolution_date            auto (→ resolved)</text>
+                        </svg>
+                        <figcaption>Estrutura de um TroubleTicket (TMF621)</figcaption>
+                    </figure>
+
+                    <div class="api-block">POST /tmf-api/troubleTicketManagement/v4/troubleTicket
 {
-  "name": "Customer 12345 – Internet Down",
-  "description": "Customer reports no connectivity since 08:00 UTC",
+  "name": "Cliente 12345 – Internet Down",
+  "description": "Cliente sem conectividade desde as 08:00 UTC",
   "severity": "critical",
   "priority": 1,
   "ticket_type": "serviceFailure",
   "related_service_id": "&lt;uuid&gt;",
-  "related_alarm_id": "&lt;uuid or omit&gt;",
-  "notes": [{ "text": "Opened by NOC shift B", "author": "NOC-B" }]
-}</pre>
+  "related_alarm_id": "&lt;uuid ou omitir&gt;",
+  "notes": [{ "text": "Aberto pelo turno B do NOC", "author": "NOC-B" }]
+}</div>
                 </div>
             </div>
 
-            <!-- ── Step 2 ── -->
+            <!-- ── Step 2 — State Machine TroubleTicket ── -->
             <div class="step-card">
                 <div class="step-card__header">
                     <div class="step-number">2</div>
-                    <div class="step-card__title">Trouble Ticket State Machine</div>
+                    <div>
+                        <div class="step-card__title">Máquina de Estados — Trouble Ticket</div>
+                        <div class="step-card__subtitle">Ciclo de vida: submitted → inProgress → resolved → closed</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>Use the <strong>State →</strong> button on any ticket row to advance the state. Invalid transitions are rejected with HTTP 422.</p>
+                    <p>Use o botão <strong>State →</strong> em cada linha de ticket para avançar o estado. Transições inválidas são rejeitadas com HTTP 422.</p>
+
+                    <!-- Ticket state machine diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 120" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-tt1" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#94a3b8"/></marker>
+                                <marker id="arr-tt2" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#60a5fa"/></marker>
+                            </defs>
+                            <rect x="10"  y="42" width="110" height="36" rx="18" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+                            <text x="65"  y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">submitted</text>
+                            <rect x="165" y="42" width="120" height="36" rx="18" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+                            <text x="225" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">inProgress</text>
+                            <rect x="340" y="10" width="100" height="36" rx="18" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                            <text x="390" y="33" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">pending</text>
+                            <rect x="500" y="42" width="100" height="36" rx="18" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+                            <text x="550" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">resolved</text>
+                            <rect x="660" y="42" width="100" height="36" rx="18" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="710" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">closed</text>
+                            <line x1="120" y1="60" x2="163" y2="60" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-tt1)"/>
+                            <line x1="285" y1="48" x2="338" y2="30" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-tt1)"/>
+                            <line x1="340" y1="38" x2="286" y2="50" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-tt2)"/>
+                            <line x1="285" y1="66" x2="498" y2="66" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-tt1)"/>
+                            <line x1="440" y1="28" x2="510" y2="48" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-tt1)"/>
+                            <line x1="600" y1="60" x2="658" y2="60" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-tt1)"/>
+                        </svg>
+                        <figcaption>Máquina de estados do TroubleTicket — seta azul tracejada indica transição bidirecional de pending</figcaption>
+                    </figure>
+
                     <table class="state-table">
-                        <thead>
-                            <tr><th>From</th><th>Allowed transitions to</th></tr>
-                        </thead>
+                        <thead><tr><th>Estado</th><th>Transições permitidas</th></tr></thead>
                         <tbody>
                             <tr><td><span class="badge badge--submitted">submitted</span></td><td><span class="badge badge--inProgress">inProgress</span></td></tr>
                             <tr><td><span class="badge badge--inProgress">inProgress</span></td><td><span class="badge badge--pending">pending</span> &nbsp; <span class="badge badge--resolved">resolved</span></td></tr>
                             <tr><td><span class="badge badge--pending">pending</span></td><td><span class="badge badge--inProgress">inProgress</span> &nbsp; <span class="badge badge--resolved">resolved</span></td></tr>
                             <tr><td><span class="badge badge--resolved">resolved</span></td><td><span class="badge badge--closed">closed</span></td></tr>
-                            <tr><td><span class="badge badge--closed">closed</span></td><td><em>terminal — no further transitions</em></td></tr>
+                            <tr><td><span class="badge badge--closed">closed</span></td><td><em>terminal — sem mais transições</em></td></tr>
                         </tbody>
                     </table>
-                    <p style="margin-top:var(--space-sm)">When transitioning to <span class="badge badge--resolved">resolved</span>, an optional <code>resolution</code> text can be provided. The server automatically sets <code>resolution_date</code>.</p>
-                    <pre>PATCH /tmf-api/troubleTicketManagement/v4/troubleTicket/{id}
-{ "state": "resolved", "resolution": "Faulty ONT replaced on-site" }</pre>
+
+                    <div class="callout callout--info" style="margin-top:var(--space-md)">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">Ao transitar para <strong>resolved</strong>, forneça <code>resolution</code> com o texto da resolução. O servidor define automaticamente <code>resolution_date</code>.</div>
+                    </div>
+                    <div class="api-block">PATCH /tmf-api/troubleTicketManagement/v4/troubleTicket/{id}
+{ "state": "resolved", "resolution": "ONT defeituosa substituída no local" }</div>
                 </div>
             </div>
 
-            <!-- ── Step 3 ── -->
+            <!-- ── Step 3 — Notas ── -->
             <div class="step-card">
                 <div class="step-card__header">
                     <div class="step-number">3</div>
-                    <div class="step-card__title">Manage Notes on a Ticket</div>
+                    <div>
+                        <div class="step-card__title">Gerir Notas de um Ticket</div>
+                        <div class="step-card__subtitle">Entradas de work-log append-only associadas a um ticket</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>Notes are append-only work-log entries. Open a ticket's <strong>Detail</strong> panel and use <strong>+ Add Note</strong>. Notes can also be deleted if incorrect.</p>
-                    <pre># Add a note
+                    <p>As notas são entradas de work-log <em>append-only</em>. Abra o painel <strong>Detail</strong> de um ticket e use <strong>+ Add Note</strong>. Notas erradas podem ser eliminadas individualmente.</p>
+                    <div class="api-block"># Adicionar nota
 POST /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note
-{ "text": "Customer confirmed service restored.", "author": "NOC-A" }
+{ "text": "Cliente confirmou restauro do serviço.", "author": "NOC-A" }
 
-# List notes
+# Listar notas
 GET /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note
 
-# Delete a note
-DELETE /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note/{note_id}</pre>
+# Eliminar nota
+DELETE /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note/{note_id}</div>
                 </div>
             </div>
 
-            <!-- ── Step 4 ── -->
+            <!-- ══ TMF656 SERVICE PROBLEMS ═════════════════════════════════════════ -->
+            <hr class="divider">
+            <h2 style="font-size:var(--font-size-xl);font-weight:700;color:var(--colour-text);margin-bottom:var(--space-lg);">
+                TMF656 — Service Problem Management
+            </h2>
+
+            <!-- ── Step 4 — Criar Problem ── -->
             <div class="step-card">
                 <div class="step-card__header">
                     <div class="step-number">4</div>
-                    <div class="step-card__title">Create a Service Problem</div>
+                    <div>
+                        <div class="step-card__title">Criar um Service Problem</div>
+                        <div class="step-card__subtitle">Registo de análise de causa raiz para um ou mais tickets</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>A <strong>Service Problem</strong> (TMF656) is a higher-level record tracking root cause analysis for one or more trouble tickets. Switch to the <em>Service Problems</em> tab and click <strong>+ New Problem</strong>.</p>
-                    <p>A Service Problem can be linked to a <code>related_service_id</code> and an optional <code>related_ticket_id</code>. It always starts in state <span class="badge badge--submitted">submitted</span>.</p>
-                    <pre>POST /tmf-api/serviceProblemManagement/v4/problem
+                    <p>Um <strong>Service Problem</strong> (TMF656) é um registo de nível superior que agrega a análise de causa raiz para um ou mais trouble tickets. Mude para o separador <em>Service Problems</em> e clique em <strong>+ New Problem</strong>.</p>
+
+                    <!-- Problem structure diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:780px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <rect x="10" y="10" width="760" height="180" rx="12"
+                                  fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="7,4"/>
+                            <text x="30" y="34" font-size="12" font-weight="700" fill="#34d399">ServiceProblem</text>
+                            <text x="152" y="34" font-size="11" fill="#94a3b8">(TMF656)</text>
+                            <!-- Identity -->
+                            <rect x="30" y="48" width="220" height="130" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1"/>
+                            <text x="140" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#34d399">Identificação</text>
+                            <text x="45"  y="90"  font-size="10" fill="#94a3b8">name           <tspan fill="#34d399" font-weight="600">*</tspan></text>
+                            <text x="45"  y="108" font-size="10" fill="#94a3b8">description</text>
+                            <text x="45"  y="126" font-size="10" fill="#94a3b8">impact         criticalSystemImpact | …</text>
+                            <text x="45"  y="144" font-size="10" fill="#94a3b8">priority       1 (highest) – 4</text>
+                            <text x="45"  y="162" font-size="10" fill="#94a3b8">category       networkFailure | …</text>
+                            <!-- Relations -->
+                            <rect x="270" y="48" width="220" height="90" rx="8" fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1"/>
+                            <text x="380" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#60a5fa">Referências</text>
+                            <text x="285" y="90"  font-size="10" fill="#94a3b8">related_service_id  UUID → Inventário</text>
+                            <text x="285" y="108" font-size="10" fill="#94a3b8">related_ticket_id   UUID → TroubleTicket</text>
+                            <text x="285" y="126" font-size="10" fill="#94a3b8">resolution          texto de resolução</text>
+                            <!-- State -->
+                            <rect x="510" y="48" width="240" height="90" rx="8" fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="630" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Estado</text>
+                            <text x="525" y="90"  font-size="10" fill="#94a3b8">state            submitted (inicial)</text>
+                            <text x="525" y="108" font-size="10" fill="#94a3b8">created_at       auto</text>
+                            <text x="525" y="126" font-size="10" fill="#94a3b8">resolution_date  auto (→ resolved)</text>
+                        </svg>
+                        <figcaption>Estrutura de um ServiceProblem (TMF656)</figcaption>
+                    </figure>
+
+                    <div class="api-block">POST /tmf-api/serviceProblemManagement/v4/problem
 {
   "name": "Core Router BGP Flapping — Datacenter A",
   "impact": "criticalSystemImpact",
   "priority": 1,
   "category": "networkFailure",
   "related_service_id": "&lt;uuid&gt;",
-  "related_ticket_id": "&lt;uuid or omit&gt;"
-}</pre>
+  "related_ticket_id": "&lt;uuid ou omitir&gt;"
+}</div>
                 </div>
             </div>
 
-            <!-- ── Step 5 ── -->
+            <!-- ── Step 5 — State Machine ServiceProblem ── -->
             <div class="step-card">
                 <div class="step-card__header">
                     <div class="step-number">5</div>
-                    <div class="step-card__title">Service Problem State Machine</div>
+                    <div>
+                        <div class="step-card__title">Máquina de Estados — Service Problem</div>
+                        <div class="step-card__subtitle">Ciclo com confirmação obrigatória: submitted → confirmed → active → resolved → closed</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>Service Problems follow a slightly different lifecycle that includes a <em>confirmation</em> step and a <em>rejection</em> terminal state.</p>
+                    <p>Os Service Problems incluem um passo de <em>confirmação</em> e o estado terminal <em>rejected</em>.</p>
+
+                    <!-- Problem state machine diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 820 160" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:820px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-sp1" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#94a3b8"/></marker>
+                                <marker id="arr-sp2" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#f87171"/></marker>
+                            </defs>
+                            <!-- Happy path -->
+                            <rect x="10"  y="56" width="110" height="36" rx="18" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+                            <text x="65"  y="79" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">submitted</text>
+                            <rect x="165" y="56" width="120" height="36" rx="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+                            <text x="225" y="79" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">confirmed</text>
+                            <rect x="340" y="56" width="100" height="36" rx="18" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+                            <text x="390" y="79" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">active</text>
+                            <rect x="495" y="56" width="105" height="36" rx="18" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+                            <text x="547" y="79" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">resolved</text>
+                            <rect x="655" y="56" width="100" height="36" rx="18" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+                            <text x="705" y="79" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">closed</text>
+                            <!-- Rejected (terminal) -->
+                            <rect x="165" y="118" width="120" height="30" rx="15" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+                            <text x="225" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">rejected</text>
+                            <!-- Happy path arrows -->
+                            <line x1="120" y1="74" x2="163" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-sp1)"/>
+                            <line x1="285" y1="74" x2="338" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-sp1)"/>
+                            <line x1="440" y1="74" x2="493" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-sp1)"/>
+                            <line x1="600" y1="74" x2="653" y2="74" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-sp1)"/>
+                            <!-- Rejected arrows -->
+                            <line x1="95"  y1="92" x2="180" y2="118" stroke="#f87171" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-sp2)"/>
+                            <line x1="225" y1="92" x2="225" y2="116" stroke="#f87171" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-sp2)"/>
+                            <!-- Legend -->
+                            <line x1="510" y1="130" x2="530" y2="130" stroke="#94a3b8" stroke-width="1.5"/>
+                            <text x="535" y="134" font-size="9" fill="#94a3b8">transição normal</text>
+                            <line x1="615" y1="130" x2="635" y2="130" stroke="#f87171" stroke-width="1.2" stroke-dasharray="4,3"/>
+                            <text x="640" y="134" font-size="9" fill="#94a3b8">→ rejected</text>
+                        </svg>
+                        <figcaption>Máquina de estados do ServiceProblem — rejected é um estado terminal</figcaption>
+                    </figure>
+
                     <table class="state-table">
-                        <thead>
-                            <tr><th>From</th><th>Allowed transitions to</th></tr>
-                        </thead>
+                        <thead><tr><th>Estado</th><th>Transições permitidas</th></tr></thead>
                         <tbody>
                             <tr><td><span class="badge badge--submitted">submitted</span></td><td><span class="badge badge--confirmed">confirmed</span> &nbsp; <span class="badge badge--rejected">rejected</span></td></tr>
                             <tr><td><span class="badge badge--confirmed">confirmed</span></td><td><span class="badge badge--active">active</span> &nbsp; <span class="badge badge--rejected">rejected</span></td></tr>
@@ -190,72 +512,344 @@ DELETE /tmf-api/troubleTicketManagement/v4/troubleTicket/{ticket_id}/note/{note_
                             <tr><td><span class="badge badge--closed">closed</span></td><td><em>terminal</em></td></tr>
                         </tbody>
                     </table>
-                    <pre>PATCH /tmf-api/serviceProblemManagement/v4/problem/{id}
+                    <div class="api-block">PATCH /tmf-api/serviceProblemManagement/v4/problem/{id}
 { "state": "confirmed" }
 
 PATCH /tmf-api/serviceProblemManagement/v4/problem/{id}
-{ "state": "resolved", "resolution": "BGP route reflector reconfigured" }</pre>
+{ "state": "resolved", "resolution": "Route reflector BGP reconfigurado" }</div>
                 </div>
             </div>
 
-            <!-- ── Step 6 ── -->
+            <!-- ── Step 6 — Fluxo End-to-End ── -->
             <div class="step-card">
                 <div class="step-card__header">
                     <div class="step-number">6</div>
-                    <div class="step-card__title">Filtering and Querying</div>
+                    <div>
+                        <div class="step-card__title">Fluxo End-to-End Típico</div>
+                        <div class="step-card__subtitle">Alarme → Ticket → Problem → Resolução</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>Both resources support query parameter filtering. Use the filter dropdowns on the Problems page or query directly.</p>
-                    <pre># Trouble Tickets
+                    <!-- End-to-end flow diagram -->
+                    <figure class="diagram-wrapper">
+                        <svg viewBox="0 0 820 130" xmlns="http://www.w3.org/2000/svg"
+                             style="width:100%;max-width:820px;display:block;margin:0 auto;font-family:'Inter','Segoe UI',system-ui,sans-serif;">
+                            <defs>
+                                <marker id="arr-e2e" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#4f7ef8"/></marker>
+                            </defs>
+                            <rect x="10" y="35" width="130" height="55" rx="8" fill="rgba(251,191,36,0.10)" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="75" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">Assurance</text>
+                            <text x="75" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">Alarme raised</text>
+                            <text x="75" y="85" text-anchor="middle" font-size="9"  fill="#94a3b8">(TMF642)</text>
+                            <line x1="140" y1="62" x2="178" y2="62" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-e2e)"/>
+                            <rect x="180" y="35" width="150" height="55" rx="8" fill="rgba(248,113,113,0.10)" stroke="#f87171" stroke-width="1.5"/>
+                            <text x="255" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#f87171">Ticket</text>
+                            <text x="255" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">submitted → inProgress</text>
+                            <text x="255" y="85" text-anchor="middle" font-size="9"  fill="#94a3b8">(TMF621)</text>
+                            <line x1="330" y1="62" x2="368" y2="62" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-e2e)"/>
+                            <rect x="370" y="35" width="150" height="55" rx="8" fill="rgba(52,211,153,0.10)" stroke="#34d399" stroke-width="1.5"/>
+                            <text x="445" y="57" text-anchor="middle" font-size="11" font-weight="700" fill="#34d399">Problem</text>
+                            <text x="445" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">confirmed → active</text>
+                            <text x="445" y="85" text-anchor="middle" font-size="9"  fill="#94a3b8">(TMF656)</text>
+                            <line x1="520" y1="62" x2="558" y2="62" stroke="#4f7ef8" stroke-width="1.5" marker-end="url(#arr-e2e)"/>
+                            <rect x="560" y="35" width="250" height="55" rx="8" fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <text x="685" y="55" text-anchor="middle" font-size="11" font-weight="700" fill="#60a5fa">Resolução</text>
+                            <text x="685" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">Ticket + Problem → closed</text>
+                            <text x="685" y="84" text-anchor="middle" font-size="9"  fill="#94a3b8">Alarm → cleared</text>
+                            <!-- Deep link label -->
+                            <text x="75"  y="112" text-anchor="middle" font-size="9" fill="#94a3b8" font-style="italic">?alarm_id=UUID</text>
+                            <line x1="75"  y1="108" x2="180" y2="90" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,3"/>
+                        </svg>
+                        <figcaption>Fluxo end-to-end: um alarme origina um Ticket que origina um Problem; todos fecham em conjunto</figcaption>
+                    </figure>
+
+                    <ul class="checklist">
+                        <li><span class="checklist__num">1</span> No Assurance, um alarme é levantado (<code>raised</code>) para um serviço degradado</li>
+                        <li><span class="checklist__num">2</span> Na página Problems, criar um Trouble Ticket com <code>related_alarm_id</code> (ou via link directo <code>problems.html?alarm_id=…</code>)</li>
+                        <li><span class="checklist__num">3</span> Avançar o ticket para <code>inProgress</code> e adicionar notas de work-log</li>
+                        <li><span class="checklist__num">4</span> Se o problema for recorrente, criar um Service Problem ligando-o via <code>related_ticket_id</code></li>
+                        <li><span class="checklist__num">5</span> Avançar o Problem por <code>confirmed → active → resolved → closed</code></li>
+                        <li><span class="checklist__num">6</span> Resolver e fechar o Ticket; reconhecer e limpar o Alarme no Assurance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ── Step 7 — Filtros ── -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">7</div>
+                    <div>
+                        <div class="step-card__title">Filtros e Integridade Referencial</div>
+                        <div class="step-card__subtitle">Parâmetros de pesquisa e constraints FK</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <div class="api-block"># Trouble Tickets
 GET /tmf-api/troubleTicketManagement/v4/troubleTicket?state=inProgress&amp;severity=critical
 GET /tmf-api/troubleTicketManagement/v4/troubleTicket?related_service_id=&lt;uuid&gt;
 
 # Service Problems
 GET /tmf-api/serviceProblemManagement/v4/problem?state=active&amp;impact=criticalSystemImpact
-GET /tmf-api/serviceProblemManagement/v4/problem?related_service_id=&lt;uuid&gt;</pre>
-                    <p>Pagination is supported with <code>offset</code> and <code>limit</code> query parameters (default limit: 100).</p>
-                </div>
-            </div>
+GET /tmf-api/serviceProblemManagement/v4/problem?related_service_id=&lt;uuid&gt;</div>
 
-            <!-- ── Step 7 ── -->
-            <div class="step-card">
-                <div class="step-card__header">
-                    <div class="step-number">7</div>
-                    <div class="step-card__title">Referential Integrity Rules</div>
-                </div>
-                <div class="step-card__body">
-                    <p>The following FK constraints are enforced by the API:</p>
-                    <table class="state-table">
-                        <thead>
-                            <tr><th>Field</th><th>Entity</th><th>Constraint</th></tr>
-                        </thead>
+                    <table class="state-table" style="margin-top:var(--space-md)">
+                        <thead><tr><th>Campo</th><th>Entidade</th><th>Constraint</th></tr></thead>
                         <tbody>
-                            <tr><td><code>related_service_id</code></td><td>TroubleTicket</td><td>Service must exist (RESTRICT on delete)</td></tr>
-                            <tr><td><code>related_alarm_id</code></td><td>TroubleTicket</td><td>Alarm must exist; set to NULL if alarm deleted</td></tr>
-                            <tr><td><code>related_service_id</code></td><td>ServiceProblem</td><td>Service must exist (RESTRICT on delete)</td></tr>
-                            <tr><td><code>related_ticket_id</code></td><td>ServiceProblem</td><td>TroubleTicket must exist; set to NULL if ticket deleted</td></tr>
+                            <tr><td><code>related_service_id</code></td><td>TroubleTicket</td><td>Serviço deve existir (RESTRICT on delete)</td></tr>
+                            <tr><td><code>related_alarm_id</code></td><td>TroubleTicket</td><td>Alarme deve existir; SET NULL se alarme eliminado</td></tr>
+                            <tr><td><code>related_service_id</code></td><td>ServiceProblem</td><td>Serviço deve existir (RESTRICT on delete)</td></tr>
+                            <tr><td><code>related_ticket_id</code></td><td>ServiceProblem</td><td>Ticket deve existir; SET NULL se ticket eliminado</td></tr>
                         </tbody>
                     </table>
-                    <p style="margin-top:var(--space-sm)">If a referenced entity does not exist, the API returns <strong>HTTP 404</strong>.</p>
+                    <div class="callout callout--warning" style="margin-top:var(--space-md)">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">Se uma entidade referenciada não existir, a API retorna <strong>HTTP 404</strong>.</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- ── Step 8 ── -->
+            <!-- ══ GERAR DADOS DE EXEMPLO ═════════════════════════════════════════ -->
+            <hr class="divider">
             <div class="step-card">
                 <div class="step-card__header">
-                    <div class="step-number">8</div>
-                    <div class="step-card__title">Integration with Assurance Alarms</div>
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Teste</div>
+                        <div class="step-card__subtitle">Cria automaticamente tickets e problems de exemplo para demonstração</div>
+                    </div>
                 </div>
                 <div class="step-card__body">
-                    <p>From the <a href="assurance.html">Assurance</a> page you can navigate directly to the Problems page with a pre-filled alarm ID. Use the deep-link shortcut from any alarm row to open the "New Ticket" modal with the alarm already populated:</p>
-                    <pre>problems.html?alarm_id=&lt;alarm-uuid&gt;</pre>
-                    <p>This creates a direct Alarm → Trouble Ticket relationship, enabling end-to-end incident tracing from the first alert to final resolution and closure.</p>
+                    <p>Clique no botão abaixo para gerar automaticamente dados de exemplo de Problem Management. O script executa os seguintes passos:</p>
+                    <ol style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                        <li>Procura ou cria um serviço <strong>svc-problems-demo</strong> no inventário</li>
+                        <li>Cria um Trouble Ticket <code>critical</code> (submitted) — "Falha de Conectividade"</li>
+                        <li>Avança o ticket para <code>inProgress</code></li>
+                        <li>Adiciona uma nota de work-log ao ticket</li>
+                        <li>Cria um segundo Trouble Ticket <code>major</code> — "Degradação de Serviço"</li>
+                        <li>Cria um Service Problem ligado ao primeiro ticket — "Problema de Rede Backbone"</li>
+                        <li>Avança o Problem para <code>confirmed</code></li>
+                    </ol>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Execuções repetidas:</strong> cada execução cria conjuntos de recursos independentes
+                            com sufixo numérico (ex: <strong>"svc-problems-demo-2"</strong>).
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-problems" onclick="generateProblemsExamples()">
+                        &#x1F680; Gerar Dados de Teste
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
                 </div>
             </div>
 
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="problems.html" class="back-link">&#8592; Voltar ao Problems</a>
+            </div>
+
+        </div><!-- /help-content -->
         </div><!-- /page-body -->
     </main>
-</div>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=7"></script>
+<script>
+    function printToPDF() {
+        const btn = document.querySelector('.topbar__actions button');
+        btn.disabled = true; btn.textContent = 'A preparar…';
+        setTimeout(function () { window.print(); btn.disabled = false; btn.innerHTML = '&#x1F4E5; Gerar PDF'; }, 120);
+    }
+
+    async function generateProblemsExamples() {
+        const btn   = document.getElementById('btn-gen-problems');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_problems_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : '-' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        const TOTAL = 7;
+        let step = 0;
+
+        const INV_BASE     = '/tmf-api/serviceInventory/v4/service';
+        const TICKET_BASE  = '/tmf-api/troubleTicketManagement/v4/troubleTicket';
+        const PROBLEM_BASE = '/tmf-api/serviceProblemManagement/v4/problem';
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' — ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function localGet(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('GET ' + url + ' → HTTP ' + r.status);
+            return r.json();
+        }
+
+        async function localPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        async function localPatch(url, body) {
+            const r = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('PATCH ' + url + ' → HTTP ' + r.status + (detail ? ' — ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        try {
+            // ── 1. Procurar / criar serviço ────────────────────────────────
+            const targetName = 'svc-problems-demo' + sfx;
+            progress('A procurar serviço ' + targetName + ' no inventário…');
+            log('→ GET ' + INV_BASE + '?limit=100');
+            const services = await localGet(INV_BASE + '?limit=100');
+            let svc = services.find(s => s.name && s.name.toLowerCase() === targetName.toLowerCase());
+
+            if (!svc) {
+                log('→ POST ' + INV_BASE + '  [name: ' + targetName + ']');
+                svc = await localPost(INV_BASE, {
+                    name:         targetName,
+                    description:  'Serviço de demonstração para Problem Management',
+                    state:        'active',
+                    service_type: 'Backbone Router'
+                });
+                log('✓ Serviço criado  id:' + svc.id + '  state:' + svc.state, 'gen-log-ok');
+            } else {
+                log('✓ Serviço encontrado: ' + svc.name + '  id:' + svc.id, 'gen-log-ok');
+            }
+            const serviceId = svc.id;
+
+            // ── 2. Criar Ticket critical ───────────────────────────────────
+            progress('A criar Trouble Ticket critical — "Falha de Conectividade"…');
+            log('→ POST ' + TICKET_BASE + '  [severity: critical]');
+            const ticket1 = await localPost(TICKET_BASE, {
+                name:               'Falha de Conectividade — ' + targetName,
+                description:        'Serviço sem conectividade de rede desde as 08:00 UTC',
+                severity:           'critical',
+                priority:           1,
+                ticket_type:        'serviceFailure',
+                related_service_id: serviceId,
+                notes: [{ text: 'Aberto pelo turno A do NOC. Cliente reportou perda total de serviço.', author: 'NOC-A' }]
+            });
+            log('✓ Ticket critical criado  id:' + ticket1.id + '  state:' + ticket1.state, 'gen-log-ok');
+
+            // ── 3. Avançar Ticket para inProgress ─────────────────────────
+            progress('A avançar Ticket para inProgress…');
+            log('→ PATCH ' + TICKET_BASE + '/' + ticket1.id + '  { state: "inProgress" }');
+            const ticket1b = await localPatch(TICKET_BASE + '/' + ticket1.id, { state: 'inProgress' });
+            log('✓ Ticket → inProgress  state:' + ticket1b.state, 'gen-log-ok');
+
+            // ── 4. Adicionar nota de work-log ─────────────────────────────
+            progress('A adicionar nota de work-log ao ticket…');
+            log('→ POST ' + TICKET_BASE + '/' + ticket1.id + '/note');
+            await localPost(TICKET_BASE + '/' + ticket1.id + '/note', {
+                text:   'Técnico enviado ao local. Confirmada avaria no switch de acesso.',
+                author: 'NOC-A'
+            });
+            log('✓ Nota de work-log adicionada', 'gen-log-ok');
+
+            // ── 5. Criar Ticket major ──────────────────────────────────────
+            progress('A criar Trouble Ticket major — "Degradação de Serviço"…');
+            log('→ POST ' + TICKET_BASE + '  [severity: major]');
+            const ticket2 = await localPost(TICKET_BASE, {
+                name:               'Degradação de Serviço — ' + targetName,
+                description:        'Latência elevada e perda de pacotes intermitente',
+                severity:           'major',
+                priority:           2,
+                ticket_type:        'servicePerformanceDegradation',
+                related_service_id: serviceId
+            });
+            log('✓ Ticket major criado  id:' + ticket2.id + '  state:' + ticket2.state + '  (activo)', 'gen-log-ok');
+
+            // ── 6. Criar Service Problem ───────────────────────────────────
+            progress('A criar Service Problem — "Problema de Rede Backbone"…');
+            log('→ POST ' + PROBLEM_BASE + '  [impact: criticalSystemImpact]');
+            const problem = await localPost(PROBLEM_BASE, {
+                name:               'Problema de Rede Backbone — ' + targetName,
+                description:        'Falha no switch de core afecta múltiplos clientes. Root cause em análise.',
+                impact:             'criticalSystemImpact',
+                priority:           1,
+                category:           'networkFailure',
+                related_service_id: serviceId,
+                related_ticket_id:  ticket1.id
+            });
+            log('✓ Service Problem criado  id:' + problem.id + '  state:' + problem.state, 'gen-log-ok');
+
+            // ── 7. Avançar Problem para confirmed ─────────────────────────
+            progress('A avançar Problem para confirmed…');
+            log('→ PATCH ' + PROBLEM_BASE + '/' + problem.id + '  { state: "confirmed" }');
+            const problemC = await localPatch(PROBLEM_BASE + '/' + problem.id, { state: 'confirmed' });
+            log('✓ Problem → confirmed  state:' + problemC.state, 'gen-log-ok');
+
+            // ── Concluído ─────────────────────────────────────────────────
+            fill.style.width = '100%';
+            lbl.textContent  = 'Concluído!';
+            log('', '');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('✓ Dados de teste criados com sucesso:', 'gen-log-ok');
+            log('  Serviço:   ' + targetName + '  (state: active)', 'gen-log-ok');
+            log('  Ticket 1:  Falha de Conectividade' + sfx + '      → inProgress + nota', 'gen-log-ok');
+            log('  Ticket 2:  Degradação de Serviço' + sfx + '       → submitted (activo)', 'gen-log-ok');
+            log('  Problem:   Problema de Rede Backbone' + sfx + '   → confirmed', 'gen-log-ok');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'gen-log-info');
+            log('Navegue para Problems para ver os recursos criados.', 'gen-log-info');
+
+        } catch (err) {
+            fill.style.width = '100%';
+            lbl.textContent  = 'Erro';
+            log('✗ Erro: ' + err.message, 'gen-log-err');
+        } finally {
+            btn.disabled   = false;
+            btn.innerHTML  = '&#x1F680; Gerar Dados de Teste';
+        }
+    }
+</script>
 
 </body>
 </html>

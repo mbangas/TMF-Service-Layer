@@ -5,7 +5,7 @@
  * Import this module in every HTML page before domain-specific scripts.
  */
 
-const API_BASE_URL = (window.__API_BASE_URL__ || 'http://localhost:8000').replace(/\/$/, '');
+const API_BASE_URL = (window.__API_BASE_URL__ != null ? window.__API_BASE_URL__ : '').replace(/\/$/, '');
 
 /**
  * Core fetch wrapper.

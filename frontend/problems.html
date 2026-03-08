@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
     <title>Problem Management – TMF Service Layer</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
     <style>
         /* ── Tab navigation ── */
         .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
@@ -127,7 +129,7 @@
             <div class="section-header">
                 <h2 class="section-title">Trouble Tickets</h2>
                 <div style="display:flex;gap:var(--space-sm);align-items:center">
-                    <select id="ticket-filter-state" class="form-control" style="width:160px" onchange="loadTickets()">
+                    <select id="ticket-filter-state" class="form-control" style="width:160px" autocomplete="off" onchange="loadTickets()">
                         <option value="">All states</option>
                         <option value="submitted">submitted</option>
                         <option value="inProgress">inProgress</option>
@@ -135,7 +137,7 @@
                         <option value="resolved">resolved</option>
                         <option value="closed">closed</option>
                     </select>
-                    <select id="ticket-filter-severity" class="form-control" style="width:140px" onchange="loadTickets()">
+                    <select id="ticket-filter-severity" class="form-control" style="width:140px" autocomplete="off" onchange="loadTickets()">
                         <option value="">All severities</option>
                         <option value="critical">critical</option>
                         <option value="major">major</option>
@@ -170,7 +172,7 @@
             </div>
 
             <!-- Detail panel (shown when a ticket is expanded) -->
-            <div id="ticket-detail-panel" style="display:none" class="card" style="margin-top:var(--space-lg)">
+            <div id="ticket-detail-panel" style="display:none;margin-top:var(--space-lg)" class="card">
                 <div class="card__header">
                     <h3 class="card__title" id="ticket-detail-title">Ticket Detail</h3>
                     <button class="btn btn--ghost btn--sm" onclick="closeTicketDetail()">✕ Close</button>
@@ -186,7 +188,7 @@
             <div class="section-header">
                 <h2 class="section-title">Service Problems</h2>
                 <div style="display:flex;gap:var(--space-sm);align-items:center">
-                    <select id="problem-filter-state" class="form-control" style="width:160px" onchange="loadProblems()">
+                    <select id="problem-filter-state" class="form-control" style="width:160px" autocomplete="off" onchange="loadProblems()">
                         <option value="">All states</option>
                         <option value="submitted">submitted</option>
                         <option value="confirmed">confirmed</option>
@@ -195,7 +197,7 @@
                         <option value="resolved">resolved</option>
                         <option value="closed">closed</option>
                     </select>
-                    <select id="problem-filter-impact" class="form-control" style="width:200px" onchange="loadProblems()">
+                    <select id="problem-filter-impact" class="form-control" style="width:200px" autocomplete="off" onchange="loadProblems()">
                         <option value="">All impacts</option>
                         <option value="criticalSystemImpact">criticalSystemImpact</option>
                         <option value="serviceImpact">serviceImpact</option>
@@ -448,7 +450,7 @@
     </div>
 </div>
 
-<script src="js/api-client.js"></script>
+<script src="js/api-client.js?v=2"></script>
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const TICKET_BASE = '/tmf-api/troubleTicketManagement/v4/troubleTicket';
@@ -465,8 +467,8 @@ function switchTab(name, btn) {
 }
 
 // ── Modal helpers ─────────────────────────────────────────────────────────────
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // ── Badges ────────────────────────────────────────────────────────────────────
 function stateBadge(state) {
@@ -782,7 +784,22 @@ async function deleteProblem(problemId) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-loadTickets();
+document.addEventListener('DOMContentLoaded', function () {
+    // Reset filters (prevent browser from restoring stale selections)
+    document.getElementById('ticket-filter-state').value    = '';
+    document.getElementById('ticket-filter-severity').value = '';
+    document.getElementById('problem-filter-state').value   = '';
+    document.getElementById('problem-filter-impact').value  = '';
+    loadTickets();
+});
+// Fallback: also call immediately in case DOMContentLoaded already fired
+if (document.readyState !== 'loading') {
+    document.getElementById('ticket-filter-state').value    = '';
+    document.getElementById('ticket-filter-severity').value = '';
+    document.getElementById('problem-filter-state').value   = '';
+    document.getElementById('problem-filter-impact').value  = '';
+    loadTickets();
+}
 
 // Pre-fill alarm ID from URL param (e.g. ?alarm_id=xxx from assurance.html shortcut)
 (function() {
