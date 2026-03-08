@@ -32,8 +32,8 @@ def upgrade() -> None:
         sa.Column("raised_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("acknowledged_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("cleared_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(["service_id"], ["service.id"], ondelete="RESTRICT"),
     )
 
@@ -52,8 +52,8 @@ def upgrade() -> None:
         sa.Column("service_id", sa.String(36), nullable=False, index=True),
         sa.Column("scheduled_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(["service_id"], ["service.id"], ondelete="RESTRICT"),
     )
 
@@ -71,8 +71,8 @@ def upgrade() -> None:
         sa.Column("tolerance", sa.Float, nullable=True),
         sa.Column("service_id", sa.String(36), nullable=False, index=True),
         sa.Column("sls_id", sa.String(36), nullable=True, index=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(["service_id"], ["service.id"], ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(
             ["sls_id"], ["service_level_specification.id"], ondelete="RESTRICT"
