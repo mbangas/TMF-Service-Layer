@@ -452,11 +452,12 @@ class ServiceLevelObjectiveService:
 
     async def check_violations(
         self, service_id: str, metric_name: str, metric_value: float
-    ) -> None:
+    ) -> tuple[list[ServiceLevelObjectiveResponse], list[ServiceLevelObjectiveResponse]]:
         """Evaluate active SLOs for threshold breaches and flip them to ``violated``.
 
         Called automatically by ``PerformanceMeasurementService.patch_measurement``
-        whenever a measurement transitions to ``completed``.
+        whenever a measurement transitions to ``completed``, and also exposed
+        directly via ``POST /serviceLevel/check_violations``.
 
         For each active SLO matching ``service_id`` and ``metric_name``:
         - ``direction == 'above'`` → violated if ``metric_value > threshold_value``
@@ -468,11 +469,18 @@ class ServiceLevelObjectiveService:
             service_id: The service instance UUID from the completed measurement.
             metric_name: The metric identifier from the completed measurement.
             metric_value: The measured value to evaluate against thresholds.
+
+        Returns:
+            Tuple of (all_evaluated_responses, newly_violated_responses).
         """
         active_slos = await self._repo.get_active_by_service_and_metric(service_id, metric_name)
 
+        all_responses: list[ServiceLevelObjectiveResponse] = []
+        violated_responses: list[ServiceLevelObjectiveResponse] = []
+
         for slo in active_slos:
             if slo.threshold_value is None or slo.direction is None:
+                all_responses.append(ServiceLevelObjectiveResponse.model_validate(slo))
                 continue
 
             breached = (
@@ -500,6 +508,11 @@ class ServiceLevelObjectiveService:
                         event=EventPayload(resource=response),
                     )
                 )
+                violated_responses.append(response)
+            else:
+                all_responses.append(ServiceLevelObjectiveResponse.model_validate(slo))
+
+        return all_responses + violated_responses, violated_responses
 
 
 # ── PerformanceMeasurementService ─────────────────────────────────────────────

@@ -195,3 +195,21 @@ class ServiceLevelObjectiveResponse(BaseEntity):
     sls_id: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+# ── Check-violations request/response ─────────────────────────────────────────
+
+class CheckViolationsRequest(BaseModel):
+    """Request body for POST /serviceLevel/check_violations."""
+
+    service_id: str = Field(..., description="UUID of the Service instance to evaluate")
+    metric_name: str = Field(..., min_length=1, max_length=255, description="Metric identifier to evaluate")
+    metric_value: float = Field(..., description="Current measured value to compare against SLO thresholds")
+
+
+class CheckViolationsResponse(BaseModel):
+    """Response body for POST /serviceLevel/check_violations."""
+
+    evaluated: int = Field(..., description="Number of active SLOs evaluated")
+    violated: int = Field(..., description="Number of SLOs that transitioned to violated")
+    slos: list[ServiceLevelObjectiveResponse] = Field(..., description="Updated state of all evaluated SLOs")

@@ -31,6 +31,8 @@ from src.assurance.models.schemas import (
     AlarmCreate,
     AlarmPatch,
     AlarmResponse,
+    CheckViolationsRequest,
+    CheckViolationsResponse,
     PerformanceMeasurementCreate,
     PerformanceMeasurementPatch,
     PerformanceMeasurementResponse,
@@ -371,6 +373,34 @@ async def delete_slo(
 ) -> None:
     """Delete a ``suspended`` ServiceLevelObjective (TMF657 §6.1.2)."""
     await svc.delete_slo(slo_id)
+
+
+@slo_router.post(
+    "/check_violations",
+    response_model=CheckViolationsResponse,
+    summary="Check SLO Violations",
+    status_code=status.HTTP_200_OK,
+)
+async def check_violations(
+    data: CheckViolationsRequest,
+    svc: ServiceLevelObjectiveService = Depends(_get_slo_service),
+    _current_user: CurrentUser = Depends(get_current_user),
+) -> CheckViolationsResponse:
+    """Evaluate active SLOs against a reported metric value and flip violating ones to ``violated``.
+
+    Call this endpoint whenever a new measurement value is available and you want to
+    detect threshold breaches without creating a formal PerformanceMeasurement record.
+    ``PerformanceMeasurementService.patch_measurement`` calls this automatically when
+    transitioning a measurement to ``completed``.
+    """
+    all_slos, violated_slos = await svc.check_violations(
+        data.service_id, data.metric_name, data.metric_value
+    )
+    return CheckViolationsResponse(
+        evaluated=len(all_slos),
+        violated=len(violated_slos),
+        slos=all_slos,
+    )
 
 
 # ── Aggregate router ───────────────────────────────────────────────────────────
