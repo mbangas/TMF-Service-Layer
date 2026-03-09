@@ -1,10 +1,112 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — TMF Service Layer</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        /* ── BPM section ── */
+        .bpm-section-title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--colour-text);
+            margin-bottom: var(--space-xs);
+        }
+        .bpm-section-lead {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            line-height: 1.8;
+            margin-bottom: var(--space-xl);
+        }
+        .bpm-card {
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+        .bpm-card__header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-xl);
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .bpm-card__header--catalog {
+            background: rgba(79,126,248,0.10);
+            border-bottom-color: rgba(79,126,248,0.30);
+        }
+        .bpm-card__header--order {
+            background: rgba(52,211,153,0.08);
+            border-bottom-color: rgba(52,211,153,0.28);
+        }
+        .bpm-card__icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .bpm-card__title {
+            font-size: var(--font-size-md);
+            font-weight: 700;
+        }
+        .bpm-card__title--catalog { color: var(--colour-primary); }
+        .bpm-card__title--order   { color: var(--colour-success); }
+        .bpm-card__badge {
+            margin-left: auto;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            background: rgba(255,255,255,0.05);
+            color: var(--colour-text-muted);
+            border: 1px solid var(--colour-border);
+            white-space: nowrap;
+        }
+        .bpm-card__body {
+            padding: var(--space-xl);
+        }
+        .bpm-card__lead {
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+            line-height: 1.75;
+            margin-bottom: var(--space-lg);
+        }
+        /* ── Diagram wrapper ── */
+        .diagram-wrapper {
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl) var(--space-md);
+            overflow-x: auto;
+        }
+        .diagram-wrapper figcaption {
+            text-align: center;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+            margin-top: var(--space-md);
+        }
+        /* ── Participants legend ── */
+        .bpm-actors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+            margin-top: var(--space-lg);
+        }
+        .bpm-actor {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .bpm-actor--human   { background: rgba(251,191,36,0.10); color: #fbbf24; border-color: rgba(251,191,36,0.30); }
+        .bpm-actor--system  { background: rgba(79,126,248,0.10); color: var(--colour-primary); border-color: rgba(79,126,248,0.30); }
+        .bpm-actor--infra   { background: rgba(107,114,128,0.15); color: #9ca3af; border-color: rgba(107,114,128,0.30); }
+    </style>
 </head>
 <body>
 
@@ -209,9 +311,198 @@
                 </div>
             </div>
 
+            <!-- ── BPM: Processos de Negócio ─────────────────────────────────── -->
+            <div style="margin-top:var(--space-2xl)">
+
+                <div style="margin-bottom:var(--space-xl)">
+                    <div class="bpm-section-title">📐 Processos de Negócio</div>
+                    <p class="bpm-section-lead">
+                        Os diagramas seguintes ilustram os dois fluxos principais da plataforma:
+                        a criação de um serviço no Catálogo e a subscrição (encomenda) desse serviço por um cliente.
+                        Cada passo identifica o interveniente responsável e o menu da aplicação a utilizar.
+                    </p>
+                </div>
+
+                <!-- ── BPM 1 · Criação de Serviço no Catálogo ── -->
+                <div class="bpm-card">
+                    <div class="bpm-card__header bpm-card__header--catalog">
+                        <span class="bpm-card__icon">📋</span>
+                        <div>
+                            <div class="bpm-card__title bpm-card__title--catalog">Processo 1 — Criação de Serviço no Catálogo</div>
+                        </div>
+                        <span class="bpm-card__badge">TMF633 · Menu: Catalog</span>
+                    </div>
+                    <div class="bpm-card__body">
+                        <p class="bpm-card__lead">
+                            O Product Manager define e publica um novo serviço no catálogo, tornando-o disponível
+                            para ser encomendado. O processo envolve a criação da especificação, das características,
+                            do candidato e da categoria, terminando com a publicação no catálogo.
+                        </p>
+
+                        <div class="diagram-wrapper">
+                            <pre class="mermaid">
+sequenceDiagram
+    actor PM as 👤 Product Manager
+    participant CAT as 📋 Catalog<br/>(Menu: Catalog → TMF633)
+    participant DB as 🗄️ Sistema
+
+    PM->>CAT: 1 · Acede ao menu Catalog
+    activate CAT
+
+    PM->>CAT: 2 · Cria Service Specification<br/>Define nome, descrição e tipo (Atomic / Bundle)
+    CAT-->>PM: Specification criada (status: active)
+
+    PM->>CAT: 3 · Adiciona Características<br/>Define atributos, tipos e valores por defeito
+    CAT-->>PM: Características associadas
+
+    PM->>CAT: 4 · Cria Service Candidate<br/>Liga a Specification ao candidato de serviço
+    CAT-->>PM: Candidate criado
+
+    PM->>CAT: 5 · Cria / associa Service Category<br/>Organiza o serviço na hierarquia do catálogo
+    CAT-->>PM: Category atualizada
+
+    PM->>CAT: 6 · Ativa o serviço<br/>Define status como "published"
+    CAT->>DB: Persiste serviço publicado
+    deactivate CAT
+
+    DB-->>PM: ✅ Serviço disponível para encomendas
+                            </pre>
+                            <figcaption>Fluxo de criação de um serviço no módulo Catalog (TMF633). Menu de acesso: <strong>📋 Catalog</strong></figcaption>
+                        </div>
+
+                        <!-- Intervenientes -->
+                        <div class="bpm-actors">
+                            <span class="bpm-actor bpm-actor--human">👤 Product Manager — define o serviço</span>
+                            <span class="bpm-actor bpm-actor--system">📋 Catalog (TMF633) — gestão do catálogo</span>
+                            <span class="bpm-actor bpm-actor--infra">🗄️ Sistema — persistência</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── BPM 2 · Subscrição de um Serviço ── -->
+                <div class="bpm-card">
+                    <div class="bpm-card__header bpm-card__header--order">
+                        <span class="bpm-card__icon">📦</span>
+                        <div>
+                            <div class="bpm-card__title bpm-card__title--order">Processo 2 — Subscrição de um Serviço (Encomenda)</div>
+                        </div>
+                        <span class="bpm-card__badge">TMF641 · Menu: Orders</span>
+                    </div>
+                    <div class="bpm-card__body">
+                        <p class="bpm-card__lead">
+                            O Order Manager (ou cliente) subscreve um serviço existente no catálogo. O processo
+                            passa pela qualificação opcional, criação da ordem de serviço, ativação no sistema de
+                            provisionamento, registo no inventário e ativação da monitorização.
+                        </p>
+
+                        <div class="diagram-wrapper">
+                            <pre class="mermaid">
+sequenceDiagram
+    actor OM as 👥 Order Manager
+    participant QUAL as ✅ Qualification<br/>(Menu: Qualification · TMF645)
+    participant ORD as 📦 Orders<br/>(Menu: Orders · TMF641)
+    participant PROV as ⚙️ Provisioning<br/>(Menu: Provisioning · TMF640)
+    participant INV as 🗄️ Inventory<br/>(Menu: Inventory · TMF638)
+    participant ASS as 📊 Assurance<br/>(Menu: Assurance · TMF628)
+
+    OM->>QUAL: 1 · (Opcional) Verificar elegibilidade<br/>Submete pedido de qualificação
+    activate QUAL
+    QUAL-->>OM: Serviço elegível para a localização / cliente
+    deactivate QUAL
+
+    OM->>ORD: 2 · Cria Service Order<br/>Seleciona serviço do Catálogo + parâmetros
+    activate ORD
+    ORD-->>OM: Order recebida (status: acknowledged)
+
+    ORD->>ORD: 3 · Valida e processa a Order<br/>acknowledged → inProgress
+
+    ORD->>PROV: 4 · Desencadeia Ativação<br/>Envia tarefa de provisionamento
+    deactivate ORD
+    activate PROV
+    PROV-->>PROV: Configura serviço nos sistemas de rede
+
+    PROV->>INV: 5 · Cria Service Instance<br/>Regista instância ativa no Inventário
+    activate INV
+    INV-->>PROV: Instância registada
+    deactivate INV
+
+    PROV-->>ORD: Order completed
+    deactivate PROV
+
+    INV->>ASS: 6 · Ativa Monitorização<br/>Performance, alarmes e SLA tracking
+    activate ASS
+    ASS-->>OM: ✅ Serviço ativo e monitorizado
+    deactivate ASS
+                            </pre>
+                            <figcaption>Fluxo de subscrição de um serviço, da qualificação à monitorização. Menus envolvidos: <strong>✅ Qualification → 📦 Orders → ⚙️ Provisioning → 🗄️ Inventory → 📊 Assurance</strong></figcaption>
+                        </div>
+
+                        <!-- Intervenientes -->
+                        <div class="bpm-actors">
+                            <span class="bpm-actor bpm-actor--human">👥 Order Manager — inicia o processo</span>
+                            <span class="bpm-actor bpm-actor--system">✅ Qualification (TMF645) — elegibilidade</span>
+                            <span class="bpm-actor bpm-actor--system">📦 Orders (TMF641) — gestão da ordem</span>
+                            <span class="bpm-actor bpm-actor--system">⚙️ Provisioning (TMF640) — ativação</span>
+                            <span class="bpm-actor bpm-actor--infra">🗄️ Inventory (TMF638) — registo da instância</span>
+                            <span class="bpm-actor bpm-actor--infra">📊 Assurance (TMF628) — monitorização</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- ── /BPM ── -->
+
         </div>
     </main>
 </div>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+            background:           '#0f1117',
+            primaryColor:         '#1a1d27',
+            primaryTextColor:     '#e2e8f0',
+            primaryBorderColor:   '#2d3249',
+            lineColor:            '#4f7ef8',
+            secondaryColor:       '#21253a',
+            tertiaryColor:        '#21253a',
+            edgeLabelBackground:  '#1a1d27',
+            noteBkgColor:         '#21253a',
+            noteTextColor:        '#94a3b8',
+            noteBorderColor:      '#2d3249',
+            activationBorderColor:'#4f7ef8',
+            activationBkgColor:   'rgba(79,126,248,0.15)',
+            actorBkg:             '#21253a',
+            actorBorder:          '#4f7ef8',
+            actorTextColor:       '#e2e8f0',
+            actorLineColor:       '#4f7ef8',
+            signalColor:          '#94a3b8',
+            signalTextColor:      '#e2e8f0',
+            labelBoxBkgColor:     '#21253a',
+            labelBoxBorderColor:  '#2d3249',
+            labelTextColor:       '#e2e8f0',
+            loopTextColor:        '#94a3b8',
+            sequenceNumberColor:  '#4f7ef8'
+        },
+        sequence: {
+            diagramMarginX:    20,
+            diagramMarginY:    20,
+            actorMargin:       60,
+            width:             180,
+            height:            54,
+            boxMargin:         12,
+            boxTextMargin:     6,
+            noteMargin:        14,
+            messageMargin:     40,
+            mirrorActors:      true,
+            useMaxWidth:       true,
+            rightAngles:       false,
+            showSequenceNumbers: true
+        }
+    });
+</script>
 
 </body>
 </html>
