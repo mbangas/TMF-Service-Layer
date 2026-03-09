@@ -58,6 +58,73 @@
 
         .badge--root  { background: rgba(52,211,153,0.15); color: var(--colour-success); }
         .badge--child { background: rgba(96,165,250,0.15); color: var(--colour-info); }
+
+        /* ── Service Profile Tab ── */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        .profile-header-meta {
+            display: flex;
+            gap: var(--space-lg);
+            padding: var(--space-sm) var(--space-md);
+            flex-wrap: wrap;
+            font-size: var(--font-size-sm);
+        }
+        .profile-header-meta strong { color: var(--colour-text-muted); font-weight: 500; }
+        .profile-candidate-block {
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--colour-border);
+        }
+        .profile-candidate-block:last-child { border-bottom: none; }
+        .profile-candidate-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-xs);
+            flex-wrap: wrap;
+        }
+        .profile-cat-row {
+            padding-left: var(--space-md);
+            margin-top: var(--space-xs);
+            font-size: var(--font-size-sm);
+        }
+        .profile-catalog-label {
+            color: var(--colour-text-muted);
+            font-size: var(--font-size-xs);
+            margin-bottom: 2px;
+        }
+        .profile-cat-breadcrumb { line-height: 1.6; }
+        .profile-no-cats {
+            padding-left: var(--space-md);
+            font-size: var(--font-size-sm);
+            color: var(--colour-text-muted);
+        }
+        .profile-chars-toggle-header {
+            cursor: pointer;
+            user-select: none;
+            justify-content: space-between;
+        }
+        .profile-chars-toggle-header:hover { background: var(--colour-surface-hover, rgba(0,0,0,.03)); }
+
+        #profile-dep-graph-container {
+            width: 100%;
+            height: 420px;
+            border-radius: 0 0 var(--border-radius, 6px) var(--border-radius, 6px);
+            background: var(--colour-bg, #0f1117);
+        }
+        .dep-graph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            border-top: 1px solid var(--colour-border);
+            font-size: var(--font-size-xs);
+        }
+        .dep-graph-legend__item { display: flex; align-items: center; gap: 6px; }
+        .dep-graph-legend__dot  { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -136,6 +203,7 @@
             <button class="tab-btn" data-tab="candidates">&#x1F517; Candidates</button>
             <button class="tab-btn" data-tab="characteristics">&#x1F9E9; Characteristics</button>
             <button class="tab-btn" data-tab="dependencies">&#x1F517; Spec Dependencies</button>
+            <button class="tab-btn" data-tab="profile">&#x1F50D; Service Profile</button>
         </div>
 
         <!-- Page body -->
@@ -325,6 +393,77 @@
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <!-- Service Profile tab -->
+            <div id="tab-profile" class="tab-panel">
+                <div class="section-header">
+                    <span class="text-muted text-sm">Visão completa de uma especificação: posicionamento no catálogo, dependências e características.</span>
+                    <div class="section-header__filters">
+                        <select id="profile-spec-select" class="form-control" style="width:320px">
+                            <option value="">— Select a Specification —</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- empty state -->
+                <div id="profile-empty" class="card">
+                    <div class="empty-state">
+                        <div class="empty-state__icon">&#x1F50D;</div>
+                        <div class="empty-state__title">Select a Service Specification</div>
+                        <div class="empty-state__desc">Choose a specification from the list above to see its full profile: category positioning within the catalog hierarchy, spec relationships (dependencies), and all defined characteristics.</div>
+                    </div>
+                </div>
+
+                <!-- profile content (shown after selection) -->
+                <div id="profile-content" style="display:none">
+
+                    <!-- Spec header card -->
+                    <div class="card" style="margin-bottom:var(--space-md)">
+                        <div class="card__header" style="justify-content:space-between">
+                            <span class="card__title" id="profile-spec-name">—</span>
+                            <span id="profile-spec-status"></span>
+                        </div>
+                        <div class="profile-header-meta">
+                            <span><strong>Version:</strong> <span id="profile-spec-version">—</span></span>
+                            <span><strong>Bundle:</strong> <span id="profile-spec-bundle">—</span></span>
+                            <span><strong>Last Update:</strong> <span id="profile-spec-updated">—</span></span>
+                            <span title="Specification ID"><strong>ID:</strong> <code class="id-cell" id="profile-spec-id">—</code></span>
+                        </div>
+                        <div id="profile-spec-desc" style="display:none;padding:0 var(--space-md) var(--space-sm);color:var(--colour-text-muted);font-size:var(--font-size-sm)"></div>
+                    </div>
+
+                    <!-- Category positioning + Relationships (2-col grid) -->
+                    <div class="profile-grid">
+                        <div class="card">
+                            <div class="card__header"><span class="card__title">&#x1F4C2; Category Positioning</span></div>
+                            <div id="profile-categories-body" style="padding:var(--space-md)"><div class="loader"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card__header"><span class="card__title">&#x1F517; Spec Relationships</span></div>
+                            <div id="profile-deps-body" style="padding:var(--space-md)"><div class="loader"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Dependency Graph card -->
+                    <div class="card" id="profile-graph-card" style="display:none;margin-bottom:var(--space-md)">
+                        <div class="card__header"><span class="card__title">&#x1F578; Dependency Graph</span></div>
+                        <div id="profile-dep-graph-container"></div>
+                        <div class="dep-graph-legend" id="profile-graph-legend"></div>
+                    </div>
+
+                    <!-- Characteristics accordion -->
+                    <div class="card">
+                        <div class="card__header profile-chars-toggle-header" id="profile-chars-toggle">
+                            <span class="card__title">&#x1F9E9; Characteristics</span>
+                            <span id="profile-chars-chevron" style="font-size:var(--font-size-xs);transition:transform 0.2s ease;color:var(--colour-text-muted)">&#9660; Click to expand</span>
+                        </div>
+                        <div id="profile-chars-body" style="display:none">
+                            <div id="profile-chars-inner" style="padding:var(--space-md)"><div class="loader"></div></div>
+                        </div>
+                    </div>
+
+                </div><!-- /profile-content -->
             </div>
 
         </div><!-- /page-body -->
@@ -757,6 +896,7 @@
 <!-- ── Toast container ────────────────────────────────────────────────────── -->
 <div id="toast-container" class="toast-container"></div>
 
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
 <script src="js/api-client.js?v=7"></script>
 <script>
 // ══ SHARED ════════════════════════════════════════════════════════════════════
@@ -790,7 +930,7 @@ function updatePager(totalEl, pageInfoEl, btnPrev, btnNext, offset, data, total)
 // ══ TABS ══════════════════════════════════════════════════════════════════════
 const tabBtns   = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
-const loaded    = { specs:false, catalogs:false, categories:false, candidates:false, characteristics:false, dependencies:false };
+const loaded    = { specs:false, catalogs:false, categories:false, candidates:false, characteristics:false, dependencies:false, profile:false };
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -804,6 +944,7 @@ tabBtns.forEach(btn => {
             if (tab === 'candidates')      loadCandidates();
             if (tab === 'characteristics') initCharacteristicsTab();
             if (tab === 'dependencies')    initDependenciesTab();
+            if (tab === 'profile')         initProfileTab();
         }
     });
 });
@@ -1562,6 +1703,312 @@ document.getElementById('dep-delete-confirm').addEventListener('click', async fu
         closeDepDelete(); await loadDependencies();
     } catch(err){showToast(err.message,'error');}finally{this.disabled=false;}
 });
+
+// ══ SERVICE PROFILE ══════════════════════════════════════════════════════════
+const profileState   = { specId: null, charsLoaded: false, charsOpen: false };
+const profileSpecSel = document.getElementById('profile-spec-select');
+
+async function initProfileTab() {
+    if (loaded.profile) return;
+    try {
+        const {data} = await CatalogClient.list({limit:100});
+        loaded.profile = true;
+        profileSpecSel.innerHTML = '<option value="">— Select a Specification —</option>' +
+            data.map(s=>`<option value="${escHtml(s.id)}">${escHtml(s.name)} (${escHtml(s.version||'1.0')})</option>`).join('');
+        if (!data.length) profileSpecSel.innerHTML += '<option disabled>— No specifications found —</option>';
+    } catch(err) { showToast('Could not load specifications: '+err.message,'error'); }
+}
+
+profileSpecSel.addEventListener('change', async () => {
+    const id = profileSpecSel.value;
+    profileState.specId      = id || null;
+    profileState.charsLoaded = false;
+    profileState.charsOpen   = false;
+    document.getElementById('profile-chars-chevron').style.transform = '';
+    document.getElementById('profile-chars-chevron').textContent     = '▼ Click to expand';
+    document.getElementById('profile-chars-body').style.display      = 'none';
+
+    if (!id) {
+        document.getElementById('profile-empty').style.display   = '';
+        document.getElementById('profile-content').style.display = 'none';
+        return;
+    }
+    document.getElementById('profile-empty').style.display   = 'none';
+    document.getElementById('profile-content').style.display = '';
+    document.getElementById('profile-categories-body').innerHTML = '<div class="loader"></div>';
+    document.getElementById('profile-deps-body').innerHTML       = '<div class="loader"></div>';
+    document.getElementById('profile-chars-inner').innerHTML     = '<div class="loader"></div>';
+
+    try {
+        const [specRes, candRes, relRes] = await Promise.all([
+            CatalogClient.get(id),
+            CandidateClient.list({limit:100}),
+            SpecRelationshipClient.listBySpec(id),
+        ]);
+        const spec          = specRes.data;
+        const allCandidates = candRes.data;
+        const relationships = relRes.data;
+
+        // Populate spec header
+        document.getElementById('profile-spec-name').textContent    = spec.name || '—';
+        document.getElementById('profile-spec-status').innerHTML    = statusBadge(spec.lifecycle_status);
+        document.getElementById('profile-spec-version').textContent = spec.version || '—';
+        document.getElementById('profile-spec-bundle').innerHTML    = spec.is_bundle
+            ? '<span class="badge badge--info">Bundle</span>'
+            : '<span class="text-muted">No</span>';
+        document.getElementById('profile-spec-id').textContent      = spec.id;
+        document.getElementById('profile-spec-updated').textContent = fmtDate(spec.last_update || spec.updated_at);
+        const descEl = document.getElementById('profile-spec-desc');
+        descEl.textContent   = spec.description || '';
+        descEl.style.display = spec.description ? '' : 'none';
+
+        renderProfileDependencies(relationships);
+        await renderProfileCategories(id, allCandidates);
+    } catch(err) {
+        showToast(err.message, 'error');
+        document.getElementById('profile-categories-body').innerHTML = `<p style="color:var(--colour-danger)">${escHtml(err.message)}</p>`;
+        document.getElementById('profile-deps-body').innerHTML       = `<p style="color:var(--colour-danger)">${escHtml(err.message)}</p>`;
+    }
+});
+
+async function renderProfileCategories(specId, allCandidates) {
+    const catBody = document.getElementById('profile-categories-body');
+    const relatedCandidates = allCandidates.filter(c =>
+        c.service_specification && c.service_specification.id === specId
+    );
+    if (!relatedCandidates.length) {
+        catBody.innerHTML = '<p class="text-muted text-sm">Not linked to any Service Candidate. Use the <em>Candidates</em> tab to publish this specification to a category.</p>';
+        return;
+    }
+
+    let allCategories = [], allCatalogs = [];
+    try {
+        const [catRes, catalogRes] = await Promise.all([
+            CategoryClient.list({limit:200}),
+            ServiceCatalogClient.list({limit:100}),
+        ]);
+        allCategories = catRes.data;
+        allCatalogs   = catalogRes.data;
+    } catch { /* degrade gracefully */ }
+
+    const catMap = Object.fromEntries(allCategories.map(c => [c.id, c]));
+
+    // Map: categoryId → catalog names that contain it
+    const catToCatalogs = {};
+    for (const catalog of allCatalogs) {
+        for (const cat of (catalog.categories || [])) {
+            if (!catToCatalogs[cat.id]) catToCatalogs[cat.id] = [];
+            catToCatalogs[cat.id].push(catalog.name);
+        }
+    }
+
+    function buildBreadcrumb(catId) {
+        const parts = [];
+        let current = catMap[catId];
+        let depth   = 0;
+        while (current && depth < 10) {
+            parts.unshift(current.name || current.id);
+            current = current.parent_id ? catMap[current.parent_id] : null;
+            depth++;
+        }
+        return parts;
+    }
+
+    let html = '';
+    for (const cand of relatedCandidates) {
+        const cats = cand.categories || [];
+        html += `<div class="profile-candidate-block">
+            <div class="profile-candidate-title">
+                <span class="badge badge--info">Candidate</span>
+                <strong>${escHtml(cand.name)}</strong>
+                ${statusBadge(cand.lifecycle_status)}
+            </div>`;
+        if (!cats.length) {
+            html += `<div class="profile-no-cats">No categories assigned to this candidate.</div>`;
+        } else {
+            for (const cat of cats) {
+                const crumbs       = buildBreadcrumb(cat.id);
+                const catalogNames = catToCatalogs[cat.id] || [];
+                html += `<div class="profile-cat-row">`;
+                if (catalogNames.length) {
+                    html += `<div class="profile-catalog-label">&#x1F5C2; ${escHtml(catalogNames.join(', '))}</div>`;
+                }
+                html += `<div class="profile-cat-breadcrumb">&#x1F4C2; ${crumbs.map(c=>`<span>${escHtml(c)}</span>`).join(' <span class="text-muted">&rsaquo;</span> ')}</div>
+                </div>`;
+            }
+        }
+        html += `</div>`;
+    }
+    catBody.innerHTML = html;
+}
+
+// Colour palette for relationship types
+const REL_COLOURS = {
+    dependency:     '#60a5fa',
+    isContainedIn:  '#34d399',
+    isReplacedBy:   '#f87171',
+    hasPart:        '#fbbf24',
+    _default:       '#a78bfa',
+};
+function relColour(type) { return REL_COLOURS[type] || REL_COLOURS._default; }
+
+let _depNetwork = null;
+
+function renderProfileDependencies(relationships) {
+    const depsBody   = document.getElementById('profile-deps-body');
+    const graphCard  = document.getElementById('profile-graph-card');
+    const graphEl    = document.getElementById('profile-dep-graph-container');
+    const legendEl   = document.getElementById('profile-graph-legend');
+
+    // Destroy previous network instance
+    if (_depNetwork) { _depNetwork.destroy(); _depNetwork = null; }
+
+    if (!relationships.length) {
+        depsBody.innerHTML = '<p class="text-muted text-sm">No relationships defined for this specification.</p>';
+        graphCard.style.display = 'none';
+        return;
+    }
+
+    // ── Table ─────────────────────────────────────────────────────────────────
+    depsBody.innerHTML = `<div class="table-wrapper">
+        <table><thead><tr>
+            <th>Type</th><th>Related Specification</th>
+        </tr></thead><tbody>
+        ${relationships.map(r=>`<tr>
+            <td><span class="badge badge--info">${escHtml(r.relationship_type)}</span></td>
+            <td class="name-cell">${escHtml(r.related_spec_name || r.related_spec_id)}</td>
+        </tr>`).join('')}
+        </tbody></table></div>`;
+
+    // ── Graph ─────────────────────────────────────────────────────────────────
+    const currentSpecName = document.getElementById('profile-spec-name').textContent || profileState.specId;
+    const currentSpecId   = profileState.specId;
+
+    const nodeSet  = new Map();
+    const edges    = [];
+
+    // Central node
+    nodeSet.set(currentSpecId, {
+        id:    currentSpecId,
+        label: wrapLabel(currentSpecName),
+        shape: 'ellipse',
+        color: { background: '#3b82f6', border: '#93c5fd', highlight: { background: '#2563eb', border: '#bfdbfe' } },
+        font:  { color: '#ffffff', size: 13, bold: true },
+        size:  28,
+    });
+
+    relationships.forEach((r, i) => {
+        const relId   = r.related_spec_id;
+        const relName = r.related_spec_name || relId;
+        const colour  = relColour(r.relationship_type);
+        if (!nodeSet.has(relId)) {
+            nodeSet.set(relId, {
+                id:    relId,
+                label: wrapLabel(relName),
+                shape: 'box',
+                color: { background: '#1e293b', border: colour, highlight: { background: '#0f172a', border: colour } },
+                font:  { color: '#e2e8f0', size: 12 },
+                borderWidth: 2,
+            });
+        }
+        edges.push({
+            id:     i,
+            from:   currentSpecId,
+            to:     relId,
+            label:  r.relationship_type,
+            color:  { color: colour, highlight: colour, hover: colour },
+            font:   { color: colour, size: 11, align: 'middle', strokeWidth: 2, strokeColor: '#0f172a' },
+            arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+            smooth: { type: 'curvedCW', roundness: relationships.length > 1 ? 0.15 + i * 0.05 : 0 },
+            width:  2,
+            dashes: r.relationship_type === 'dependency',
+        });
+    });
+
+    const data = {
+        nodes: new vis.DataSet([...nodeSet.values()]),
+        edges: new vis.DataSet(edges),
+    };
+    const options = {
+        layout:  { improvedLayout: true },
+        physics: {
+            enabled: true,
+            solver: 'forceAtlas2Based',
+            forceAtlas2Based: { gravitationalConstant: -60, springLength: 140, springConstant: 0.08 },
+            stabilization: { iterations: 150 },
+        },
+        interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true },
+    };
+
+    graphCard.style.display = '';
+    _depNetwork = new vis.Network(graphEl, data, options);
+    _depNetwork.once('stabilizationIterationsDone', () => _depNetwork.setOptions({ physics: { enabled: false } }));
+
+    // ── Legend ────────────────────────────────────────────────────────────────
+    const usedTypes = [...new Set(relationships.map(r => r.relationship_type))];
+    legendEl.innerHTML = usedTypes.map(t =>
+        `<div class="dep-graph-legend__item">
+            <div class="dep-graph-legend__dot" style="background:${relColour(t)}"></div>
+            <span>${escHtml(t)}</span>
+        </div>`
+    ).join('');
+}
+
+function wrapLabel(text, maxLen = 20) {
+    if (!text || text.length <= maxLen) return text;
+    const words = text.split(' ');
+    const lines = [];
+    let line    = '';
+    for (const w of words) {
+        if ((line + ' ' + w).trim().length > maxLen) { lines.push(line.trim()); line = w; }
+        else line = (line + ' ' + w).trim();
+    }
+    if (line) lines.push(line);
+    return lines.join('\n');
+}
+
+// Characteristics accordion
+document.getElementById('profile-chars-toggle').addEventListener('click', async () => {
+    profileState.charsOpen = !profileState.charsOpen;
+    document.getElementById('profile-chars-body').style.display      = profileState.charsOpen ? '' : 'none';
+    const chevron = document.getElementById('profile-chars-chevron');
+    chevron.style.transform = profileState.charsOpen ? 'rotate(180deg)' : '';
+    chevron.textContent     = profileState.charsOpen ? '▲ Click to collapse' : '▼ Click to expand';
+    if (profileState.charsOpen && !profileState.charsLoaded && profileState.specId) {
+        await loadProfileCharacteristics();
+    }
+});
+
+async function loadProfileCharacteristics() {
+    if (!profileState.specId) return;
+    const inner = document.getElementById('profile-chars-inner');
+    inner.innerHTML = '<div class="loader"></div>';
+    try {
+        const {data} = await CharacteristicSpecClient.listBySpec(profileState.specId, {limit:100});
+        profileState.charsLoaded = true;
+        if (!data.length) {
+            inner.innerHTML = '<p class="text-muted text-sm" style="padding:var(--space-sm)">No characteristics defined for this specification.</p>';
+            return;
+        }
+        inner.innerHTML = `<div class="table-wrapper"><table><thead><tr>
+            <th>Name</th><th>Type</th><th>Unique</th><th>Cardinality</th><th>Extensible</th><th>Allowed Values</th><th>Description</th>
+        </tr></thead><tbody>
+        ${data.map(c=>`<tr>
+            <td class="name-cell">${escHtml(c.name)}</td>
+            <td><code>${escHtml(c.value_type||'—')}</code></td>
+            <td>${c.is_unique?'<span class="badge badge--success">Yes</span>':'<span class="badge">No</span>'}</td>
+            <td>${escHtml((c.min_cardinality??0)+'..'+(c.max_cardinality??1))}</td>
+            <td>${c.extensible?'<span class="badge badge--info">Yes</span>':'—'}</td>
+            <td class="text-sm">${(c.characteristic_value_specification||[]).length
+                ? (c.characteristic_value_specification||[]).map(v=>`<span class="badge">${escHtml(String(v.value??''))}</span>`).join(' ')
+                : '—'}</td>
+            <td class="text-muted text-sm">${escHtml(c.description||'—')}</td>
+        </tr>`).join('')}
+        </tbody></table></div>`;
+    } catch(err) {
+        inner.innerHTML = `<p style="color:var(--colour-danger)">${escHtml(err.message)}</p>`;
+    }
+}
 
 // ══ INIT ══════════════════════════════════════════════════════════════════════
 loadSpecs();
