@@ -289,12 +289,6 @@
                 <label class="form-label">New State <span class="required">*</span></label>
                 <select id="qt-state" class="form-control">
                     <option value="">— select —</option>
-                    <option value="pending">pending</option>
-                    <option value="approved">approved</option>
-                    <option value="accepted">accepted</option>
-                    <option value="rejected">rejected</option>
-                    <option value="inProgress">inProgress</option>
-                    <option value="cancelled">cancelled</option>
                 </select>
             </div>
         </div>
@@ -505,7 +499,7 @@ async function loadQuotes() {
                 <td>${fmt(q.quote_date)}</td>
                 <td class="actions-cell">
                     <button class="btn btn--ghost btn--sm" onclick="showQuoteDetail('${q.id}')">Detail</button>
-                    <button class="btn btn--secondary btn--sm" onclick="openQuoteTransition('${q.id}')">Transition</button>
+                    <button class="btn btn--secondary btn--sm" onclick="openQuoteTransition('${q.id}', '${q.state}')">Transition</button>
                     <button class="btn btn--danger btn--sm" onclick="deleteQuote('${q.id}')">Delete</button>
                 </td>
             </tr>`).join('');
@@ -626,9 +620,21 @@ function closeQuoteDetail() {
     document.getElementById('quote-detail-panel').style.display = 'none';
 }
 
-function openQuoteTransition(quoteId) {
+const QUOTE_TRANSITIONS = {
+    inProgress: ['pending', 'cancelled'],
+    pending:    ['approved', 'rejected', 'inProgress'],
+    approved:   ['accepted', 'cancelled'],
+    accepted:   [],
+    rejected:   [],
+    cancelled:  [],
+};
+
+function openQuoteTransition(quoteId, currentState) {
     document.getElementById('qt-quote-id').value = quoteId;
-    document.getElementById('qt-state').value = '';
+    const sel = document.getElementById('qt-state');
+    const allowed = QUOTE_TRANSITIONS[currentState] || [];
+    sel.innerHTML = '<option value="">— select —</option>' +
+        allowed.map(s => `<option value="${s}">${s}</option>`).join('');
     openModal('quote-transition-modal');
 }
 
