@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Model — TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── Diagram canvas ─────────────────────────────────────────────────── */
+        .diagram-toolbar {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--colour-surface);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            flex-wrap: wrap;
+        }
+        .diagram-toolbar__zoom {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        .diagram-toolbar__zoom-label {
+            color: var(--colour-text-muted);
+            font-size: var(--font-size-sm);
+            min-width: 46px;
+            text-align: center;
+        }
+        .zoom-btn {
+            background: var(--colour-surface-alt);
+            border: 1px solid var(--colour-border);
+            color: var(--colour-text);
+            border-radius: var(--radius-sm);
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--transition);
+        }
+        .zoom-btn:hover { background: var(--colour-primary-dim); border-color: var(--colour-primary); }
+        .toolbar-sep { width: 1px; height: 20px; background: var(--colour-border); }
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+        .legend__item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: var(--font-size-xs);
+            color: var(--colour-text-muted);
+        }
+        .legend__dot {
+            width: 12px;
+            height: 12px;
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+        }
+
+        /* ── Canvas wrapper ─────────────────────────────────────────────────── */
+        .diagram-wrapper {
+            flex: 1;
+            overflow: hidden;
+            background: var(--colour-bg);
+            border: 1px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            cursor: grab;
+            position: relative;
+            min-height: 600px;
+        }
+        .diagram-wrapper.panning { cursor: grabbing; }
+        .diagram-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        /* ── Entity cards ───────────────────────────────────────────────────── */
+        .entity {
+            position: absolute;
+            background: var(--colour-surface);
+            border: 1.5px solid var(--colour-border);
+            border-radius: var(--radius-md);
+            min-width: 210px;
+            box-shadow: var(--shadow-md);
+            transition: box-shadow var(--transition), border-color var(--transition);
+        }
+        .entity:hover { box-shadow: var(--shadow-lg); border-color: var(--colour-border-light); }
+        .entity__header {
+            padding: 8px 12px 6px;
+            border-bottom: 1px solid var(--colour-border);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+        .entity__tmf {
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            letter-spacing: .5px;
+            opacity: .75;
+            margin-bottom: 2px;
+        }
+        .entity__name {
+            font-size: var(--font-size-sm);
+            font-weight: 700;
+            color: var(--colour-text);
+        }
+        .entity__table {
+            font-size: 10px;
+            color: var(--colour-text-muted);
+            font-family: var(--font-mono);
+            margin-top: 1px;
+        }
+        .entity__body { padding: 6px 0; }
+        .entity__field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 12px;
+            font-size: var(--font-size-xs);
+        }
+        .entity__field--pk { color: var(--colour-warning); font-weight: 600; }
+        .entity__field--fk { color: var(--colour-info); }
+        .entity__field--attr { color: var(--colour-text-muted); }
+        .field-tag {
+            font-size: 9px;
+            font-family: var(--font-mono);
+            padding: 0 4px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .field-tag--pk { background: rgba(251,191,36,.15); color: var(--colour-warning); }
+        .field-tag--fk { background: rgba(96,165,250,.15); color: var(--colour-info); }
+        .field-tag--ts { background: rgba(107,114,128,.15); color: var(--colour-muted); }
+        .entity__footer {
+            padding: 4px 12px 6px;
+            border-top: 1px solid var(--colour-border);
+            font-size: 10px;
+            color: var(--colour-muted);
+            font-style: italic;
+        }
+
+        /* ── Module colour bands ─────────────────────────────────────────────── */
+        .entity--catalog  .entity__header { background: rgba(79,126,248,.12); }
+        .entity--order    .entity__header { background: rgba(251,191,36,.10); }
+        .entity--inventory .entity__header { background: rgba(52,211,153,.10); }
+        .entity--provisioning .entity__header { background: rgba(248,113,113,.10); }
+        .entity--qualification .entity__header { background: rgba(167,139,250,.10); }
+        .entity--assurance .entity__header { background: rgba(251,146,60,.10); }
+        .entity--testing  .entity__header { background: rgba(34,211,238,.10); }
+        .entity--problem  .entity__header { background: rgba(248,113,113,.13); }
+        .entity--commercial .entity__header { background: rgba(163,230,53,.10); }
+
+        .entity--catalog  .entity__tmf { color: #4f7ef8; }
+        .entity--order    .entity__tmf { color: #fbbf24; }
+        .entity--inventory .entity__tmf { color: #34d399; }
+        .entity--provisioning .entity__tmf { color: #f87171; }
+        .entity--qualification .entity__tmf { color: #a78bfa; }
+        .entity--assurance .entity__tmf { color: #fb923c; }
+        .entity--testing  .entity__tmf { color: #22d3ee; }
+        .entity--problem  .entity__tmf { color: #f87171; }
+        .entity--commercial .entity__tmf { color: #a3e635; }
+
+        /* ── SVG relation lines ──────────────────────────────────────────────── */
+        .relations-svg {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+            overflow: visible;
+        }
+        .rel-line {
+            fill: none;
+            stroke: var(--colour-border-light);
+            stroke-width: 1.5;
+        }
+        .rel-line--cross {
+            stroke: rgba(79,126,248,.45);
+            stroke-dasharray: 5 3;
+        }
+
+        /* ── Page layout overrides ──────────────────────────────────────────── */
+        .content { display: flex; flex-direction: column; overflow: hidden; }
+        .page-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: var(--space-md);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+            <a class="sidebar__nav-link" href="commercial.html">
+                <span class="nav-icon">💼</span> Commercial
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link active" href="datamodel.html">
+                <span class="nav-icon">🗂️</span> Data Model
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Data Model</div>
+                <div class="topbar__subtitle">Entity–Relationship diagram — all modules</div>
+            </div>
+            <div class="topbar__actions">
+                <a class="btn btn--ghost btn--sm" href="index.html">← Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body" style="padding:var(--space-md) var(--space-xl);">
+
+            <!-- Toolbar -->
+            <div class="diagram-toolbar">
+                <div class="diagram-toolbar__zoom">
+                    <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
+                    <span class="diagram-toolbar__zoom-label" id="zoomLabel">100%</span>
+                    <button class="zoom-btn" id="zoomIn"  title="Zoom in">+</button>
+                    <button class="zoom-btn" id="zoomReset" title="Reset zoom" style="width:auto;padding:0 8px;font-size:12px;">Reset</button>
+                </div>
+                <div class="toolbar-sep"></div>
+                <div class="legend">
+                    <span style="font-size:var(--font-size-xs);color:var(--colour-text-muted);margin-right:4px">Modules:</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#4f7ef8"></span>Catalog</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#fbbf24"></span>Orders</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#34d399"></span>Inventory</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#f87171"></span>Provisioning</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#a78bfa"></span>Qualification</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#fb923c"></span>Assurance</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#22d3ee"></span>Testing</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#f87171;opacity:.7"></span>Problems</span>
+                    <span class="legend__item"><span class="legend__dot" style="background:#a3e635"></span>Commercial</span>
+                </div>
+                <div class="toolbar-sep"></div>
+                <span class="legend__item" style="font-size:var(--font-size-xs)">
+                    <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3d4268" stroke-width="1.5"/><polygon points="16,2 20,5 16,8" fill="#3d4268"/></svg>
+                    FK relation
+                </span>
+                <span class="legend__item" style="font-size:var(--font-size-xs)">
+                    <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="rgba(79,126,248,.6)" stroke-width="1.5" stroke-dasharray="4 2"/><polygon points="16,2 20,5 16,8" fill="rgba(79,126,248,.6)"/></svg>
+                    Cross-domain
+                </span>
+                <span style="font-size:var(--font-size-xs);color:var(--colour-text-muted);margin-left:auto">
+                    Scroll to zoom · Drag to pan
+                </span>
+            </div>
+
+            <!-- Diagram canvas -->
+            <div class="diagram-wrapper" id="diagramWrapper">
+                <div class="diagram-canvas" id="diagramCanvas">
+                    <svg class="relations-svg" id="relationsSvg"></svg>
+                    <!-- entities injected by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+/* ============================================================
+   TMF Service Layer — Data Model Diagram
+   Pure vanilla JS — no external dependencies.
+   ============================================================ */
+
+/* ── 1. Entity definitions ─────────────────────────────────────────────────── */
+/*
+   Layout strategy (minimise crossings):
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │  CATALOG cluster  (top, centred around ServiceSpecification)            │
+   │    ServiceCatalog  ServiceCategory  ServiceCandidate                    │
+   │      CharacteristicValueSpec  ServiceSpecCharacteristic                 │
+   │              ServiceSpecification  ServiceSpecRelationship              │
+   │                    ServiceLevelSpecification                            │
+   ├─────────────────────────────────────────────────────────────────────────│
+   │  LEFT: ORDER cluster          │  CENTRE: SERVICE (inventory hub)        │
+   │    ServiceOrder               │    Service                              │
+   │    ServiceOrderItem           │    ServiceCharacteristic                │
+   │    OrderItemRelationship      │    CharacteristicValue                  │
+   │                               │    ServiceRelationship                  │
+   ├─────────────────────────────────────────────────────────────────────────│
+   │  PROVISIONING (far-left)      │  QUALIFICATION (left-centre)            │
+   │    ServiceActivationJob       │    ServiceQualification                 │
+   │    ServiceConfigurationParam  │    ServiceQualificationItem             │
+   ├──────────┬──────────────────────────────────┬──────────────────────────│
+   │ PROBLEMS │  ASSURANCE (right of service)    │ TESTING (right)          │
+   │  Ticket  │    Alarm                         │  ServiceTestSpec          │
+   │  Note    │    PerformanceMeasurement        │  ServiceTest              │
+   │  Problem │    ServiceLevelObjective         │  TestMeasure              │
+   ├──────────┴──────────────────────────────────┴──────────────────────────│
+   │  COMMERCIAL (bottom-right)                                              │
+   │    Quote  QuoteItem  Agreement  ServiceLevelAgreement                   │
+   └─────────────────────────────────────────────────────────────────────────┘
+*/
+const ENTITIES = [
+    // ── CATALOG — top band ─────────────────────────────────────────────────
+    // Row 1: catalog top-level objects
+    {
+        id: 'service_catalog',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceCatalog',
+        table: 'service_catalog',
+        x: 60, y: 60,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'version', kind: 'attr' },
+            { name: 'lifecycle_status', kind: 'attr' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ],
+        footer: 'M2M → ServiceCategory'
+    },
+    {
+        id: 'service_category',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceCategory',
+        table: 'service_category',
+        x: 380, y: 60,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'lifecycle_status', kind: 'attr' },
+            { name: 'is_root', kind: 'attr' },
+            { name: 'parent_id → service_category', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ],
+        footer: 'Self-ref hierarchy'
+    },
+    {
+        id: 'service_candidate',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceCandidate',
+        table: 'service_candidate',
+        x: 700, y: 60,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'lifecycle_status', kind: 'attr' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ],
+        footer: 'M2M → ServiceCategory'
+    },
+    // ServiceSpecification — centre top, all FK traffic flows through it
+    {
+        id: 'service_specification',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceSpecification',
+        table: 'service_specification',
+        x: 1040, y: 60,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'version', kind: 'attr' },
+            { name: 'lifecycle_status', kind: 'attr' },
+            { name: 'is_bundle', kind: 'attr' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ],
+        footer: 'Root catalog entity'
+    },
+    {
+        id: 'service_spec_relationship',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceSpecRelationship',
+        table: 'service_spec_relationship',
+        x: 1400, y: 60,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'relationship_type', kind: 'attr' },
+            { name: 'spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'related_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'related_spec_name / href', kind: 'attr' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    // Row 2: detail entities hanging below ServiceSpecification
+    {
+        id: 'service_spec_characteristic',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceSpecCharacteristic',
+        table: 'service_spec_characteristic',
+        x: 1040, y: 310,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'value_type', kind: 'attr' },
+            { name: 'is_unique / extensible', kind: 'attr' },
+            { name: 'min_cardinality / max_cardinality', kind: 'attr' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'characteristic_value_specification',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'CharacteristicValueSpec',
+        table: 'characteristic_value_specification',
+        x: 700, y: 310,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'value / value_type', kind: 'attr' },
+            { name: 'value_from / value_to', kind: 'attr' },
+            { name: 'regex / range_interval', kind: 'attr' },
+            { name: 'unit_of_measure', kind: 'attr' },
+            { name: 'is_default', kind: 'attr' },
+            { name: 'char_spec_id → service_spec_characteristic', tag: 'FK', kind: 'fk' },
+        ]
+    },
+    {
+        id: 'service_level_specification',
+        module: 'catalog',
+        tmf: 'TMF633',
+        name: 'ServiceLevelSpecification',
+        table: 'service_level_specification',
+        x: 1400, y: 310,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'validity_period_start / end', kind: 'attr' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── ORDER — left column, row 3 ─────────────────────────────────────────
+    {
+        id: 'service_order',
+        module: 'order',
+        tmf: 'TMF641',
+        name: 'ServiceOrder',
+        table: 'service_order',
+        x: 60, y: 640,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'external_id', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'order_date / completion_date', kind: 'attr' },
+            { name: 'priority / category', kind: 'attr' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_order_item',
+        module: 'order',
+        tmf: 'TMF641',
+        name: 'ServiceOrderItem',
+        table: 'service_order_item',
+        x: 380, y: 640,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'order_item_id (label)', kind: 'attr' },
+            { name: 'action', kind: 'attr' },
+            { name: 'state / quantity', kind: 'attr' },
+            { name: 'service_order_id → service_order', tag: 'FK', kind: 'fk' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_order_item_relationship',
+        module: 'order',
+        tmf: 'TMF641',
+        name: 'OrderItemRelationship',
+        table: 'service_order_item_relationship',
+        x: 60, y: 880,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'relationship_type', kind: 'attr' },
+            { name: 'related_item_label', kind: 'attr' },
+            { name: 'order_item_orm_id → service_order_item', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── INVENTORY — centre column, row 3 ──────────────────────────────────
+    {
+        id: 'service',
+        module: 'inventory',
+        tmf: 'TMF638',
+        name: 'Service',
+        table: 'service',
+        x: 700, y: 640,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'service_type', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'start_date / end_date', kind: 'attr' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'service_order_id → service_order', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ],
+        footer: 'Central inventory entity'
+    },
+    {
+        id: 'service_characteristic',
+        module: 'inventory',
+        tmf: 'TMF638',
+        name: 'ServiceCharacteristic',
+        table: 'service_characteristic',
+        x: 1040, y: 640,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'value / value_type', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'characteristic_value',
+        module: 'inventory',
+        tmf: 'TMF638',
+        name: 'CharacteristicValue',
+        table: 'characteristic_value',
+        x: 1400, y: 640,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'value / value_type', kind: 'attr' },
+            { name: 'alias / unit_of_measure', kind: 'attr' },
+            { name: 'char_id → service_characteristic', tag: 'FK', kind: 'fk' },
+        ]
+    },
+    {
+        id: 'service_relationship',
+        module: 'inventory',
+        tmf: 'TMF638',
+        name: 'ServiceRelationship',
+        table: 'service_relationship',
+        x: 700, y: 880,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'relationship_type', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'related_service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── PROVISIONING — far-left, row 4 ────────────────────────────────────
+    {
+        id: 'service_activation_job',
+        module: 'provisioning',
+        tmf: 'TMF640',
+        name: 'ServiceActivationJob',
+        table: 'service_activation_job',
+        x: 60, y: 1150,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'job_type', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'mode / start_mode', kind: 'attr' },
+            { name: 'scheduled_start_date / end', kind: 'attr' },
+            { name: 'actual_start_date / end', kind: 'attr' },
+            { name: 'error_message', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_configuration_param',
+        module: 'provisioning',
+        tmf: 'TMF640',
+        name: 'ServiceConfigurationParam',
+        table: 'service_configuration_param',
+        x: 380, y: 1150,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'value / value_type', kind: 'attr' },
+            { name: 'job_id → service_activation_job', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── QUALIFICATION — centre-left, row 4 ────────────────────────────────
+    {
+        id: 'service_qualification',
+        module: 'qualification',
+        tmf: 'TMF645',
+        name: 'ServiceQualification',
+        table: 'service_qualification',
+        x: 700, y: 1150,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'expected_qualification_date', kind: 'attr' },
+            { name: 'expiration_date', kind: 'attr' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_qualification_item',
+        module: 'qualification',
+        tmf: 'TMF645',
+        name: 'ServiceQualificationItem',
+        table: 'service_qualification_item',
+        x: 1040, y: 1150,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'state', kind: 'attr' },
+            { name: 'qualifier_message', kind: 'attr' },
+            { name: 'qualification_id → service_qualification', tag: 'FK', kind: 'fk' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── ASSURANCE — right column, row 4 ───────────────────────────────────
+    {
+        id: 'alarm',
+        module: 'assurance',
+        tmf: 'TMF642',
+        name: 'Alarm',
+        table: 'alarm',
+        x: 1400, y: 880,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'alarm_type / severity', kind: 'attr' },
+            { name: 'probable_cause', kind: 'attr' },
+            { name: 'raised_at / acknowledged_at / cleared_at', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'performance_measurement',
+        module: 'assurance',
+        tmf: 'TMF628',
+        name: 'PerformanceMeasurement',
+        table: 'performance_measurement',
+        x: 1400, y: 1150,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'metric_name / metric_value', kind: 'attr' },
+            { name: 'unit_of_measure / granularity', kind: 'attr' },
+            { name: 'scheduled_at / completed_at', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_level_objective',
+        module: 'assurance',
+        tmf: 'TMF657',
+        name: 'ServiceLevelObjective',
+        table: 'service_level_objective',
+        x: 1750, y: 1150,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'metric_name / threshold_value', kind: 'attr' },
+            { name: 'direction / tolerance', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'sls_id → service_level_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── TESTING — far-right, rows 4-5 ─────────────────────────────────────
+    {
+        id: 'service_test_specification',
+        module: 'testing',
+        tmf: 'TMF653',
+        name: 'ServiceTestSpecification',
+        table: 'service_test_specification',
+        x: 1750, y: 640,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'test_type', kind: 'attr' },
+            { name: 'version', kind: 'attr' },
+            { name: 'valid_for_start / end', kind: 'attr' },
+            { name: 'service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_test',
+        module: 'testing',
+        tmf: 'TMF653',
+        name: 'ServiceTest',
+        table: 'service_test',
+        x: 1750, y: 880,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'mode / start_date_time / end_date_time', kind: 'attr' },
+            { name: 'service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'test_spec_id → service_test_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'test_measure',
+        module: 'testing',
+        tmf: 'TMF653',
+        name: 'TestMeasure',
+        table: 'test_measure',
+        x: 2080, y: 880,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'metric_name / metric_value', kind: 'attr' },
+            { name: 'unit_of_measure', kind: 'attr' },
+            { name: 'result', kind: 'attr' },
+            { name: 'captured_at', kind: 'attr' },
+            { name: 'service_test_id → service_test', tag: 'FK', kind: 'fk' },
+        ]
+    },
+
+    // ── PROBLEMS — bottom-left, row 5 ─────────────────────────────────────
+    {
+        id: 'trouble_ticket',
+        module: 'problem',
+        tmf: 'TMF621',
+        name: 'TroubleTicket',
+        table: 'trouble_ticket',
+        x: 60, y: 1480,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state / severity / priority', kind: 'attr' },
+            { name: 'ticket_type', kind: 'attr' },
+            { name: 'resolution_date', kind: 'attr' },
+            { name: 'related_service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'related_alarm_id → alarm', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'trouble_ticket_note',
+        module: 'problem',
+        tmf: 'TMF621',
+        name: 'TroubleTicketNote',
+        table: 'trouble_ticket_note',
+        x: 60, y: 1740,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'text', kind: 'attr' },
+            { name: 'author', kind: 'attr' },
+            { name: 'note_date', kind: 'attr' },
+            { name: 'ticket_id → trouble_ticket', tag: 'FK', kind: 'fk' },
+        ]
+    },
+    {
+        id: 'service_problem',
+        module: 'problem',
+        tmf: 'TMF656',
+        name: 'ServiceProblem',
+        table: 'service_problem',
+        x: 380, y: 1480,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state', kind: 'attr' },
+            { name: 'category / impact / priority', kind: 'attr' },
+            { name: 'root_cause / resolution', kind: 'attr' },
+            { name: 'related_service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'related_ticket_id → trouble_ticket', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+
+    // ── COMMERCIAL — bottom-right, row 5 ──────────────────────────────────
+    {
+        id: 'quote',
+        module: 'commercial',
+        tmf: 'TMF648',
+        name: 'Quote',
+        table: 'quote',
+        x: 1040, y: 1480,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'state / category', kind: 'attr' },
+            { name: 'quote_date / completion_date', kind: 'attr' },
+            { name: 'related_service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'quote_item',
+        module: 'commercial',
+        tmf: 'TMF648',
+        name: 'QuoteItem',
+        table: 'quote_item',
+        x: 1400, y: 1480,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'action / state / quantity', kind: 'attr' },
+            { name: 'item_price / price_type', kind: 'attr' },
+            { name: 'quote_id → quote', tag: 'FK', kind: 'fk' },
+            { name: 'related_service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'agreement',
+        module: 'commercial',
+        tmf: 'TMF651',
+        name: 'Agreement',
+        table: 'agreement',
+        x: 1750, y: 1480,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'agreement_type', kind: 'attr' },
+            { name: 'state / version', kind: 'attr' },
+            { name: 'start_date / end_date', kind: 'attr' },
+            { name: 'related_service_spec_id → service_specification', tag: 'FK', kind: 'fk' },
+            { name: 'related_quote_id → quote', tag: 'FK', kind: 'fk' },
+            { name: 'related_service_id → service', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+    {
+        id: 'service_level_agreement',
+        module: 'commercial',
+        tmf: 'TMF651',
+        name: 'ServiceLevelAgreement',
+        table: 'service_level_agreement',
+        x: 2080, y: 1480,
+        fields: [
+            { name: 'id', tag: 'PK', kind: 'pk' },
+            { name: 'name', kind: 'attr' },
+            { name: 'metric / metric_threshold', kind: 'attr' },
+            { name: 'metric_unit / conformance_period', kind: 'attr' },
+            { name: 'agreement_id → agreement', tag: 'FK', kind: 'fk' },
+            { name: 'created_at / updated_at', tag: 'TS', kind: 'attr' },
+        ]
+    },
+];
+
+/* ── 2. Relationship definitions ───────────────────────────────────────────── */
+/* Each relation: { from, to, cross }  cross=true → cross-domain dashed line   */
+const RELATIONS = [
+    // Catalog internal
+    { from: 'service_spec_characteristic',      to: 'service_specification', cross: false },
+    { from: 'characteristic_value_specification', to: 'service_spec_characteristic', cross: false },
+    { from: 'service_level_specification',       to: 'service_specification', cross: false },
+    { from: 'service_spec_relationship',         to: 'service_specification', cross: false },
+    { from: 'service_candidate',                 to: 'service_specification', cross: false },
+    { from: 'service_category',                  to: 'service_category',     cross: false },
+
+    // Order internal
+    { from: 'service_order_item',              to: 'service_order',           cross: false },
+    { from: 'service_order_item_relationship', to: 'service_order_item',      cross: false },
+
+    // Order → Catalog (cross-domain)
+    { from: 'service_order_item', to: 'service_specification', cross: true },
+
+    // Inventory internal
+    { from: 'service_characteristic', to: 'service',          cross: false },
+    { from: 'characteristic_value',   to: 'service_characteristic', cross: false },
+    { from: 'service_relationship',   to: 'service',           cross: false },
+
+    // Inventory → Catalog + Order (cross-domain)
+    { from: 'service', to: 'service_specification', cross: true },
+    { from: 'service', to: 'service_order',         cross: true },
+
+    // Provisioning
+    { from: 'service_configuration_param', to: 'service_activation_job', cross: false },
+    { from: 'service_activation_job',      to: 'service',                cross: true },
+
+    // Qualification
+    { from: 'service_qualification_item', to: 'service_qualification',   cross: false },
+    { from: 'service_qualification_item', to: 'service_specification',   cross: true },
+
+    // Assurance
+    { from: 'alarm',                   to: 'service',                    cross: true },
+    { from: 'performance_measurement', to: 'service',                    cross: true },
+    { from: 'service_level_objective', to: 'service',                    cross: true },
+    { from: 'service_level_objective', to: 'service_level_specification', cross: true },
+
+    // Testing
+    { from: 'service_test',            to: 'service',                    cross: true },
+    { from: 'service_test',            to: 'service_test_specification', cross: false },
+    { from: 'test_measure',            to: 'service_test',               cross: false },
+    { from: 'service_test_specification', to: 'service_specification',   cross: true },
+
+    // Problems
+    { from: 'trouble_ticket_note', to: 'trouble_ticket', cross: false },
+    { from: 'trouble_ticket',      to: 'service',        cross: true },
+    { from: 'trouble_ticket',      to: 'alarm',          cross: true },
+    { from: 'service_problem',     to: 'service',        cross: true },
+    { from: 'service_problem',     to: 'trouble_ticket', cross: false },
+
+    // Commercial
+    { from: 'quote_item',              to: 'quote',                cross: false },
+    { from: 'quote_item',              to: 'service_specification', cross: true },
+    { from: 'quote',                   to: 'service_specification', cross: true },
+    { from: 'service_level_agreement', to: 'agreement',             cross: false },
+    { from: 'agreement',               to: 'service_specification', cross: true },
+    { from: 'agreement',               to: 'quote',                 cross: true },
+    { from: 'agreement',               to: 'service',               cross: true },
+];
+
+/* ── 3. Render entities ────────────────────────────────────────────────────── */
+const canvas  = document.getElementById('diagramCanvas');
+const svgEl   = document.getElementById('relationsSvg');
+const wrapper = document.getElementById('diagramWrapper');
+
+function tagClass(tag) {
+    if (tag === 'PK') return 'field-tag--pk';
+    if (tag === 'FK') return 'field-tag--fk';
+    return 'field-tag--ts';
+}
+
+function renderEntities() {
+    ENTITIES.forEach(e => {
+        const el = document.createElement('div');
+        el.className = `entity entity--${e.module}`;
+        el.id = `ent-${e.id}`;
+        el.style.left = e.x + 'px';
+        el.style.top  = e.y + 'px';
+
+        const fields = e.fields.map(f => {
+            const tagHtml = f.tag
+                ? `<span class="field-tag ${tagClass(f.tag)}">${f.tag}</span>`
+                : '';
+            return `<div class="entity__field entity__field--${f.kind}">${tagHtml}${f.name}</div>`;
+        }).join('');
+
+        const footer = e.footer
+            ? `<div class="entity__footer">${e.footer}</div>`
+            : '';
+
+        el.innerHTML = `
+            <div class="entity__header">
+                <div class="entity__tmf">${e.tmf}</div>
+                <div class="entity__name">${e.name}</div>
+                <div class="entity__table">${e.table}</div>
+            </div>
+            <div class="entity__body">${fields}</div>
+            ${footer}`;
+
+        canvas.appendChild(el);
+    });
+}
+
+/* ── 4. Render relations (SVG arrows) ─────────────────────────────────────── */
+function getCenter(el) {
+    const left   = parseInt(el.style.left, 10);
+    const top    = parseInt(el.style.top,  10);
+    const w = el.offsetWidth  || 220;
+    const h = el.offsetHeight || 100;
+    return { x: left + w / 2, y: top + h / 2, left, top, right: left + w, bottom: top + h, w, h };
+}
+
+function closestEdgePoints(a, b) {
+    // Pick the edge midpoints that face each other
+    const ax = a.left + a.w / 2, ay = a.top + a.h / 2;
+    const bx = b.left + b.w / 2, by = b.top + b.h / 2;
+    const dx = bx - ax, dy = by - ay;
+
+    let sx, sy, ex, ey;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // horizontal dominant
+        sx = dx > 0 ? a.right  : a.left;
+        sy = ay;
+        ex = dx > 0 ? b.left   : b.right;
+        ey = by;
+    } else {
+        // vertical dominant
+        sx = ax;
+        sy = dy > 0 ? a.bottom : a.top;
+        ex = bx;
+        ey = dy > 0 ? b.top    : b.bottom;
+    }
+    return { sx, sy, ex, ey };
+}
+
+function renderRelations() {
+    svgEl.innerHTML = '';
+
+    // Arrow markers
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+    function makeMarker(id, color) {
+        const m = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        m.setAttribute('id', id);
+        m.setAttribute('viewBox', '0 0 10 10');
+        m.setAttribute('refX', '9');
+        m.setAttribute('refY', '5');
+        m.setAttribute('markerWidth', '6');
+        m.setAttribute('markerHeight', '6');
+        m.setAttribute('orient', 'auto');
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', '0,1 10,5 0,9');
+        poly.setAttribute('fill', color);
+        m.appendChild(poly);
+        return m;
+    }
+
+    defs.appendChild(makeMarker('arrow-normal', '#3d4268'));
+    defs.appendChild(makeMarker('arrow-cross',  'rgba(79,126,248,0.7)'));
+    svgEl.appendChild(defs);
+
+    RELATIONS.forEach(rel => {
+        const fromEl = document.getElementById(`ent-${rel.from}`);
+        const toEl   = document.getElementById(`ent-${rel.to}`);
+        if (!fromEl || !toEl) return;
+
+        const a = getCenter(fromEl);
+        const b = getCenter(toEl);
+
+        if (a.x === b.x && a.y === b.y) return; // self but shouldn't happen unless same entity
+
+        const { sx, sy, ex, ey } = closestEdgePoints(a, b);
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const cx = (sx + ex) / 2;
+        const cy = (sy + ey) / 2;
+        // Bezier curve for nicer look
+        const d = `M ${sx} ${sy} C ${cx} ${sy}, ${cx} ${ey}, ${ex} ${ey}`;
+        path.setAttribute('d', d);
+        path.setAttribute('class', `rel-line${rel.cross ? ' rel-line--cross' : ''}`);
+        path.setAttribute('marker-end', rel.cross ? 'url(#arrow-cross)' : 'url(#arrow-normal)');
+
+        svgEl.appendChild(path);
+    });
+
+    // Expand SVG to canvas bounding box after entities rendered
+    const allEnts = canvas.querySelectorAll('.entity');
+    let maxX = 0, maxY = 0;
+    allEnts.forEach(el => {
+        maxX = Math.max(maxX, parseInt(el.style.left) + (el.offsetWidth || 220));
+        maxY = Math.max(maxY, parseInt(el.style.top)  + (el.offsetHeight || 100));
+    });
+    svgEl.setAttribute('width',  (maxX + 60) + 'px');
+    svgEl.setAttribute('height', (maxY + 60) + 'px');
+}
+
+/* ── 5. Pan & zoom ─────────────────────────────────────────────────────────── */
+let scale    = 1;
+let panX     = 0;
+let panY     = 0;
+let isPanning = false;
+let startX = 0, startY = 0;
+
+const ZOOM_STEP = 0.1;
+const ZOOM_MIN  = 0.2;
+const ZOOM_MAX  = 3;
+
+function applyTransform() {
+    canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomTo(newScale, pivotX, pivotY) {
+    if (pivotX === undefined) {
+        pivotX = wrapper.clientWidth  / 2;
+        pivotY = wrapper.clientHeight / 2;
+    }
+    newScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newScale));
+    const ratio = newScale / scale;
+    panX = pivotX - ratio * (pivotX - panX);
+    panY = pivotY - ratio * (pivotY - panY);
+    scale = newScale;
+    applyTransform();
+}
+
+// Buttons
+document.getElementById('zoomIn'   ).addEventListener('click', () => zoomTo(scale + ZOOM_STEP));
+document.getElementById('zoomOut'  ).addEventListener('click', () => zoomTo(scale - ZOOM_STEP));
+document.getElementById('zoomReset').addEventListener('click', () => { scale = 1; panX = 0; panY = 0; applyTransform(); });
+
+// Mouse wheel zoom
+wrapper.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = wrapper.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
+    zoomTo(scale + delta * 1.5, px, py);
+}, { passive: false });
+
+// Pan (drag)
+wrapper.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    isPanning = true;
+    startX = e.clientX - panX;
+    startY = e.clientY - panY;
+    wrapper.classList.add('panning');
+});
+window.addEventListener('mousemove', e => {
+    if (!isPanning) return;
+    panX = e.clientX - startX;
+    panY = e.clientY - startY;
+    applyTransform();
+});
+window.addEventListener('mouseup', () => {
+    isPanning = false;
+    wrapper.classList.remove('panning');
+});
+
+// Touch pan
+wrapper.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+        isPanning = true;
+        startX = e.touches[0].clientX - panX;
+        startY = e.touches[0].clientY - panY;
+    }
+}, { passive: true });
+wrapper.addEventListener('touchmove', e => {
+    if (!isPanning || e.touches.length !== 1) return;
+    panX = e.touches[0].clientX - startX;
+    panY = e.touches[0].clientY - startY;
+    applyTransform();
+}, { passive: true });
+wrapper.addEventListener('touchend', () => { isPanning = false; });
+
+/* ── 6. Keyboard shortcuts ─────────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+    if (e.key === '+' || e.key === '=') zoomTo(scale + ZOOM_STEP);
+    if (e.key === '-')                  zoomTo(scale - ZOOM_STEP);
+    if (e.key === '0')                  { scale = 1; panX = 0; panY = 0; applyTransform(); }
+});
+
+/* ── 7. Bootstrap ──────────────────────────────────────────────────────────── */
+renderEntities();
+// Use requestAnimationFrame so entity heights are computed before drawing arrows
+requestAnimationFrame(() => {
+    renderRelations();
+    // Fit the full canvas width into the viewport on load
+    const cw = parseInt(svgEl.getAttribute('width')  || 2400);
+    const ch = parseInt(svgEl.getAttribute('height') || 1900);
+    const fitScale = Math.min(
+        (wrapper.clientWidth  - 32) / cw,
+        (wrapper.clientHeight - 32) / ch,
+        0.5   // never start bigger than 50% (keeps it readable without being too large)
+    );
+    zoomTo(fitScale);
+    panX = Math.max(0, (wrapper.clientWidth  - cw * fitScale) / 2);
+    panY = 16;
+    applyTransform();
+});
+
+</script>
+
+</body>
+</html>
