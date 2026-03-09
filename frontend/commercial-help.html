@@ -44,6 +44,32 @@
         .state-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
         .state-table th, .state-table td { border: 1px solid var(--colour-border); padding: 7px 12px; text-align: left; }
         .state-table th { background: var(--colour-surface-alt); font-weight: 600; color: var(--colour-text); }
+
+        .gen-progress-bar-track { width: 100%; height: 6px; background: var(--colour-surface-alt); border-radius: var(--radius-full); overflow: hidden; margin-bottom: var(--space-sm); }
+        .gen-progress-bar-fill  { height: 100%; width: 0%; background: linear-gradient(90deg, var(--colour-primary), #34d399); border-radius: var(--radius-full); transition: width 0.35s ease; }
+        .gen-progress-label { font-size: var(--font-size-xs); color: var(--colour-text-muted); margin-bottom: var(--space-md); }
+        .gen-log { background: #0d1117; border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg); font-family: var(--font-mono); font-size: var(--font-size-xs); color: #94a3b8; max-height: 300px; overflow-y: auto; line-height: 1.9; }
+        .gen-log-ok   { color: #34d399; }
+        .gen-log-info { color: #60a5fa; }
+        .gen-log-err  { color: #f87171; }
+
+        .back-link { display: inline-flex; align-items: center; gap: var(--space-xs); font-size: var(--font-size-sm); color: var(--colour-text-muted); margin-bottom: var(--space-lg); text-decoration: none; transition: color var(--transition); }
+        .back-link:hover { color: var(--colour-primary); text-decoration: none; }
+        .divider { border: none; border-top: 1px solid var(--colour-border); margin: var(--space-xl) 0; }
+
+        @media print {
+            aside.sidebar, .topbar__actions, .back-link, #btn-gen-commercial, #gen-progress-area { display: none !important; }
+            .app-shell { display: block; height: auto; overflow: visible; }
+            main.content { display: block; overflow: visible; }
+            .page-body { padding: 12px 0; }
+            .help-content { max-width: 100%; }
+            .topbar { border: none; padding: 8px 0 16px; background: transparent; }
+            .topbar__title { font-size: 20px; }
+            .step-card { border: 1px solid #d1d5db; break-inside: avoid; margin-bottom: 20px; background: #fff; }
+            .step-card__header { background: #eef0f6; }
+            .step-number { background: #2563eb; }
+            .api-block { background: #1e293b; color: #a5d6a7; font-size: 9px; white-space: pre-wrap; word-break: break-all; }
+        }
     </style>
 </head>
 <body>
@@ -310,9 +336,256 @@ ServiceQualification (Qualification)
                 </div>
             </div>
 
+            <!-- ══ GERAR DADOS DE EXEMPLO ═════════════════════════════════════════ -->
+            <hr class="divider">
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number" style="background:var(--colour-surface-alt);border:2px solid var(--colour-primary);color:var(--colour-primary);">&#x25B6;</div>
+                    <div>
+                        <div class="step-card__title">Gerar Dados de Teste</div>
+                        <div class="step-card__subtitle">Cria automaticamente quotes e agreements de exemplo para demonstração</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Clique no botão abaixo para gerar automaticamente dados de exemplo do módulo Commercial. O script executa os seguintes passos:</p>
+                    <ol style="margin-top:var(--space-sm);padding-left:var(--space-xl);">
+                        <li>Procura ou cria uma <strong>ServiceSpecification</strong> <code>spec-commercial-demo</code> no Catálogo</li>
+                        <li>Cria um <strong>Quote</strong> <code>inProgress</code> — "Enterprise Fiber 1 Gbps"</li>
+                        <li>Adiciona um <strong>QuoteItem</strong> à quote (fee mensal recorrente)</li>
+                        <li>Avança a Quote para <code>pending</code></li>
+                        <li>Avança a Quote para <code>approved</code></li>
+                        <li>Avança a Quote para <code>accepted</code></li>
+                        <li>Cria um <strong>Agreement</strong> <code>inProgress</code> ligado à quote aceite</li>
+                        <li>Adiciona uma <strong>SLA metric</strong> de disponibilidade ao Agreement</li>
+                        <li>Avança o Agreement para <code>active</code></li>
+                    </ol>
+
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">&#x26A0;&#xFE0F;</span>
+                        <div class="callout__text">
+                            <strong>Execuções repetidas:</strong> cada execução cria conjuntos de recursos independentes
+                            com sufixo numérico (ex: <strong>"spec-commercial-demo-2"</strong>).
+                        </div>
+                    </div>
+
+                    <button class="btn btn--primary" id="btn-gen-commercial" onclick="generateCommercialExamples()">
+                        &#x1F680; Gerar Dados de Teste
+                    </button>
+
+                    <div id="gen-progress-area" style="display:none;margin-top:var(--space-lg);">
+                        <div class="gen-progress-bar-track">
+                            <div class="gen-progress-bar-fill" id="gen-progress-fill"></div>
+                        </div>
+                        <div class="gen-progress-label" id="gen-progress-label">A iniciar&hellip;</div>
+                        <div class="gen-log" id="gen-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- back link -->
+            <div style="margin-top:var(--space-xl);margin-bottom:var(--space-2xl);">
+                <a href="commercial.html" class="back-link">&#8592; Voltar ao Commercial</a>
+            </div>
+
         </div><!-- /help-content -->
         </div><!-- /page-body -->
     </main>
-</div>
+</div><!-- /app-shell -->
+
+<script src="js/api-client.js?v=7"></script>
+<script>
+    async function generateCommercialExamples() {
+        const btn   = document.getElementById('btn-gen-commercial');
+        const area  = document.getElementById('gen-progress-area');
+        const fill  = document.getElementById('gen-progress-fill');
+        const lbl   = document.getElementById('gen-progress-label');
+        const logEl = document.getElementById('gen-log');
+
+        const STORE_KEY = 'tmf_commercial_help_gen_count';
+        const count = parseInt(localStorage.getItem(STORE_KEY) || '0', 10) + 1;
+        localStorage.setItem(STORE_KEY, String(count));
+        const sfx = count === 1 ? '' : '-' + count;
+
+        area.style.display = 'block';
+        logEl.innerHTML    = '';
+        fill.style.width   = '0%';
+        btn.disabled       = true;
+        btn.textContent    = 'A gerar…';
+
+        const TOTAL = 9;
+        let step = 0;
+
+        const SPEC_BASE      = '/tmf-api/serviceCatalogManagement/v4/serviceSpecification';
+        const QUOTE_BASE     = '/tmf-api/quoteManagement/v4/quote';
+        const AGREEMENT_BASE = '/tmf-api/agreementManagement/v4/agreement';
+
+        function progress(msg) {
+            step++;
+            fill.style.width = Math.round((step / TOTAL) * 100) + '%';
+            lbl.textContent  = 'Passo ' + step + ' de ' + TOTAL + ' \u2014 ' + msg;
+        }
+
+        function log(text, cls) {
+            const d = document.createElement('div');
+            if (cls) { d.className = cls; }
+            d.textContent = text;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function localGet(url) {
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('GET ' + url + ' \u2192 HTTP ' + r.status);
+            return r.json();
+        }
+
+        async function localPost(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('POST ' + url + ' \u2192 HTTP ' + r.status + (detail ? ' \u2014 ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        async function localPatch(url, body) {
+            const r = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+                let detail = '';
+                try { const j = await r.json(); detail = j.detail ? JSON.stringify(j.detail) : ''; } catch {}
+                throw new Error('PATCH ' + url + ' \u2192 HTTP ' + r.status + (detail ? ' \u2014 ' + detail : ''));
+            }
+            return r.json();
+        }
+
+        try {
+            // \u2500\u2500 1. Procurar / criar ServiceSpecification \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            const specName = 'spec-commercial-demo' + sfx;
+            progress('A procurar ServiceSpecification \u201c' + specName + '\u201d no Cat\u00e1logo\u2026');
+            log('\u2192 GET ' + SPEC_BASE + '?limit=100');
+            const specs = await localGet(SPEC_BASE + '?limit=100');
+            let spec = specs.find(s => s.name && s.name.toLowerCase() === specName.toLowerCase());
+
+            if (!spec) {
+                log('\u2192 POST ' + SPEC_BASE + '  [name: ' + specName + ']');
+                spec = await localPost(SPEC_BASE, {
+                    name:         specName,
+                    description:  'Especifica\u00e7\u00e3o de demonstra\u00e7\u00e3o para o m\u00f3dulo Commercial',
+                    lifecycle_status: 'active',
+                    service_type: 'CustomerFacingService'
+                });
+                log('\u2713 ServiceSpecification criada  id:' + spec.id, 'gen-log-ok');
+            } else {
+                log('\u2713 ServiceSpecification encontrada: ' + spec.name + '  id:' + spec.id, 'gen-log-ok');
+            }
+            const specId = spec.id;
+
+            // \u2500\u2500 2. Criar Quote \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A criar Quote (TMF648) \u2014 \u201cEnterprise Fiber 1 Gbps\u201d\u2026');
+            log('\u2192 POST ' + QUOTE_BASE);
+            const quote = await localPost(QUOTE_BASE, {
+                name:                    'Enterprise Fiber 1 Gbps' + sfx,
+                category:                'enterprise',
+                description:             'Quote de demonstra\u00e7\u00e3o para liga\u00e7\u00e3o de fibra empresarial',
+                related_service_spec_id: specId
+            });
+            log('\u2713 Quote criada  id:' + quote.id + '  state:' + quote.state, 'gen-log-ok');
+
+            // \u2500\u2500 3. Adicionar QuoteItem \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A adicionar QuoteItem \u00e0 quote\u2026');
+            log('\u2192 POST ' + QUOTE_BASE + '/' + quote.id + '/quoteItem');
+            const item = await localPost(QUOTE_BASE + '/' + quote.id + '/quoteItem', {
+                action:      'add',
+                item_price:  150.00,
+                price_type:  'recurring',
+                description: 'Fee mensal — porta 1 Gbps Ethernet'
+            });
+            log('\u2713 QuoteItem adicionado  id:' + item.id + '  price:' + item.item_price, 'gen-log-ok');
+
+            // \u2500\u2500 4. Quote \u2192 pending \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A avan\u00e7ar Quote \u2192 pending\u2026');
+            log('\u2192 PATCH ' + QUOTE_BASE + '/' + quote.id + '  { state: "pending" }');
+            const quotePending = await localPatch(QUOTE_BASE + '/' + quote.id, { state: 'pending' });
+            log('\u2713 Quote \u2192 pending  state:' + quotePending.state, 'gen-log-ok');
+
+            // \u2500\u2500 5. Quote \u2192 approved \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A avan\u00e7ar Quote \u2192 approved\u2026');
+            log('\u2192 PATCH ' + QUOTE_BASE + '/' + quote.id + '  { state: "approved" }');
+            const quoteApproved = await localPatch(QUOTE_BASE + '/' + quote.id, { state: 'approved' });
+            log('\u2713 Quote \u2192 approved  state:' + quoteApproved.state, 'gen-log-ok');
+
+            // \u2500\u2500 6. Quote \u2192 accepted \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A avan\u00e7ar Quote \u2192 accepted\u2026');
+            log('\u2192 PATCH ' + QUOTE_BASE + '/' + quote.id + '  { state: "accepted" }');
+            const quoteAccepted = await localPatch(QUOTE_BASE + '/' + quote.id, { state: 'accepted' });
+            log('\u2713 Quote \u2192 accepted  state:' + quoteAccepted.state + '  completion_date auto-definido', 'gen-log-ok');
+
+            // \u2500\u2500 7. Criar Agreement \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A criar Agreement (TMF651) ligado \u00e0 quote aceite\u2026');
+            log('\u2192 POST ' + AGREEMENT_BASE);
+            const now = new Date();
+            const startDate = now.toISOString();
+            const endDate   = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()).toISOString();
+            const agreement = await localPost(AGREEMENT_BASE, {
+                name:              'Enterprise Fiber SLA Agreement' + sfx,
+                agreement_type:    'SLA',
+                description:       'Contrato SLA de demonstra\u00e7\u00e3o para liga\u00e7\u00e3o de fibra empresarial',
+                related_quote_id:  quote.id,
+                related_service_spec_id: specId,
+                start_date: startDate,
+                end_date:   endDate
+            });
+            log('\u2713 Agreement criado  id:' + agreement.id + '  state:' + agreement.state, 'gen-log-ok');
+
+            // \u2500\u2500 8. Adicionar SLA metric \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A adicionar SLA metric de disponibilidade ao Agreement\u2026');
+            log('\u2192 POST ' + AGREEMENT_BASE + '/' + agreement.id + '/agreementItem');
+            const sla = await localPost(AGREEMENT_BASE + '/' + agreement.id + '/agreementItem', {
+                name:                 'Availability SLA',
+                metric:               'availability',
+                metric_threshold:     99.9,
+                metric_unit:          'percent',
+                conformance_period:   'monthly'
+            });
+            log('\u2713 SLA metric adicionada  id:' + sla.id + '  threshold:' + sla.metric_threshold + '%', 'gen-log-ok');
+
+            // \u2500\u2500 9. Agreement \u2192 active \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            progress('A avan\u00e7ar Agreement \u2192 active\u2026');
+            log('\u2192 PATCH ' + AGREEMENT_BASE + '/' + agreement.id + '  { state: "active" }');
+            const agreementActive = await localPatch(AGREEMENT_BASE + '/' + agreement.id, { state: 'active' });
+            log('\u2713 Agreement \u2192 active  state:' + agreementActive.state + '  status_change_date auto-definido', 'gen-log-ok');
+
+            // \u2500\u2500 Conclu\u00eddo \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+            fill.style.width = '100%';
+            lbl.textContent  = 'Conclu\u00eddo!';
+            log('', '');
+            log('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', 'gen-log-info');
+            log('\u2713 Dados de teste criados com sucesso:', 'gen-log-ok');
+            log('  Spec:      ' + specName + '  (lifecycle: Active)', 'gen-log-ok');
+            log('  Quote:     Enterprise Fiber 1 Gbps' + sfx + '  \u2192 accepted + 1 item', 'gen-log-ok');
+            log('  Agreement: Enterprise Fiber SLA Agreement' + sfx + '  \u2192 active + SLA 99.9%', 'gen-log-ok');
+            log('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501', 'gen-log-info');
+            log('Navegue para Commercial para ver os recursos criados.', 'gen-log-info');
+
+        } catch (err) {
+            fill.style.width = '100%';
+            lbl.textContent  = 'Erro';
+            log('\u2717 Erro: ' + err.message, 'gen-log-err');
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = '&#x1F680; Gerar Dados de Teste';
+        }
+    }
+</script>
+
 </body>
 </html>

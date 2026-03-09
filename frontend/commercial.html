@@ -100,7 +100,7 @@
                 <div class="topbar__subtitle">TMF648 Quote Management · TMF651 Agreement Management</div>
             </div>
             <div class="topbar__actions">
-                <button class="btn btn--primary" onclick="openModal('quote-create-modal')">+ New Quote</button>
+                <button class="btn btn--primary" onclick="openQuoteCreateModal()">+ New Quote</button>
                 <a href="commercial-help.html" class="btn btn--ghost btn--sm" title="Step-by-step guide">
                     &#x2753; Help
                 </a>
@@ -254,11 +254,15 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Category</label>
-                <input id="q-category" class="form-control" placeholder="e.g. enterprise | residential">
+                <select id="q-category" class="form-control" onchange="filterSpecsByCategory()">
+                    <option value="">— select category —</option>
+                </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Service Spec ID</label>
-                <input id="q-spec-id" class="form-control" placeholder="UUID of linked ServiceSpecification (optional)">
+                <label class="form-label">Service Spec</label>
+                <select id="q-spec-id" class="form-control" disabled>
+                    <option value="">— selecionar categoria primeiro —</option>
+                </select>
             </div>
             <div class="form-group">
                 <label class="form-label">Requested Completion Date</label>
@@ -486,7 +490,7 @@ async function loadQuotes() {
     const tbody    = document.getElementById('quotes-tbody');
     tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Loading…</td></tr>';
     try {
-        const items = await QuoteClient.list({ state, category });
+        const { data: items } = await QuoteClient.list({ state, category });
         if (!items.length) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No quotes found.</td></tr>';
             return;
@@ -518,7 +522,7 @@ async function showQuoteDetail(quoteId) {
     panel.style.display = 'block';
     panel.scrollIntoView({ behavior: 'smooth' });
 
-    const q = await QuoteClient.get(quoteId);
+    const { data: q } = await QuoteClient.get(quoteId);
     title.textContent = `Quote — ${q.name}`;
 
     const itemsHtml = q.items && q.items.length
@@ -654,11 +658,100 @@ async function deleteQuote(quoteId) {
     }
 }
 
+let _quoteAllCandidates = [];
+
+async function openQuoteCreateModal() {
+    openModal('quote-create-modal');
+    const catSelect  = document.getElementById('q-category');
+    const specSelect = document.getElementById('q-spec-id');
+    catSelect.innerHTML  = '<option value="">— a carregar categorias… —</option>';
+    specSelect.innerHTML = '<option value="">— selecionar categoria primeiro —</option>';
+    specSelect.disabled  = true;
+    _quoteAllCandidates  = [];
+
+    // Load categories and build hierarchy tree
+    try {
+        const { data: cats } = await CategoryClient.list({ limit: 200 });
+        catSelect.innerHTML = '<option value="">— selecionar categoria —</option>';
+        if (cats.length) {
+            // Build ordered list respecting parent→child nesting
+            const ordered = [];
+            const visited = new Set();
+            function addBranch(cat, depth) {
+                if (visited.has(cat.id)) return;
+                visited.add(cat.id);
+                ordered.push({ cat, depth });
+                cats.filter(c => c.parent_id === cat.id)
+                    .forEach(child => addBranch(child, depth + 1));
+            }
+            cats.filter(c => !c.parent_id).forEach(root => addBranch(root, 0));
+            // Orphans not reachable from roots
+            cats.filter(c => !visited.has(c.id)).forEach(c => addBranch(c, 0));
+
+            ordered.forEach(({ cat, depth }) => {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.dataset.id = cat.id;
+                const indent = depth > 0 ? ('\u00a0\u00a0'.repeat(depth) + '\u2514 ') : '';
+                opt.textContent = indent + cat.name;
+                catSelect.appendChild(opt);
+            });
+        } else {
+            catSelect.innerHTML = '<option value="">— sem categorias —</option>';
+        }
+    } catch (e) {
+        catSelect.innerHTML = '<option value="">— erro ao carregar categorias —</option>';
+    }
+
+    // Pre-load all candidates so filterSpecsByCategory() can work client-side
+    try {
+        const { data: candidates } = await CandidateClient.list({ limit: 100 });
+        _quoteAllCandidates = candidates;
+    } catch (e) {
+        _quoteAllCandidates = [];
+    }
+}
+
+function filterSpecsByCategory() {
+    const catSelect  = document.getElementById('q-category');
+    const specSelect = document.getElementById('q-spec-id');
+    const selectedOpt = catSelect.options[catSelect.selectedIndex];
+    const categoryId  = selectedOpt ? selectedOpt.dataset.id : null;
+
+    specSelect.innerHTML = '<option value="">— selecionar service spec —</option>';
+
+    if (!categoryId) {
+        specSelect.innerHTML = '<option value="">— selecionar categoria primeiro —</option>';
+        specSelect.disabled = true;
+        return;
+    }
+
+    const matching = _quoteAllCandidates.filter(cand =>
+        cand.categories && cand.categories.some(cat => cat.id === categoryId)
+    );
+
+    if (!matching.length) {
+        specSelect.innerHTML = '<option value="">— sem specs nesta categoria —</option>';
+        specSelect.disabled = true;
+        return;
+    }
+
+    specSelect.disabled = false;
+    matching.forEach(cand => {
+        if (!cand.service_specification) return;
+        const s = cand.service_specification;
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.name} (${s.id.substring(0, 8)}\u2026)`;
+        specSelect.appendChild(opt);
+    });
+}
+
 async function submitCreateQuote() {
     const name    = document.getElementById('q-name').value.trim();
     const desc    = document.getElementById('q-description').value.trim() || undefined;
-    const cat     = document.getElementById('q-category').value.trim() || undefined;
-    const specId  = document.getElementById('q-spec-id').value.trim() || undefined;
+    const cat     = document.getElementById('q-category').value || undefined;
+    const specId  = document.getElementById('q-spec-id').value || undefined;
     const compDt  = document.getElementById('q-completion-date').value || undefined;
     if (!name) { showToast('Name is required.', 'error'); return; }
     const body = { name };
@@ -674,6 +767,7 @@ async function submitCreateQuote() {
         document.getElementById('q-description').value = '';
         document.getElementById('q-category').value = '';
         document.getElementById('q-spec-id').value = '';
+        document.getElementById('q-spec-id').disabled = true;
         document.getElementById('q-completion-date').value = '';
         loadQuotes();
     } catch (err) {
@@ -689,7 +783,7 @@ async function loadAgreements() {
     const tbody = document.getElementById('agreements-tbody');
     tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Loading…</td></tr>';
     try {
-        const items = await AgreementClient.list({ state, agreement_type: type });
+        const { data: items } = await AgreementClient.list({ state, agreement_type: type });
         if (!items.length) {
             tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No agreements found.</td></tr>';
             return;
@@ -722,7 +816,7 @@ async function showAgreementDetail(agreementId) {
     panel.style.display = 'block';
     panel.scrollIntoView({ behavior: 'smooth' });
 
-    const a = await AgreementClient.get(agreementId);
+    const { data: a } = await AgreementClient.get(agreementId);
     title.textContent = `Agreement — ${a.name}`;
 
     const slasHtml = a.slas && a.slas.length
