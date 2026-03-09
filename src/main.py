@@ -106,10 +106,8 @@ app.include_router(testing_router)
 from src.problem.api.router import router as problem_router  # noqa: E402
 app.include_router(problem_router)
 
-# Future routers (placeholder — uncomment as modules are implemented):
-#
-# from src.commercial.api.router import router as commercial_router
-# app.include_router(commercial_router)
+from src.commercial.api.router import router as commercial_router  # noqa: E402
+app.include_router(commercial_router)
 
 
 # ── Static frontend (served at /ui) ───────────────────────────────────────────

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <title>Commercial – TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css?v=2">
+    <style>
+        /* ── Tab navigation ── */
+        .tabs               { display: flex; gap: 0; border-bottom: 2px solid var(--colour-border); margin-bottom: var(--space-lg); }
+        .tab-btn            { padding: var(--space-sm) var(--space-md); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--colour-text-muted); transition: color .15s, border-color .15s; }
+        .tab-btn.active     { color: var(--colour-primary); border-bottom-color: var(--colour-primary); }
+        .tab-panel          { display: none; }
+        .tab-panel.active   { display: block; }
+
+        /* ── State badges ── */
+        .badge--inProgress  { background: #fef3c7; color: #92400e; }
+        .badge--pending     { background: #e0e7ff; color: #3730a3; }
+        .badge--approved    { background: #dbeafe; color: #1e40af; }
+        .badge--accepted    { background: #dcfce7; color: #166534; }
+        .badge--rejected    { background: #fee2e2; color: #991b1b; }
+        .badge--cancelled   { background: #f1f5f9; color: #64748b; }
+        .badge--active      { background: #dcfce7; color: #166534; }
+        .badge--expired     { background: #fef3c7; color: #92400e; }
+        .badge--terminated  { background: #fee2e2; color: #991b1b; }
+
+        .id-cell            { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--colour-text-muted); }
+        .actions-cell       { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+
+        /* ── Items / SLAs list ── */
+        .items-list         { list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
+        .items-list li      { background: var(--colour-surface-alt); border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-xs); font-size: var(--font-size-sm); }
+        .items-list .item-meta { color: var(--colour-text-muted); font-size: var(--font-size-xs); margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="sidebar__nav-link" href="catalog.html">
+                <span class="nav-icon">📋</span> Catalog
+            </a>
+            <a class="sidebar__nav-link" href="orders.html">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a class="sidebar__nav-link" href="inventory.html">
+                <span class="nav-icon">🗄️</span> Inventory
+            </a>
+            <a class="sidebar__nav-link" href="provisioning.html">
+                <span class="nav-icon">⚙️</span> Provisioning
+            </a>
+            <a class="sidebar__nav-link" href="qualification.html">
+                <span class="nav-icon">✅</span> Qualification
+            </a>
+            <a class="sidebar__nav-link" href="assurance.html">
+                <span class="nav-icon">📊</span> Assurance
+            </a>
+            <a class="sidebar__nav-link" href="testing.html">
+                <span class="nav-icon">🔬</span> Testing
+            </a>
+            <a class="sidebar__nav-link" href="problems.html">
+                <span class="nav-icon">🚨</span> Problems
+            </a>
+            <a class="sidebar__nav-link active" href="commercial.html">
+                <span class="nav-icon">💼</span> Commercial
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html">
+                <span class="nav-icon">🔌</span> APIs
+            </a>
+            <a class="sidebar__nav-link" href="settings.html">
+                <span class="nav-icon">⚙️</span> Settings
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="content">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Commercial</div>
+                <div class="topbar__subtitle">TMF648 Quote Management · TMF651 Agreement Management</div>
+            </div>
+            <div class="topbar__actions">
+                <button class="btn btn--primary" onclick="openModal('quote-create-modal')">+ New Quote</button>
+                <a href="commercial-help.html" class="btn btn--ghost btn--sm" title="Step-by-step guide">
+                    &#x2753; Help
+                </a>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+
+        <!-- ── Tabs ── -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('quotes', this)">💬 Quotes</button>
+            <button class="tab-btn" onclick="switchTab('agreements', this)">📄 Agreements</button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB: QUOTES (TMF648)
+             ════════════════════════════════════════════════════════ -->
+        <div id="tab-quotes" class="tab-panel active">
+            <div class="section-header">
+                <h2 class="section-title">Quotes</h2>
+                <div style="display:flex;gap:var(--space-sm);align-items:center">
+                    <select id="quote-filter-state" class="form-control" style="width:160px" autocomplete="off" onchange="loadQuotes()">
+                        <option value="">All states</option>
+                        <option value="inProgress">inProgress</option>
+                        <option value="pending">pending</option>
+                        <option value="approved">approved</option>
+                        <option value="accepted">accepted</option>
+                        <option value="rejected">rejected</option>
+                        <option value="cancelled">cancelled</option>
+                    </select>
+                    <input id="quote-filter-category" class="form-control" style="width:140px" placeholder="Category…" autocomplete="off" oninput="loadQuotes()">
+                    <button class="btn btn--secondary btn--sm" onclick="loadQuotes()">🔄 Refresh</button>
+                </div>
+            </div>
+            <p class="section-description">Commercial quotes for services linked to service specifications.</p>
+
+            <div class="card">
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>State</th>
+                                <th>Spec ID</th>
+                                <th>Quote Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotes-tbody">
+                            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail panel -->
+            <div id="quote-detail-panel" style="display:none;margin-top:var(--space-lg)" class="card">
+                <div class="card__header">
+                    <h3 class="card__title" id="quote-detail-title">Quote Detail</h3>
+                    <button class="btn btn--ghost btn--sm" onclick="closeQuoteDetail()">✕ Close</button>
+                </div>
+                <div class="card__body" id="quote-detail-body"></div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             TAB: AGREEMENTS (TMF651)
+             ════════════════════════════════════════════════════════ -->
+        <div id="tab-agreements" class="tab-panel">
+            <div class="section-header">
+                <h2 class="section-title">Agreements</h2>
+                <div style="display:flex;gap:var(--space-sm);align-items:center">
+                    <select id="agreement-filter-state" class="form-control" style="width:160px" autocomplete="off" onchange="loadAgreements()">
+                        <option value="">All states</option>
+                        <option value="inProgress">inProgress</option>
+                        <option value="active">active</option>
+                        <option value="expired">expired</option>
+                        <option value="terminated">terminated</option>
+                        <option value="cancelled">cancelled</option>
+                    </select>
+                    <select id="agreement-filter-type" class="form-control" style="width:140px" autocomplete="off" onchange="loadAgreements()">
+                        <option value="">All types</option>
+                        <option value="commercial">commercial</option>
+                        <option value="technical">technical</option>
+                        <option value="SLA">SLA</option>
+                    </select>
+                    <button class="btn btn--primary btn--sm" onclick="openModal('agreement-create-modal')">+ New Agreement</button>
+                    <button class="btn btn--secondary btn--sm" onclick="loadAgreements()">🔄 Refresh</button>
+                </div>
+            </div>
+            <p class="section-description">Service agreements and contractual SLA commitments linked to quotes and services.</p>
+
+            <div class="card">
+                <div class="card__body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>State</th>
+                                <th>Quote ID</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agreements-tbody">
+                            <tr><td colspan="8" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail panel -->
+            <div id="agreement-detail-panel" style="display:none;margin-top:var(--space-lg)" class="card">
+                <div class="card__header">
+                    <h3 class="card__title" id="agreement-detail-title">Agreement Detail</h3>
+                    <button class="btn btn--ghost btn--sm" onclick="closeAgreementDetail()">✕ Close</button>
+                </div>
+                <div class="card__body" id="agreement-detail-body"></div>
+            </div>
+        </div>
+
+        </div><!-- /page-body -->
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODALS
+     ════════════════════════════════════════════════════════ -->
+
+<!-- Create Quote -->
+<div id="quote-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('quote-create-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">New Quote</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('quote-create-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="q-name" class="form-control" placeholder="e.g. Enterprise Fiber 1Gbps Quote">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="q-description" class="form-control" rows="2" placeholder="Optional free-text description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <input id="q-category" class="form-control" placeholder="e.g. enterprise | residential">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service Spec ID</label>
+                <input id="q-spec-id" class="form-control" placeholder="UUID of linked ServiceSpecification (optional)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Requested Completion Date</label>
+                <input id="q-completion-date" class="form-control" type="datetime-local">
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" onclick="closeModal('quote-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="submitCreateQuote()">Create Quote</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transition Quote Modal -->
+<div id="quote-transition-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('quote-transition-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">Transition Quote</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('quote-transition-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <input type="hidden" id="qt-quote-id">
+            <div class="form-group">
+                <label class="form-label">New State <span class="required">*</span></label>
+                <select id="qt-state" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="pending">pending</option>
+                    <option value="approved">approved</option>
+                    <option value="accepted">accepted</option>
+                    <option value="rejected">rejected</option>
+                    <option value="inProgress">inProgress</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" onclick="closeModal('quote-transition-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="submitQuoteTransition()">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Agreement -->
+<div id="agreement-create-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('agreement-create-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">New Agreement</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('agreement-create-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="ag-name" class="form-control" placeholder="e.g. SLA Agreement — Enterprise Fiber">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="ag-description" class="form-control" rows="2" placeholder="Optional free-text description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Agreement Type</label>
+                <select id="ag-type" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="commercial">commercial</option>
+                    <option value="technical">technical</option>
+                    <option value="SLA">SLA</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Document Number</label>
+                <input id="ag-doc-number" class="form-control" placeholder="e.g. AGR-2026-0001">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Version</label>
+                <input id="ag-version" class="form-control" placeholder="1.0" value="1.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Related Quote ID</label>
+                <input id="ag-quote-id" class="form-control" placeholder="UUID of linked Quote (optional)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service Spec ID</label>
+                <input id="ag-spec-id" class="form-control" placeholder="UUID of linked ServiceSpecification (optional)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service Instance ID</label>
+                <input id="ag-service-id" class="form-control" placeholder="UUID of linked Service instance (optional)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input id="ag-start-date" class="form-control" type="datetime-local">
+            </div>
+            <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input id="ag-end-date" class="form-control" type="datetime-local">
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" onclick="closeModal('agreement-create-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="submitCreateAgreement()">Create Agreement</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transition Agreement Modal -->
+<div id="agreement-transition-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('agreement-transition-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">Transition Agreement</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('agreement-transition-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <input type="hidden" id="agt-agreement-id">
+            <div class="form-group">
+                <label class="form-label">New State <span class="required">*</span></label>
+                <select id="agt-state" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="active">active</option>
+                    <option value="expired">expired</option>
+                    <option value="terminated">terminated</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" onclick="closeModal('agreement-transition-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="submitAgreementTransition()">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add SLA Modal -->
+<div id="sla-add-modal" class="modal-backdrop" onclick="if(event.target===this) closeModal('sla-add-modal')">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title">Add SLA Metric</h2>
+            <button class="btn btn--ghost btn--icon" onclick="closeModal('sla-add-modal')" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body">
+            <input type="hidden" id="sla-agreement-id">
+            <div class="form-group">
+                <label class="form-label">Name <span class="required">*</span></label>
+                <input id="sla-name" class="form-control" placeholder="e.g. Uptime SLA">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Metric <span class="required">*</span></label>
+                <select id="sla-metric" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="availability">availability</option>
+                    <option value="latency">latency</option>
+                    <option value="throughput">throughput</option>
+                    <option value="mttr">mttr</option>
+                    <option value="packetLoss">packetLoss</option>
+                    <option value="jitter">jitter</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Threshold <span class="required">*</span></label>
+                <input id="sla-threshold" class="form-control" type="number" min="0" step="0.0001" placeholder="e.g. 99.9">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unit</label>
+                <select id="sla-unit" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="percent">percent</option>
+                    <option value="ms">ms</option>
+                    <option value="Mbps">Mbps</option>
+                    <option value="hours">hours</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Conformance Period</label>
+                <select id="sla-period" class="form-control">
+                    <option value="">— select —</option>
+                    <option value="daily">daily</option>
+                    <option value="weekly">weekly</option>
+                    <option value="monthly">monthly</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="sla-description" class="form-control" rows="2" placeholder="Optional"></textarea>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" onclick="closeModal('sla-add-modal')">Cancel</button>
+            <button class="btn btn--primary" onclick="submitAddSla()">Add SLA</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api-client.js"></script>
+<script>
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'quotes') loadQuotes();
+    else loadAgreements();
+}
+
+function fmt(dt) {
+    if (!dt) return '—';
+    return new Date(dt).toLocaleString();
+}
+
+function stateBadge(state) {
+    return `<span class="badge badge--${state}">${state}</span>`;
+}
+
+function shortId(id) {
+    return id ? `<span class="id-cell" title="${id}">${id.substring(0, 8)}…</span>` : '—';
+}
+
+// ── Quotes ────────────────────────────────────────────────────────────────────
+
+async function loadQuotes() {
+    const state    = document.getElementById('quote-filter-state').value || undefined;
+    const category = document.getElementById('quote-filter-category').value.trim() || undefined;
+    const tbody    = document.getElementById('quotes-tbody');
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Loading…</td></tr>';
+    try {
+        const items = await QuoteClient.list({ state, category });
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No quotes found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = items.map(q => `
+            <tr>
+                <td>${shortId(q.id)}</td>
+                <td>${escHtml(q.name)}</td>
+                <td>${q.category || '—'}</td>
+                <td>${stateBadge(q.state)}</td>
+                <td>${shortId(q.related_service_spec_id)}</td>
+                <td>${fmt(q.quote_date)}</td>
+                <td class="actions-cell">
+                    <button class="btn btn--ghost btn--sm" onclick="showQuoteDetail('${q.id}')">Detail</button>
+                    <button class="btn btn--secondary btn--sm" onclick="openQuoteTransition('${q.id}')">Transition</button>
+                    <button class="btn btn--danger btn--sm" onclick="deleteQuote('${q.id}')">Delete</button>
+                </td>
+            </tr>`).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state text-danger">${err.message}</td></tr>`;
+    }
+}
+
+async function showQuoteDetail(quoteId) {
+    const panel = document.getElementById('quote-detail-panel');
+    const body  = document.getElementById('quote-detail-body');
+    const title = document.getElementById('quote-detail-title');
+    body.innerHTML = '<p>Loading…</p>';
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+
+    const q = await QuoteClient.get(quoteId);
+    title.textContent = `Quote — ${q.name}`;
+
+    const itemsHtml = q.items && q.items.length
+        ? `<ul class="items-list">${q.items.map(i => `
+            <li>
+                <strong>${escHtml(i.description || i.action)}</strong>
+                <span class="badge" style="margin-left:4px">${i.action}</span>
+                ${i.item_price ? `<span style="margin-left:8px">💰 ${i.item_price} ${i.price_type || ''}</span>` : ''}
+                <span style="margin-left:8px">Qty: ${i.quantity || 1}</span>
+                <div class="item-meta">State: ${i.state} · ID: ${i.id.substring(0,8)}…
+                    <button class="btn btn--danger btn--sm" style="margin-left:8px" onclick="deleteQuoteItem('${quoteId}','${i.id}')">Remove</button>
+                </div>
+            </li>`).join('')}</ul>`
+        : '<p class="text-muted">No items.</p>';
+
+    body.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-md)">
+            <div><strong>State:</strong> ${stateBadge(q.state)}</div>
+            <div><strong>Category:</strong> ${q.category || '—'}</div>
+            <div><strong>Quote Date:</strong> ${fmt(q.quote_date)}</div>
+            <div><strong>Completion Date:</strong> ${fmt(q.completion_date)}</div>
+            <div><strong>Requested Completion:</strong> ${fmt(q.requested_completion_date)}</div>
+            <div><strong>Spec ID:</strong> ${q.related_service_spec_id || '—'}</div>
+        </div>
+        <h4>Quote Items</h4>
+        ${itemsHtml}
+        <div style="margin-top:var(--space-md)">
+            <button class="btn btn--secondary btn--sm" onclick="showAddItemForm('${quoteId}')">+ Add Item</button>
+        </div>
+        <div id="add-item-form-${quoteId}" style="display:none;margin-top:var(--space-sm)">
+            <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:flex-end">
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Action</label>
+                    <select id="item-action-${quoteId}" class="form-control" style="width:120px">
+                        <option value="add">add</option>
+                        <option value="modify">modify</option>
+                        <option value="delete">delete</option>
+                        <option value="noChange">noChange</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Price</label>
+                    <input id="item-price-${quoteId}" class="form-control" type="number" min="0" step="0.01" placeholder="0.00" style="width:100px">
+                </div>
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Price Type</label>
+                    <select id="item-price-type-${quoteId}" class="form-control" style="width:130px">
+                        <option value="">—</option>
+                        <option value="recurring">recurring</option>
+                        <option value="nonRecurring">nonRecurring</option>
+                        <option value="usage">usage</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Description</label>
+                    <input id="item-desc-${quoteId}" class="form-control" placeholder="Optional" style="width:180px">
+                </div>
+                <button class="btn btn--primary btn--sm" onclick="submitAddItem('${quoteId}')">Add</button>
+                <button class="btn btn--ghost btn--sm" onclick="hideAddItemForm('${quoteId}')">Cancel</button>
+            </div>
+        </div>`;
+}
+
+function showAddItemForm(quoteId) {
+    document.getElementById(`add-item-form-${quoteId}`).style.display = 'block';
+}
+function hideAddItemForm(quoteId) {
+    document.getElementById(`add-item-form-${quoteId}`).style.display = 'none';
+}
+
+async function submitAddItem(quoteId) {
+    const action    = document.getElementById(`item-action-${quoteId}`).value;
+    const price     = document.getElementById(`item-price-${quoteId}`).value;
+    const priceType = document.getElementById(`item-price-type-${quoteId}`).value || undefined;
+    const desc      = document.getElementById(`item-desc-${quoteId}`).value.trim() || undefined;
+    const body = { action };
+    if (price) body.item_price = parseFloat(price);
+    if (priceType) body.price_type = priceType;
+    if (desc) body.description = desc;
+    try {
+        await QuoteClient.items.create(quoteId, body);
+        showToast('Item added.', 'success');
+        showQuoteDetail(quoteId);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteQuoteItem(quoteId, itemId) {
+    if (!confirm('Remove this item?')) return;
+    try {
+        await QuoteClient.items.delete(quoteId, itemId);
+        showToast('Item removed.', 'success');
+        showQuoteDetail(quoteId);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function closeQuoteDetail() {
+    document.getElementById('quote-detail-panel').style.display = 'none';
+}
+
+function openQuoteTransition(quoteId) {
+    document.getElementById('qt-quote-id').value = quoteId;
+    document.getElementById('qt-state').value = '';
+    openModal('quote-transition-modal');
+}
+
+async function submitQuoteTransition() {
+    const quoteId = document.getElementById('qt-quote-id').value;
+    const state   = document.getElementById('qt-state').value;
+    if (!state) { showToast('Select a target state.', 'error'); return; }
+    try {
+        await QuoteClient.patch(quoteId, { state });
+        showToast(`Quote transitioned to ${state}.`, 'success');
+        closeModal('quote-transition-modal');
+        loadQuotes();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteQuote(quoteId) {
+    if (!confirm('Delete this quote?')) return;
+    try {
+        await QuoteClient.delete(quoteId);
+        showToast('Quote deleted.', 'success');
+        closeQuoteDetail();
+        loadQuotes();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function submitCreateQuote() {
+    const name    = document.getElementById('q-name').value.trim();
+    const desc    = document.getElementById('q-description').value.trim() || undefined;
+    const cat     = document.getElementById('q-category').value.trim() || undefined;
+    const specId  = document.getElementById('q-spec-id').value.trim() || undefined;
+    const compDt  = document.getElementById('q-completion-date').value || undefined;
+    if (!name) { showToast('Name is required.', 'error'); return; }
+    const body = { name };
+    if (desc)   body.description = desc;
+    if (cat)    body.category = cat;
+    if (specId) body.related_service_spec_id = specId;
+    if (compDt) body.requested_completion_date = new Date(compDt).toISOString();
+    try {
+        await QuoteClient.create(body);
+        showToast('Quote created.', 'success');
+        closeModal('quote-create-modal');
+        document.getElementById('q-name').value = '';
+        document.getElementById('q-description').value = '';
+        document.getElementById('q-category').value = '';
+        document.getElementById('q-spec-id').value = '';
+        document.getElementById('q-completion-date').value = '';
+        loadQuotes();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ── Agreements ────────────────────────────────────────────────────────────────
+
+async function loadAgreements() {
+    const state = document.getElementById('agreement-filter-state').value || undefined;
+    const type  = document.getElementById('agreement-filter-type').value || undefined;
+    const tbody = document.getElementById('agreements-tbody');
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Loading…</td></tr>';
+    try {
+        const items = await AgreementClient.list({ state, agreement_type: type });
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No agreements found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = items.map(a => `
+            <tr>
+                <td>${shortId(a.id)}</td>
+                <td>${escHtml(a.name)}</td>
+                <td>${a.agreement_type || '—'}</td>
+                <td>${stateBadge(a.state)}</td>
+                <td>${shortId(a.related_quote_id)}</td>
+                <td>${fmt(a.start_date)}</td>
+                <td>${fmt(a.end_date)}</td>
+                <td class="actions-cell">
+                    <button class="btn btn--ghost btn--sm" onclick="showAgreementDetail('${a.id}')">Detail</button>
+                    <button class="btn btn--secondary btn--sm" onclick="openAgreementTransition('${a.id}')">Transition</button>
+                    <button class="btn btn--danger btn--sm" onclick="deleteAgreement('${a.id}')">Delete</button>
+                </td>
+            </tr>`).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state text-danger">${err.message}</td></tr>`;
+    }
+}
+
+async function showAgreementDetail(agreementId) {
+    const panel = document.getElementById('agreement-detail-panel');
+    const body  = document.getElementById('agreement-detail-body');
+    const title = document.getElementById('agreement-detail-title');
+    body.innerHTML = '<p>Loading…</p>';
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+
+    const a = await AgreementClient.get(agreementId);
+    title.textContent = `Agreement — ${a.name}`;
+
+    const slasHtml = a.slas && a.slas.length
+        ? `<ul class="items-list">${a.slas.map(s => `
+            <li>
+                <strong>${escHtml(s.name)}</strong>
+                <span class="badge" style="margin-left:4px">${s.metric}</span>
+                <span style="margin-left:8px">Threshold: ${s.metric_threshold} ${s.metric_unit || ''}</span>
+                ${s.conformance_period ? `<span style="margin-left:8px">/ ${s.conformance_period}</span>` : ''}
+                <div class="item-meta">ID: ${s.id.substring(0,8)}…
+                    <button class="btn btn--danger btn--sm" style="margin-left:8px" onclick="deleteSla('${agreementId}','${s.id}')">Remove</button>
+                </div>
+            </li>`).join('')}</ul>`
+        : '<p class="text-muted">No SLA metrics.</p>';
+
+    body.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-md)">
+            <div><strong>State:</strong> ${stateBadge(a.state)}</div>
+            <div><strong>Type:</strong> ${a.agreement_type || '—'}</div>
+            <div><strong>Document:</strong> ${a.document_number || '—'} v${a.version || '1.0'}</div>
+            <div><strong>Status Changed:</strong> ${fmt(a.status_change_date)}</div>
+            <div><strong>Start Date:</strong> ${fmt(a.start_date)}</div>
+            <div><strong>End Date:</strong> ${fmt(a.end_date)}</div>
+            <div><strong>Quote ID:</strong> ${a.related_quote_id || '—'}</div>
+            <div><strong>Service ID:</strong> ${a.related_service_id || '—'}</div>
+        </div>
+        <h4>SLA Metrics</h4>
+        ${slasHtml}
+        <div style="margin-top:var(--space-md)">
+            <button class="btn btn--secondary btn--sm" onclick="openAddSla('${agreementId}')">+ Add SLA</button>
+        </div>`;
+}
+
+function openAddSla(agreementId) {
+    document.getElementById('sla-agreement-id').value = agreementId;
+    document.getElementById('sla-name').value = '';
+    document.getElementById('sla-metric').value = '';
+    document.getElementById('sla-threshold').value = '';
+    document.getElementById('sla-unit').value = '';
+    document.getElementById('sla-period').value = '';
+    document.getElementById('sla-description').value = '';
+    openModal('sla-add-modal');
+}
+
+async function submitAddSla() {
+    const agreementId = document.getElementById('sla-agreement-id').value;
+    const name        = document.getElementById('sla-name').value.trim();
+    const metric      = document.getElementById('sla-metric').value;
+    const threshold   = document.getElementById('sla-threshold').value;
+    const unit        = document.getElementById('sla-unit').value || undefined;
+    const period      = document.getElementById('sla-period').value || undefined;
+    const desc        = document.getElementById('sla-description').value.trim() || undefined;
+    if (!name || !metric || !threshold) {
+        showToast('Name, metric and threshold are required.', 'error');
+        return;
+    }
+    const body = { name, metric, metric_threshold: parseFloat(threshold) };
+    if (unit)   body.metric_unit = unit;
+    if (period) body.conformance_period = period;
+    if (desc)   body.description = desc;
+    try {
+        await AgreementClient.slas.create(agreementId, body);
+        showToast('SLA added.', 'success');
+        closeModal('sla-add-modal');
+        showAgreementDetail(agreementId);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteSla(agreementId, slaId) {
+    if (!confirm('Remove this SLA metric?')) return;
+    try {
+        await AgreementClient.slas.delete(agreementId, slaId);
+        showToast('SLA removed.', 'success');
+        showAgreementDetail(agreementId);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function closeAgreementDetail() {
+    document.getElementById('agreement-detail-panel').style.display = 'none';
+}
+
+function openAgreementTransition(agreementId) {
+    document.getElementById('agt-agreement-id').value = agreementId;
+    document.getElementById('agt-state').value = '';
+    openModal('agreement-transition-modal');
+}
+
+async function submitAgreementTransition() {
+    const agreementId = document.getElementById('agt-agreement-id').value;
+    const state       = document.getElementById('agt-state').value;
+    if (!state) { showToast('Select a target state.', 'error'); return; }
+    try {
+        await AgreementClient.patch(agreementId, { state });
+        showToast(`Agreement transitioned to ${state}.`, 'success');
+        closeModal('agreement-transition-modal');
+        loadAgreements();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteAgreement(agreementId) {
+    if (!confirm('Delete this agreement?')) return;
+    try {
+        await AgreementClient.delete(agreementId);
+        showToast('Agreement deleted.', 'success');
+        closeAgreementDetail();
+        loadAgreements();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function submitCreateAgreement() {
+    const name      = document.getElementById('ag-name').value.trim();
+    const desc      = document.getElementById('ag-description').value.trim() || undefined;
+    const type      = document.getElementById('ag-type').value || undefined;
+    const docNum    = document.getElementById('ag-doc-number').value.trim() || undefined;
+    const version   = document.getElementById('ag-version').value.trim() || undefined;
+    const quoteId   = document.getElementById('ag-quote-id').value.trim() || undefined;
+    const specId    = document.getElementById('ag-spec-id').value.trim() || undefined;
+    const serviceId = document.getElementById('ag-service-id').value.trim() || undefined;
+    const startDt   = document.getElementById('ag-start-date').value || undefined;
+    const endDt     = document.getElementById('ag-end-date').value || undefined;
+    if (!name) { showToast('Name is required.', 'error'); return; }
+    const body = { name };
+    if (desc)      body.description = desc;
+    if (type)      body.agreement_type = type;
+    if (docNum)    body.document_number = docNum;
+    if (version)   body.version = version;
+    if (quoteId)   body.related_quote_id = quoteId;
+    if (specId)    body.related_service_spec_id = specId;
+    if (serviceId) body.related_service_id = serviceId;
+    if (startDt)   body.start_date = new Date(startDt).toISOString();
+    if (endDt)     body.end_date = new Date(endDt).toISOString();
+    try {
+        await AgreementClient.create(body);
+        showToast('Agreement created.', 'success');
+        closeModal('agreement-create-modal');
+        loadAgreements();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ── XSS-safe escaping helper ──────────────────────────────────────────────────
+function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadQuotes();
+</script>
+</body>
+</html>

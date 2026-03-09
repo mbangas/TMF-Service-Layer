@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help — Commercial | TMF Service Layer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .help-content { max-width: 960px; margin: 0 auto; }
+
+        .help-intro {
+            background: var(--colour-primary-dim);
+            border: 1px solid var(--colour-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        .help-intro p { color: var(--colour-text-muted); margin-top: var(--space-sm); line-height: 1.8; }
+
+        .step-card { background: var(--colour-surface); border: 1px solid var(--colour-border); border-radius: var(--radius-lg); margin-bottom: var(--space-xl); overflow: hidden; }
+        .step-card__header { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-lg) var(--space-xl); background: var(--colour-surface-alt); border-bottom: 1px solid var(--colour-border); }
+        .step-number { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--colour-primary); color: white; font-weight: 700; font-size: var(--font-size-md); flex-shrink: 0; }
+        .step-card__title { font-size: var(--font-size-lg); font-weight: 700; color: var(--colour-text); }
+        .step-card__subtitle { font-size: var(--font-size-sm); color: var(--colour-text-muted); margin-top: 2px; }
+        .step-card__body { padding: var(--space-xl); }
+        .step-card__body p, .step-card__body li { color: var(--colour-text-muted); line-height: 1.8; }
+        .step-card__body ul, .step-card__body ol { padding-left: var(--space-xl); margin-top: var(--space-sm); }
+        .step-card__body li { margin-bottom: var(--space-xs); }
+        .step-card__body h4 { font-size: var(--font-size-base); font-weight: 600; color: var(--colour-text); margin-top: var(--space-lg); margin-bottom: var(--space-sm); }
+
+        .diagram-wrapper { background: var(--colour-bg); border: 1px solid var(--colour-border); border-radius: var(--radius-md); padding: var(--space-xl); margin: var(--space-lg) 0; overflow-x: auto; }
+        .diagram-wrapper figcaption { text-align: center; font-size: var(--font-size-xs); color: var(--colour-text-muted); margin-top: var(--space-sm); }
+
+        .api-block { background: #0d1117; border: 1px solid var(--colour-border); border-left: 3px solid var(--colour-primary); border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg); margin: var(--space-md) 0; font-family: var(--font-mono); font-size: var(--font-size-xs); color: #a5d6a7; overflow-x: auto; white-space: pre; line-height: 1.7; }
+
+        .callout { display: flex; gap: var(--space-md); padding: var(--space-md) var(--space-lg); border-radius: var(--radius-md); margin: var(--space-md) 0; }
+        .callout--info    { background: rgba(96,165,250,0.10); border-left: 3px solid var(--colour-info); }
+        .callout--warning { background: rgba(251,191,36,0.10);  border-left: 3px solid var(--colour-warning); }
+        .callout--success { background: rgba(52,211,153,0.10);  border-left: 3px solid var(--colour-success); }
+        .callout__icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout__text { font-size: var(--font-size-sm); color: var(--colour-text-muted); line-height: 1.7; }
+        .callout__text strong { color: var(--colour-text); }
+
+        .state-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+        .state-table th, .state-table td { border: 1px solid var(--colour-border); padding: 7px 12px; text-align: left; }
+        .state-table th { background: var(--colour-surface-alt); font-weight: 600; color: var(--colour-text); }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-title">TMF Service Layer</div>
+            <div class="sidebar__logo-subtitle">ODA / Frameworx</div>
+        </div>
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-section">Modules</div>
+            <a class="sidebar__nav-link" href="index.html"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a class="sidebar__nav-link" href="catalog.html"><span class="nav-icon">📋</span> Catalog</a>
+            <a class="sidebar__nav-link" href="orders.html"><span class="nav-icon">📦</span> Orders</a>
+            <a class="sidebar__nav-link" href="inventory.html"><span class="nav-icon">🗄️</span> Inventory</a>
+            <a class="sidebar__nav-link" href="provisioning.html"><span class="nav-icon">⚙️</span> Provisioning</a>
+            <a class="sidebar__nav-link" href="qualification.html"><span class="nav-icon">✅</span> Qualification</a>
+            <a class="sidebar__nav-link" href="assurance.html"><span class="nav-icon">📊</span> Assurance</a>
+            <a class="sidebar__nav-link" href="testing.html"><span class="nav-icon">🔬</span> Testing</a>
+            <a class="sidebar__nav-link" href="problems.html"><span class="nav-icon">🚨</span> Problems</a>
+            <a class="sidebar__nav-link active" href="commercial.html"><span class="nav-icon">💼</span> Commercial</a>
+        </nav>
+        <div class="sidebar__footer">
+            <a class="sidebar__nav-link" href="apis.html"><span class="nav-icon">🔌</span> APIs</a>
+            <a class="sidebar__nav-link" href="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <div>
+                <div class="topbar__title">Commercial — Help</div>
+                <div class="topbar__subtitle">TMF648 Quote Management · TMF651 Agreement Management</div>
+            </div>
+            <div class="topbar__actions">
+                <a href="commercial.html" class="btn btn--primary btn--sm">← Back to Commercial</a>
+            </div>
+        </div>
+
+        <div class="page-body">
+        <div class="help-content">
+
+            <!-- Intro -->
+            <div class="help-intro">
+                <h2>💼 Commercial Module Guide</h2>
+                <p>
+                    The <strong>Commercial</strong> module implements the TM Forum pre-sales and contracting domain,
+                    covering <strong>TMF648 Quote Management</strong> and <strong>TMF651 Agreement Management</strong>.
+                    It closes the lifecycle loop: <em>ServiceSpecification → ServiceQualification → Quote → Agreement → ServiceOrder</em>.
+                </p>
+            </div>
+
+            <!-- Step 1 — Create a Quote -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-card__title">Create a Quote (TMF648)</div>
+                        <div class="step-card__subtitle">Generate a commercial quote linked to a ServiceSpecification</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Click <strong>+ New Quote</strong> from the main toolbar to open the creation form.</p>
+                    <ul>
+                        <li><strong>Name</strong> — a human-readable label for the quote (required).</li>
+                        <li><strong>Category</strong> — optional grouping (e.g., <code>enterprise</code>, <code>residential</code>).</li>
+                        <li><strong>Service Spec ID</strong> — link to a <code>ServiceSpecification</code> from the Catalog module.</li>
+                        <li><strong>Requested Completion Date</strong> — optional commercial deadline.</li>
+                    </ul>
+                    <p>A new quote starts in the <code>inProgress</code> state.</p>
+                    <div class="api-block">POST /tmf-api/quoteManagement/v4/quote
+{
+  "name": "Enterprise Fiber 1 Gbps",
+  "category": "enterprise",
+  "related_service_spec_id": "&lt;spec-uuid&gt;"
+}</div>
+                </div>
+            </div>
+
+            <!-- Step 2 — Quote state machine -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-card__title">Quote State Machine</div>
+                        <div class="step-card__subtitle">Manage the quote lifecycle</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Use the <strong>Transition</strong> button on any quote row to change its state:</p>
+                    <table class="state-table">
+                        <thead><tr><th>From</th><th>To</th><th>Meaning</th></tr></thead>
+                        <tbody>
+                            <tr><td>inProgress</td><td>pending</td><td>Quote submitted for review</td></tr>
+                            <tr><td>inProgress</td><td>cancelled</td><td>Cancelled before review</td></tr>
+                            <tr><td>pending</td><td>approved</td><td>Internally approved</td></tr>
+                            <tr><td>pending</td><td>rejected</td><td>Rejected — <code>completion_date</code> auto-set</td></tr>
+                            <tr><td>pending</td><td>inProgress</td><td>Returned for revision</td></tr>
+                            <tr><td>approved</td><td>accepted</td><td>Customer accepted — <code>completion_date</code> auto-set</td></tr>
+                            <tr><td>approved</td><td>cancelled</td><td>Cancelled after approval</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="callout callout--info">
+                        <span class="callout__icon">ℹ️</span>
+                        <div class="callout__text">Terminal states are <strong>accepted</strong>, <strong>rejected</strong>, and <strong>cancelled</strong>. No further transitions are permitted.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 — Quote Items -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-card__title">Manage Quote Items</div>
+                        <div class="step-card__subtitle">Add, view, and remove line items from a quote</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Click <strong>Detail</strong> on any quote to expand its item list. Use <strong>+ Add Item</strong> inline to append a new line item.</p>
+                    <ul>
+                        <li><strong>Action</strong> — <code>add | modify | delete | noChange</code></li>
+                        <li><strong>Price</strong> — optional unit price (e.g., <code>150.00</code>).</li>
+                        <li><strong>Price Type</strong> — <code>recurring | nonRecurring | usage</code></li>
+                        <li><strong>Description</strong> — free-text line description.</li>
+                    </ul>
+                    <div class="api-block">POST /tmf-api/quoteManagement/v4/quote/{quote_id}/quoteItem
+{
+  "action": "add",
+  "item_price": 150.00,
+  "price_type": "recurring",
+  "description": "Monthly 1 Gbps port fee"
+}</div>
+                </div>
+            </div>
+
+            <!-- Step 4 — Create an Agreement -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-card__title">Create an Agreement (TMF651)</div>
+                        <div class="step-card__subtitle">Formalise a commercial or technical contract</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Click <strong>+ New Agreement</strong> from the Agreements tab toolbar.</p>
+                    <ul>
+                        <li><strong>Agreement Type</strong> — <code>commercial | technical | SLA</code></li>
+                        <li><strong>Related Quote ID</strong> — link to the accepted Quote (optional).</li>
+                        <li><strong>Service Spec ID</strong> — link to the governing ServiceSpecification (optional).</li>
+                        <li><strong>Service Instance ID</strong> — link to the provisioned Service in Inventory (optional).</li>
+                        <li><strong>Start / End Dates</strong> — contract validity period.</li>
+                    </ul>
+                    <div class="api-block">POST /tmf-api/agreementManagement/v4/agreement
+{
+  "name": "Enterprise Fiber SLA Agreement",
+  "agreement_type": "SLA",
+  "related_quote_id": "&lt;quote-uuid&gt;",
+  "start_date": "2026-04-01T00:00:00Z",
+  "end_date": "2027-03-31T23:59:59Z"
+}</div>
+                </div>
+            </div>
+
+            <!-- Step 5 — Agreement state machine -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">5</div>
+                    <div>
+                        <div class="step-card__title">Agreement State Machine</div>
+                        <div class="step-card__subtitle">Activate, expire, or terminate agreements</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <table class="state-table">
+                        <thead><tr><th>From</th><th>To</th><th>Meaning</th></tr></thead>
+                        <tbody>
+                            <tr><td>inProgress</td><td>active</td><td>Agreement activated — <code>status_change_date</code> auto-set</td></tr>
+                            <tr><td>inProgress</td><td>cancelled</td><td>Withdrawn before activation</td></tr>
+                            <tr><td>active</td><td>expired</td><td>Contract reached its end date</td></tr>
+                            <tr><td>active</td><td>terminated</td><td>Early termination by either party</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Step 6 — SLA metrics -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">6</div>
+                    <div>
+                        <div class="step-card__title">Manage SLA Metrics</div>
+                        <div class="step-card__subtitle">Add contractual SLA commitments to an agreement</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <p>Open an agreement detail panel and click <strong>+ Add SLA</strong>. Each SLA metric defines a single contractual threshold.</p>
+                    <ul>
+                        <li><strong>Metric</strong> — <code>availability | latency | throughput | mttr | packetLoss | jitter</code></li>
+                        <li><strong>Threshold</strong> — the contractual SLA target value (e.g., <code>99.9</code>).</li>
+                        <li><strong>Unit</strong> — <code>percent | ms | Mbps | hours</code></li>
+                        <li><strong>Conformance Period</strong> — <code>daily | weekly | monthly</code></li>
+                    </ul>
+                    <div class="callout callout--warning">
+                        <span class="callout__icon">⚠️</span>
+                        <div class="callout__text">
+                            <strong>Note:</strong> SLA metrics here are <em>contractual commitments</em> (per Agreement).
+                            Operational SLA monitoring thresholds live in the Assurance module (TMF657 SLOs) — they are distinct objects.
+                        </div>
+                    </div>
+                    <div class="api-block">POST /tmf-api/agreementManagement/v4/agreement/{agreement_id}/agreementItem
+{
+  "name": "Availability SLA",
+  "metric": "availability",
+  "metric_threshold": 99.9,
+  "metric_unit": "percent",
+  "conformance_period": "monthly"
+}</div>
+                </div>
+            </div>
+
+            <!-- Step 7 — Lifecycle overview -->
+            <div class="step-card">
+                <div class="step-card__header">
+                    <div class="step-number">7</div>
+                    <div>
+                        <div class="step-card__title">End-to-End Lifecycle</div>
+                        <div class="step-card__subtitle">How Commercial connects to other modules</div>
+                    </div>
+                </div>
+                <div class="step-card__body">
+                    <div class="diagram-wrapper">
+                        <pre style="text-align:center;color:var(--colour-text-muted);font-family:var(--font-mono);font-size:var(--font-size-xs)">
+ServiceSpecification (Catalog)
+        │
+        ▼
+ServiceQualification (Qualification)
+        │
+        ▼
+   Quote (TMF648)  ──items──→  QuoteItem
+        │
+      accepted
+        │
+        ▼
+  Agreement (TMF651)  ──slas──→  ServiceLevelAgreement
+        │
+      active
+        │
+        ▼
+  ServiceOrder (Order Management) → Service (Inventory)
+                        </pre>
+                        <figcaption>Pre-sales → contract → delivery flow</figcaption>
+                    </div>
+                    <div class="callout callout--success">
+                        <span class="callout__icon">✅</span>
+                        <div class="callout__text">
+                            The Quote-to-ServiceOrder automation (accepting a quote auto-creating a service order) is
+                            planned as a future cross-domain integration point and is currently out of scope.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /help-content -->
+        </div><!-- /page-body -->
+    </main>
+</div>
+</body>
+</html>

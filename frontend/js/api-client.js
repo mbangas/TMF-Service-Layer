@@ -925,3 +925,153 @@ const ServiceProblemClient = {
         return apiDelete(`${PROBLEM_BASE}/${id}`);
     },
 };
+
+/* ── QuoteClient (TMF648) ─────────────────────────────────────────────────── */
+
+const QUOTE_BASE = '/tmf-api/quoteManagement/v4/quote';
+
+const QuoteClient = {
+    /**
+     * List quotes with optional filters.
+     * @param {{ state?: string, category?: string, related_service_spec_id?: string, offset?: number, limit?: number }} params
+     */
+    list(params = {}) {
+        return apiGet(QUOTE_BASE, params);
+    },
+
+    /**
+     * Get a single quote by ID (includes items).
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${QUOTE_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new quote.
+     * @param {{ name: string, description?: string, category?: string, requested_completion_date?: string, related_service_spec_id?: string, items?: Array }} body
+     */
+    create(body) {
+        return apiPost(QUOTE_BASE, body);
+    },
+
+    /**
+     * Patch a quote (e.g. state transition or field updates).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${QUOTE_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete a quote.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${QUOTE_BASE}/${id}`);
+    },
+
+    items: {
+        /**
+         * List items for a quote.
+         * @param {string} quoteId
+         */
+        list(quoteId) {
+            return apiGet(`${QUOTE_BASE}/${quoteId}/quoteItem`);
+        },
+
+        /**
+         * Add an item to a quote.
+         * @param {string} quoteId
+         * @param {{ action?: string, quantity?: number, item_price?: number, price_type?: string, description?: string, related_service_spec_id?: string }} body
+         */
+        create(quoteId, body) {
+            return apiPost(`${QUOTE_BASE}/${quoteId}/quoteItem`, body);
+        },
+
+        /**
+         * Delete a quote item.
+         * @param {string} quoteId
+         * @param {string} itemId
+         */
+        delete(quoteId, itemId) {
+            return apiDelete(`${QUOTE_BASE}/${quoteId}/quoteItem/${itemId}`);
+        },
+    },
+};
+
+/* ── AgreementClient (TMF651) ────────────────────────────────────────────── */
+
+const AGREEMENT_BASE = '/tmf-api/agreementManagement/v4/agreement';
+
+const AgreementClient = {
+    /**
+     * List agreements with optional filters.
+     * @param {{ state?: string, agreement_type?: string, related_service_spec_id?: string, offset?: number, limit?: number }} params
+     */
+    list(params = {}) {
+        return apiGet(AGREEMENT_BASE, params);
+    },
+
+    /**
+     * Get a single agreement by ID (includes SLAs).
+     * @param {string} id
+     */
+    get(id) {
+        return apiGet(`${AGREEMENT_BASE}/${id}`);
+    },
+
+    /**
+     * Create a new agreement.
+     * @param {{ name: string, description?: string, agreement_type?: string, related_quote_id?: string, related_service_id?: string, related_service_spec_id?: string, slas?: Array }} body
+     */
+    create(body) {
+        return apiPost(AGREEMENT_BASE, body);
+    },
+
+    /**
+     * Patch an agreement (e.g. state transition or field updates).
+     * @param {string} id
+     * @param {object} body
+     */
+    patch(id, body) {
+        return apiPatch(`${AGREEMENT_BASE}/${id}`, body);
+    },
+
+    /**
+     * Delete an agreement.
+     * @param {string} id
+     */
+    delete(id) {
+        return apiDelete(`${AGREEMENT_BASE}/${id}`);
+    },
+
+    slas: {
+        /**
+         * List SLA metrics for an agreement.
+         * @param {string} agreementId
+         */
+        list(agreementId) {
+            return apiGet(`${AGREEMENT_BASE}/${agreementId}/agreementItem`);
+        },
+
+        /**
+         * Add an SLA metric to an agreement.
+         * @param {string} agreementId
+         * @param {{ name: string, metric: string, metric_threshold: number, metric_unit?: string, conformance_period?: string, description?: string }} body
+         */
+        create(agreementId, body) {
+            return apiPost(`${AGREEMENT_BASE}/${agreementId}/agreementItem`, body);
+        },
+
+        /**
+         * Delete an SLA metric from an agreement.
+         * @param {string} agreementId
+         * @param {string} slaId
+         */
+        delete(agreementId, slaId) {
+            return apiDelete(`${AGREEMENT_BASE}/${agreementId}/agreementItem/${slaId}`);
+        },
+    },
+};

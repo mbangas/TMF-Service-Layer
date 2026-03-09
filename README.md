@@ -21,7 +21,7 @@ This application implements the following functional domains:
 | Testing | Automated service test and validation | TMF653 | ✅ Implemented |
 | **Service Dependencies** | **Spec, order-item, and service relationships (CFS↔RFS topology)** | **TMF633, TMF638, TMF641** | **✅ Implemented** |
 | Problem Management | Incidents, trouble tickets, root cause | TMF621, TMF656 | ✅ Implemented |
-| Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | 📋 Planned |
+| Commercial Support | Quotes, agreements, SLAs | TMF648, TMF651 | ✅ Implemented |
 
 For the full mapping of ODA components → TMF APIs → SID entities, see [docs/TMF-reference.md](docs/TMF-reference.md).
 
@@ -65,7 +65,7 @@ The **Service Inventory** module tracks all active (and historical) service inst
 | Phase 8 (TMFC006) | TMF633/TMF638 Characteristic Management — `CharacteristicValueSpecification` + `CharacteristicValue` standalone CRUD | ✅ Done |
 | **Phase 9** | **SID GB922 / TMF633 / TMF641 / TMF638 Service Dependency Modeling — `ServiceSpecRelationship`, `ServiceOrderItemRelationship`, `ServiceRelationship` with CFS→RFS auto-propagation** | **✅ Done** |
 | Phase 10 | TMF621 / TMF656 Trouble Ticket & Problem Management | ✅ Done |
-| Phase 11 | TMF648 / TMF651 Quote & Agreement Management | 📋 Planned |
+| Phase 11 | TMF648 / TMF651 Quote & Agreement Management | ✅ Done |
 | Phase 12 | Auth hardening (JWT + RBAC), CI/CD, production hardening | 📋 Planned |
 
 ---
